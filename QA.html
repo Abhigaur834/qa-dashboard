@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QA Quality Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{--bg:#0b0f1a;--surface:#141928;--surface2:#1c2438;--border:#252e45;--accent:#4f8ef7;--accent2:#f7c14f;--critical:#f74f6a;--success:#4ff7a0;--warning:#f7a14f;--purple:#a78bfa;--text:#e8edf8;--muted:#6b7a9e;--font-head:'Syne',sans-serif;--font-body:'DM Sans',sans-serif;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:var(--font-body);min-height:100vh;}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 20% 20%,rgba(79,142,247,.07) 0%,transparent 50%),radial-gradient(ellipse at 80% 80%,rgba(247,193,79,.05) 0%,transparent 50%);pointer-events:none;z-index:0;}
+.app{position:relative;z-index:1;display:flex;flex-direction:column;min-height:100vh;}
+.top-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 24px;display:flex;align-items:center;}
+.logo{font-family:var(--font-head);font-weight:800;font-size:16px;letter-spacing:-.3px;padding:18px 0;margin-right:28px;white-space:nowrap;color:var(--text);}
+.logo span{color:var(--accent);}
+.nav-tabs{display:flex;}
+.nav-tab{padding:18px 16px;font-family:var(--font-head);font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .2s;background:none;border-top:none;border-left:none;border-right:none;white-space:nowrap;}
+.nav-tab:hover{color:var(--text);}
+.nav-tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+.tab-badge{background:var(--surface2);color:var(--muted);font-size:10px;padding:1px 6px;border-radius:10px;margin-left:5px;}
+.nav-tab.active .tab-badge{background:rgba(79,142,247,.15);color:var(--accent);}
+.top-bar-right{margin-left:auto;display:flex;gap:8px;align-items:center;}
+.content{flex:1;padding:22px 24px;max-width:1380px;margin:0 auto;width:100%;}
+.tab-panel{display:none;animation:fadeIn .2s;}
+.tab-panel.active{display:block;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.sec-title{font-family:var(--font-head);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);margin-bottom:12px;}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+.card-hdr{padding:13px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.card-title{font-family:var(--font-head);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
+.mb4{margin-bottom:16px;}
+.mb6{margin-bottom:22px;}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px;position:relative;overflow:hidden;transition:transform .2s;}
+.stat-card:hover{transform:translateY(-2px);}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
+.s-blue::before{background:var(--accent);}
+.s-red::before{background:var(--critical);}
+.s-green::before{background:var(--success);}
+.s-yellow::before{background:var(--accent2);}
+.s-purple::before{background:var(--purple);}
+.s-label{font-size:10px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);margin-bottom:8px;}
+.s-val{font-family:var(--font-head);font-size:32px;font-weight:800;line-height:1;}
+.s-sub{font-size:11px;color:var(--muted);margin-top:4px;}
+/* meta */
+.meta-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px;margin-bottom:20px;}
+.meta-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;}
+.meta-card label{display:block;font-size:10px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);margin-bottom:5px;}
+.meta-card input,.meta-card select{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:var(--font-body);font-size:13px;padding:5px 9px;outline:none;transition:border-color .2s;}
+.meta-card input:focus,.meta-card select:focus{border-color:var(--accent);}
+.score-dash{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px;}
+.sc-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px;position:relative;overflow:hidden;transition:transform .2s;}
+.sc-card:hover{transform:translateY(-2px);}
+.sc-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
+.sct::before{background:linear-gradient(90deg,var(--accent),var(--accent2));}
+.scnc::before{background:var(--accent);}
+.sccr::before{background:var(--critical);}
+.scres::before{background:var(--success);}
+.sc-card .sc-label{font-size:10px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);margin-bottom:8px;}
+.sc-card .sc-val{font-family:var(--font-head);font-size:36px;font-weight:800;line-height:1;margin-bottom:4px;}
+.sct .sc-val{color:var(--accent2);}
+.scnc .sc-val{color:var(--accent);}
+.sccr .sc-val{color:var(--critical);}
+.scres .sc-val{color:var(--success);}
+.sc-card .sc-sub{font-size:11px;color:var(--muted);}
+.pbar{height:4px;background:var(--border);border-radius:4px;margin-top:10px;overflow:hidden;}
+.pfill{height:100%;border-radius:4px;transition:width .6s;}
+.sct .pfill{background:linear-gradient(90deg,var(--accent),var(--accent2));}
+.scnc .pfill{background:var(--accent);}
+.sccr .pfill{background:var(--critical);}
+.scres .pfill{background:var(--success);}
+.sections-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px;}
+.sec-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+.sec-hdr{display:flex;align-items:center;padding:13px 18px;border-bottom:1px solid var(--border);}
+.sec-hdr-title{font-family:var(--font-head);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;}
+.sbadge{font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;text-transform:uppercase;letter-spacing:.8px;margin-left:auto;}
+.nc-badge{background:rgba(79,142,247,.15);color:var(--accent);}
+.cr-badge{background:rgba(247,79,106,.15);color:var(--critical);}
+.param-row{display:grid;grid-template-columns:1fr auto;align-items:center;padding:10px 18px;border-bottom:1px solid var(--border);gap:10px;transition:background .15s;}
+.param-row:hover{background:rgba(255,255,255,.02);}
+.param-row:last-child{border-bottom:none;}
+.pgh{background:rgba(79,142,247,.05);padding:7px 18px;border-bottom:1px solid var(--border);}
+.pgl{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--accent);}
+.pl{font-size:12px;color:var(--text);line-height:1.4;}
+.rg{display:flex;gap:5px;align-items:center;}
+.br{width:30px;height:30px;border-radius:6px;border:1px solid var(--border);background:var(--surface2);color:var(--muted);cursor:pointer;font-size:12px;font-weight:600;font-family:var(--font-head);transition:all .15s;display:flex;align-items:center;justify-content:center;}
+.br:hover{border-color:var(--accent);color:var(--accent);}
+.br.ay{background:rgba(79,247,160,.15);border-color:var(--success);color:var(--success);}
+.br.an{background:rgba(247,79,106,.15);border-color:var(--critical);color:var(--critical);}
+.br.ana{background:rgba(107,122,158,.15);border-color:var(--muted);color:var(--muted);}
+.bg2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
+.tc{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+.tc-hdr{padding:12px 18px;border-bottom:1px solid var(--border);font-family:var(--font-head);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);}
+.tc textarea{width:100%;background:transparent;border:none;color:var(--text);font-family:var(--font-body);font-size:13px;padding:12px 18px;resize:vertical;min-height:90px;outline:none;line-height:1.6;}
+.tc textarea::placeholder{color:var(--muted);}
+.fc{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:16px;}
+.fc-hdr{padding:12px 18px;border-bottom:1px solid var(--border);font-family:var(--font-head);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);}
+.fc textarea{width:100%;background:transparent;border:none;color:var(--text);font-family:var(--font-body);font-size:13px;padding:12px 18px;resize:vertical;min-height:75px;outline:none;line-height:1.6;}
+.fc textarea::placeholder{color:var(--muted);}
+.table-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;}
+thead th{padding:10px 14px;text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);font-weight:600;border-bottom:1px solid var(--border);background:var(--surface2);white-space:nowrap;}
+tbody tr{border-bottom:1px solid var(--border);transition:background .15s;}
+tbody tr:last-child{border-bottom:none;}
+tbody tr:hover{background:rgba(255,255,255,.025);}
+tbody td{padding:10px 14px;font-size:13px;color:var(--text);}
+.sbc{min-width:110px;}
+.sbw{display:flex;align-items:center;gap:7px;}
+.smb{flex:1;height:5px;background:var(--border);border-radius:3px;overflow:hidden;}
+.smf{height:100%;border-radius:3px;transition:width .6s;}
+.sv{font-family:var(--font-head);font-size:12px;font-weight:700;min-width:34px;text-align:right;}
+.tag{padding:2px 9px;border-radius:20px;font-size:10px;font-weight:700;font-family:var(--font-head);display:inline-block;}
+.tp{background:rgba(79,247,160,.15);color:var(--success);}
+.tf{background:rgba(247,79,106,.15);color:var(--critical);}
+.tr{background:rgba(247,161,79,.15);color:var(--warning);}
+.tnc{background:rgba(79,142,247,.12);color:var(--accent);}
+.tcr{background:rgba(247,79,106,.12);color:var(--critical);}
+.btn{padding:8px 18px;border-radius:8px;font-family:var(--font-head);font-size:11px;font-weight:700;letter-spacing:.5px;cursor:pointer;border:none;transition:all .2s;display:inline-flex;align-items:center;gap:5px;}
+.btn-outline{background:transparent;border:1px solid var(--border);color:var(--muted);}
+.btn-outline:hover{border-color:var(--accent);color:var(--accent);}
+.btn-primary{background:var(--accent);color:white;}
+.btn-primary:hover{background:#6ba2f9;transform:translateY(-1px);}
+.btn-success{background:rgba(79,247,160,.15);border:1px solid rgba(79,247,160,.3);color:var(--success);}
+.btn-success:hover{background:rgba(79,247,160,.25);}
+.btn-excel{background:rgba(79,197,79,.12);border:1px solid rgba(79,197,79,.3);color:#4fc74f;}
+.btn-excel:hover{background:rgba(79,197,79,.22);}
+.btn-danger{background:rgba(247,79,106,.1);border:1px solid rgba(247,79,106,.25);color:var(--critical);}
+.btn-danger:hover{background:rgba(247,79,106,.2);}
+.btn-sm{padding:5px 12px;font-size:10px;}
+.abar{display:flex;gap:8px;justify-content:flex-end;padding-top:6px;flex-wrap:wrap;}
+.pt-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:18px;}
+.pt-hdr{padding:13px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.filter-bar{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center;}
+.filter-bar input,.filter-bar select{background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:var(--font-body);font-size:12px;padding:7px 10px;outline:none;}
+.filter-bar input:focus,.filter-bar select:focus{border-color:var(--accent);}
+.arc{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;}
+.arc-rank{position:absolute;top:12px;right:12px;font-family:var(--font-head);font-size:24px;font-weight:800;opacity:.07;}
+.arc-name{font-family:var(--font-head);font-weight:700;font-size:14px;margin-bottom:3px;}
+.arc-meta{font-size:11px;color:var(--muted);margin-bottom:10px;}
+.arc-score{font-family:var(--font-head);font-size:32px;font-weight:800;line-height:1;margin-bottom:4px;}
+.ten-badge{font-size:10px;padding:2px 8px;border-radius:20px;background:rgba(167,139,250,.12);color:var(--purple);font-weight:600;}
+.chart-wrap{padding:18px;}
+.p-legend{display:flex;gap:16px;padding:0 18px 14px;flex-wrap:wrap;}
+.p-leg-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted);}
+.p-leg-dot{width:9px;height:9px;border-radius:2px;}
+.empty-state{text-align:center;padding:50px 20px;color:var(--muted);}
+.empty-state .ei{font-size:42px;margin-bottom:10px;}
+.empty-state h3{font-family:var(--font-head);font-size:15px;color:var(--text);margin-bottom:5px;}
+#toast{position:fixed;bottom:22px;right:22px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:11px 18px;font-size:13px;font-weight:500;z-index:9999;transform:translateY(80px);opacity:0;transition:all .3s;max-width:280px;}
+#toast.show{transform:none;opacity:1;}
+#toast.ts{border-color:rgba(79,247,160,.4);color:var(--success);}
+#toast.te{border-color:rgba(247,79,106,.4);color:var(--critical);}
+.adr{display:none;background:var(--surface2);}
+.adr td{padding:12px 14px;}
+.adr.open{display:table-row;}
+.dgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+.di label{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);}
+.di p{font-size:12px;margin-top:2px;}
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+::-webkit-scrollbar-thumb:hover{background:var(--muted);}
+@media(max-width:900px){.score-dash,.g4{grid-template-columns:1fr 1fr;}.sections-grid,.bg2,.g2,.g3{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<div class="app">
+<div class="top-bar">
+  <div class="logo">QA<span>.</span>Hub</div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="switchTab('scorecard',this)">📋 Scorecard</button>
+    <button class="nav-tab" onclick="switchTab('auditlog',this)">📁 Audit Log <span class="tab-badge" id="auditBadge">0</span></button>
+    <button class="nav-tab" onclick="switchTab('performance',this)">📊 Agent Performance</button>
+    <button class="nav-tab" onclick="switchTab('pareto',this)">📉 Pareto Analysis</button>
+  </div>
+  <div class="top-bar-right">
+    <button class="btn btn-excel" onclick="exportAllExcel()">⬇ Export All to Excel</button>
+  </div>
+</div>
+
+<div class="content">
+
+<!-- ════ TAB 1: SCORECARD ════ -->
+<div id="tab-scorecard" class="tab-panel active">
+  <div class="meta-grid">
+    <div class="meta-card"><label>Agent Name</label><input type="text" id="agentName" placeholder="Enter agent name"></div>
+    <div class="meta-card"><label>Reviewer Name</label><input type="text" id="reviewerName" placeholder="Reviewer name"></div>
+    <div class="meta-card"><label>Date of Evaluation</label><input type="date" id="evalDate"></div>
+    <div class="meta-card"><label>Call / Chat ID</label><input type="text" id="callId" placeholder="e.g. CHT-00421"></div>
+    <div class="meta-card"><label>Channel</label><select id="channel"><option value="">Select channel</option><option>Inbound Call</option><option>Outbound Call</option><option>Live Chat</option><option>Email</option></select></div>
+    <div class="meta-card"><label>Team / Queue</label><input type="text" id="team" placeholder="e.g. Sales"></div>
+    <div class="meta-card"><label>Tenure (months)</label><input type="number" id="tenure" placeholder="e.g. 6" min="0"></div>
+    <div class="meta-card"><label>Language</label><input type="text" id="agentLang" placeholder="e.g. English"></div>
+  </div>
+
+  <div class="score-dash">
+    <div class="sc-card sct"><div class="sc-label">Overall Score</div><div class="sc-val" id="totalScore">—</div><div class="sc-sub">out of 100%</div><div class="pbar"><div class="pfill" id="totalBar" style="width:0%"></div></div></div>
+    <div class="sc-card scnc"><div class="sc-label">Non-Critical</div><div class="sc-val" id="ncScore">—</div><div class="sc-sub">weighted 40%</div><div class="pbar"><div class="pfill" id="ncBar" style="width:0%"></div></div></div>
+    <div class="sc-card sccr"><div class="sc-label">Critical</div><div class="sc-val" id="crScore">—</div><div class="sc-sub">weighted 60%</div><div class="pbar"><div class="pfill" id="crBar" style="width:0%"></div></div></div>
+    <div class="sc-card scres"><div class="sc-label">Final Result</div><div class="sc-val" id="resultVal">—</div><div class="sc-sub" id="resultSub">Awaiting scores</div><div class="pbar"><div class="pfill" id="resultBar" style="width:0%"></div></div></div>
+  </div>
+
+  <div class="sections-grid">
+    <div class="sec-card">
+      <div class="sec-hdr"><div class="sec-hdr-title">Non-Critical Parameters</div><span class="sbadge nc-badge">Non-Critical</span></div>
+      <div class="pgh"><div class="pgl">Call Opening / Closing</div></div>
+      <div class="param-row" data-key="nc1"><div class="pl">Standard opening & customer name confirmation</div><div class="rg"><button class="br" onclick="rate(this,'yes','nc1')">Y</button><button class="br" onclick="rate(this,'no','nc1')">N</button><button class="br" onclick="rate(this,'na','nc1')">N/A</button></div></div>
+      <div class="param-row" data-key="nc2"><div class="pl">Summarization</div><div class="rg"><button class="br" onclick="rate(this,'yes','nc2')">Y</button><button class="br" onclick="rate(this,'no','nc2')">N</button><button class="br" onclick="rate(this,'na','nc2')">N/A</button></div></div>
+      <div class="param-row" data-key="nc3"><div class="pl">Further assistance offered</div><div class="rg"><button class="br" onclick="rate(this,'yes','nc3')">Y</button><button class="br" onclick="rate(this,'no','nc3')">N</button><button class="br" onclick="rate(this,'na','nc3')">N/A</button></div></div>
+      <div class="param-row" data-key="nc4"><div class="pl">Prescribed call closing</div><div class="rg"><button class="br" onclick="rate(this,'yes','nc4')">Y</button><button class="br" onclick="rate(this,'no','nc4')">N</button><button class="br" onclick="rate(this,'na','nc4')">N/A</button></div></div>
+      <div class="pgh"><div class="pgl">Issue Identification</div></div>
+      <div class="param-row" data-key="nc5"><div class="pl">Paraphrasing to ensure agent/customer alignment</div><div class="rg"><button class="br" onclick="rate(this,'yes','nc5')">Y</button><button class="br" onclick="rate(this,'no','nc5')">N</button><button class="br" onclick="rate(this,'na','nc5')">N/A</button></div></div>
+      <div class="param-row" data-key="nc6"><div class="pl">Customer VOC understood and acknowledged</div><div class="rg"><button class="br" onclick="rate(this,'yes','nc6')">Y</button><button class="br" onclick="rate(this,'no','nc6')">N</button><button class="br" onclick="rate(this,'na','nc6')">N/A</button></div></div>
+      <div class="param-row" data-key="nc7"><div class="pl">Relevant probing questions were asked</div><div class="rg"><button class="br" onclick="rate(this,'yes','nc7')">Y</button><button class="br" onclick="rate(this,'no','nc7')">N</button><button class="br" onclick="rate(this,'na','nc7')">N/A</button></div></div>
+      <div class="pgh"><div class="pgl">Customer Experience</div></div>
+      <div class="param-row" data-key="nc8"><div class="pl">Active Listening / Reading Demonstration</div><div class="rg"><button class="br" onclick="rate(this,'yes','nc8')">Y</button><button class="br" onclick="rate(this,'no','nc8')">N</button><button class="br" onclick="rate(this,'na','nc8')">N/A</button></div></div>
+      <div class="param-row" data-key="nc9"><div class="pl">Hold and Dead Air SLA Followed</div><div class="rg"><button class="br" onclick="rate(this,'yes','nc9')">Y</button><button class="br" onclick="rate(this,'no','nc9')">N</button><button class="br" onclick="rate(this,'na','nc9')">N/A</button></div></div>
+      <div class="param-row" data-key="nc10"><div class="pl">Apologies, Empathy, and Politeness Demonstrated</div><div class="rg"><button class="br" onclick="rate(this,'yes','nc10')">Y</button><button class="br" onclick="rate(this,'no','nc10')">N</button><button class="br" onclick="rate(this,'na','nc10')">N/A</button></div></div>
+      <div class="param-row" data-key="nc11"><div class="pl">Conversation without Overlapping and Interruptions</div><div class="rg"><button class="br" onclick="rate(this,'yes','nc11')">Y</button><button class="br" onclick="rate(this,'no','nc11')">N</button><button class="br" onclick="rate(this,'na','nc11')">N/A</button></div></div>
+      <div class="param-row" data-key="nc12"><div class="pl">Accurate Email Sent to Client</div><div class="rg"><button class="br" onclick="rate(this,'yes','nc12')">Y</button><button class="br" onclick="rate(this,'no','nc12')">N</button><button class="br" onclick="rate(this,'na','nc12')">N/A</button></div></div>
+    </div>
+    <div class="sec-card">
+      <div class="sec-hdr"><div class="sec-hdr-title">Critical Parameters</div><span class="sbadge cr-badge">Critical</span></div>
+      <div class="param-row" data-key="cr1"><div class="pl">Agent remained professional, polite, and pleasant throughout</div><div class="rg"><button class="br" onclick="rate(this,'yes','cr1')">Y</button><button class="br" onclick="rate(this,'no','cr1')">N</button><button class="br" onclick="rate(this,'na','cr1')">N/A</button></div></div>
+      <div class="param-row" data-key="cr2"><div class="pl">Called client within timeframe & accommodated callback per global TZ</div><div class="rg"><button class="br" onclick="rate(this,'yes','cr2')">Y</button><button class="br" onclick="rate(this,'no','cr2')">N</button><button class="br" onclick="rate(this,'na','cr2')">N/A</button></div></div>
+      <div class="param-row" data-key="cr3"><div class="pl">Provided complete and accurate information on call/chat</div><div class="rg"><button class="br" onclick="rate(this,'yes','cr3')">Y</button><button class="br" onclick="rate(this,'no','cr3')">N</button><button class="br" onclick="rate(this,'na','cr3')">N/A</button></div></div>
+      <div class="param-row" data-key="cr4"><div class="pl">Answered queries timely and effectively; chose right disposition</div><div class="rg"><button class="br" onclick="rate(this,'yes','cr4')">Y</button><button class="br" onclick="rate(this,'no','cr4')">N</button><button class="br" onclick="rate(this,'na','cr4')">N/A</button></div></div>
+      <div class="param-row" data-key="cr5"><div class="pl">Asked qualifying questions and updated notes per standard procedure</div><div class="rg"><button class="br" onclick="rate(this,'yes','cr5')">Y</button><button class="br" onclick="rate(this,'no','cr5')">N</button><button class="br" onclick="rate(this,'na','cr5')">N/A</button></div></div>
+      <div class="param-row" data-key="cr6"><div class="pl">Successfully created an opportunity after the conversation</div><div class="rg"><button class="br" onclick="rate(this,'yes','cr6')">Y</button><button class="br" onclick="rate(this,'no','cr6')">N</button><button class="br" onclick="rate(this,'na','cr6')">N/A</button></div></div>
+      <div class="param-row" data-key="cr7"><div class="pl">Updated special requirements in notes for other teams</div><div class="rg"><button class="br" onclick="rate(this,'yes','cr7')">Y</button><button class="br" onclick="rate(this,'no','cr7')">N</button><button class="br" onclick="rate(this,'na','cr7')">N/A</button></div></div>
+      <div class="param-row" data-key="cr8"><div class="pl">Directed non-sales queries to relevant team for quick resolution</div><div class="rg"><button class="br" onclick="rate(this,'yes','cr8')">Y</button><button class="br" onclick="rate(this,'no','cr8')">N</button><button class="br" onclick="rate(this,'na','cr8')">N/A</button></div></div>
+      <div class="param-row" data-key="cr9"><div class="pl">All client questions answered accurately (installment plan, social media price)</div><div class="rg"><button class="br" onclick="rate(this,'yes','cr9')">Y</button><button class="br" onclick="rate(this,'no','cr9')">N</button><button class="br" onclick="rate(this,'na','cr9')">N/A</button></div></div>
+      <div class="param-row" data-key="cr10"><div class="pl">Converted lead without pushing client (language barrier, busy, etc.)</div><div class="rg"><button class="br" onclick="rate(this,'yes','cr10')">Y</button><button class="br" onclick="rate(this,'no','cr10')">N</button><button class="br" onclick="rate(this,'na','cr10')">N/A</button></div></div>
+    </div>
+  </div>
+
+  <div class="fc"><div class="fc-hdr">📋 Call Summary</div><textarea id="callSummary" placeholder="Write a brief summary of the call or chat interaction..."></textarea></div>
+  <div class="bg2">
+    <div class="tc"><div class="tc-hdr">🔍 Observations</div><textarea id="observations" placeholder="Note specific behaviors, tone issues, missed opportunities..."></textarea></div>
+    <div class="tc"><div class="tc-hdr">💡 Recommendation</div><textarea id="recommendation" placeholder="Coaching points, training suggestions, or commendations..."></textarea></div>
+  </div>
+
+  <div class="pt-card mb6">
+    <div class="pt-hdr"><div class="card-title">Performance Breakdown</div><span style="font-size:11px;color:var(--muted)">Live score per group</span></div>
+    <div class="table-wrap"><table><thead><tr><th>Parameter Group</th><th>Type</th><th>Scored</th><th>Applicable</th><th style="width:150px">Score %</th><th>Status</th></tr></thead><tbody id="perfTableBody"><tr><td colspan="6" style="color:var(--muted);text-align:center;padding:18px">Start scoring above to see breakdown.</td></tr></tbody></table></div>
+  </div>
+
+  <div class="abar">
+    <button class="btn btn-danger btn-sm" onclick="resetForm()">↺ Reset</button>
+    <button class="btn btn-outline" onclick="window.print()">🖨 Print</button>
+    <button class="btn btn-success" onclick="saveAudit()">💾 Save Audit</button>
+  </div>
+</div>
+
+<!-- ════ TAB 2: AUDIT LOG ════ -->
+<div id="tab-auditlog" class="tab-panel">
+  <div class="filter-bar">
+    <input type="text" id="filterAgent" placeholder="Search agent..." oninput="renderAuditLog()">
+    <select id="filterResult" onchange="renderAuditLog()"><option value="">All Results</option><option>Pass</option><option>Review</option><option>Fail</option></select>
+    <select id="filterChannel" onchange="renderAuditLog()"><option value="">All Channels</option><option>Inbound Call</option><option>Outbound Call</option><option>Live Chat</option><option>Email</option></select>
+    <div style="margin-left:auto;display:flex;gap:7px">
+      <button class="btn btn-excel btn-sm" onclick="exportAuditExcel()">⬇ Export Log</button>
+      <button class="btn btn-danger btn-sm" onclick="clearAllAudits()">🗑 Clear All</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th></th><th>Date</th><th>Agent</th><th>Reviewer</th><th>Call ID</th><th>Channel</th><th>NC %</th><th>Critical %</th><th>Overall %</th><th>Result</th><th>Action</th></tr></thead>
+        <tbody id="auditTableBody"><tr><td colspan="11"><div class="empty-state"><div class="ei">📭</div><h3>No audits yet</h3><p>Complete and save a scorecard to see it here.</p></div></td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ════ TAB 3: AGENT PERFORMANCE ════ -->
+<div id="tab-performance" class="tab-panel">
+  <div class="g4 mb6">
+    <div class="stat-card s-blue"><div class="s-label">Total Evaluations</div><div class="s-val" id="ps-total">0</div><div class="s-sub">All agents</div></div>
+    <div class="stat-card s-green"><div class="s-label">Avg Overall Score</div><div class="s-val" id="ps-avg">—</div><div class="s-sub">Across all audits</div></div>
+    <div class="stat-card s-yellow"><div class="s-label">Pass Rate</div><div class="s-val" id="ps-pass">—</div><div class="s-sub">≥85% threshold</div></div>
+    <div class="stat-card s-red"><div class="s-label">Agents Evaluated</div><div class="s-val" id="ps-agents">0</div><div class="s-sub">Unique agents</div></div>
+  </div>
+
+  <div class="g2 mb6">
+    <div>
+      <div class="sec-title">🏆 Top Performers</div>
+      <div id="topPerformers" class="g2"><div class="empty-state" style="padding:28px"><p>No data yet</p></div></div>
+    </div>
+    <div>
+      <div class="sec-title">⚠️ Needs Coaching</div>
+      <div id="bottomPerformers" class="g2"><div class="empty-state" style="padding:28px"><p>No data yet</p></div></div>
+    </div>
+  </div>
+
+  <div class="sec-title">📅 Performance by Tenure Band</div>
+  <div class="card mb6">
+    <div class="table-wrap"><table>
+      <thead><tr><th>Tenure Band</th><th>Agents</th><th>Evaluations</th><th>Avg NC %</th><th>Avg Critical %</th><th style="width:130px">Avg Overall %</th><th>Pass Rate</th></tr></thead>
+      <tbody id="tenureTableBody"><tr><td colspan="7"><div class="empty-state" style="padding:22px"><p>No data yet</p></div></td></tr></tbody>
+    </table></div>
+  </div>
+
+  <div class="sec-title">👥 All Agents Breakdown</div>
+  <div class="card mb6">
+    <div class="table-wrap"><table>
+      <thead><tr><th>#</th><th>Agent</th><th>Team</th><th>Tenure</th><th>Evals</th><th>Avg NC %</th><th>Avg Critical %</th><th style="width:120px">Avg Overall %</th><th>Last Eval</th><th>Status</th></tr></thead>
+      <tbody id="agentTableBody"><tr><td colspan="10"><div class="empty-state" style="padding:22px"><p>No data yet</p></div></td></tr></tbody>
+    </table></div>
+  </div>
+  <div class="abar"><button class="btn btn-excel btn-sm" onclick="exportPerfExcel()">⬇ Export Agent Performance</button></div>
+</div>
+
+<!-- ════ TAB 4: PARETO ANALYSIS ════ -->
+<div id="tab-pareto" class="tab-panel">
+  <div class="g4 mb6">
+    <div class="stat-card s-red"><div class="s-label">Total Failures</div><div class="s-val" id="par-total">0</div><div class="s-sub">Across all parameters</div></div>
+    <div class="stat-card s-yellow"><div class="s-label">Top Failure</div><div class="s-val" id="par-top" style="font-size:16px;line-height:1.4">—</div><div class="s-sub">Most common miss</div></div>
+    <div class="stat-card s-purple"><div class="s-label">Critical Failures</div><div class="s-val" id="par-cr">0</div><div class="s-sub">Critical param fails</div></div>
+    <div class="stat-card s-blue"><div class="s-label">80% Rule — # Params</div><div class="s-val" id="par-80">—</div><div class="s-sub">Params causing 80% fails</div></div>
+  </div>
+
+  <div class="g2 mb6">
+    <div class="card">
+      <div class="card-hdr"><div class="card-title">Pareto Chart — Failures by Parameter</div></div>
+      <div class="p-legend">
+        <div class="p-leg-item"><div class="p-leg-dot" style="background:var(--critical)"></div>Critical Fail</div>
+        <div class="p-leg-item"><div class="p-leg-dot" style="background:var(--accent)"></div>NC Fail</div>
+        <div class="p-leg-item"><div class="p-leg-dot" style="background:var(--accent2)"></div>Cumulative %</div>
+        <div class="p-leg-item"><div class="p-leg-dot" style="background:rgba(255,255,255,.2)"></div>80% Line</div>
+      </div>
+      <div class="chart-wrap" style="height:310px"><canvas id="paretoChart"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-hdr"><div class="card-title">NC vs Critical Failure Split</div></div>
+      <div class="chart-wrap" style="display:flex;align-items:center;justify-content:center;min-height:310px"><canvas id="splitChart" width="250" height="250"></canvas></div>
+    </div>
+  </div>
+
+  <div class="sec-title">📋 Failure Detail by Parameter</div>
+  <div class="card mb6">
+    <div class="table-wrap"><table>
+      <thead><tr><th>Rank</th><th>Parameter</th><th>Type</th><th>Fails</th><th>Total Rated</th><th style="width:110px">Fail Rate %</th><th>Cumulative %</th><th>80% Rule</th></tr></thead>
+      <tbody id="paretoTableBody"><tr><td colspan="8"><div class="empty-state" style="padding:22px"><p>Save evaluations to populate this analysis.</p></div></td></tr></tbody>
+    </table></div>
+  </div>
+  <div class="abar"><button class="btn btn-excel btn-sm" onclick="exportParetoExcel()">⬇ Export Pareto Data</button></div>
+</div>
+
+</div><!-- /content -->
+</div><!-- /app -->
+<div id="toast"></div>
+
+<script>
+const PM={
+  nc1:{label:'Standard opening & name confirmation',group:'Call Opening/Closing',type:'NC'},
+  nc2:{label:'Summarization',group:'Call Opening/Closing',type:'NC'},
+  nc3:{label:'Further assistance offered',group:'Call Opening/Closing',type:'NC'},
+  nc4:{label:'Prescribed call closing',group:'Call Opening/Closing',type:'NC'},
+  nc5:{label:'Paraphrasing for alignment',group:'Issue Identification',type:'NC'},
+  nc6:{label:'Customer VOC acknowledged',group:'Issue Identification',type:'NC'},
+  nc7:{label:'Relevant probing questions asked',group:'Issue Identification',type:'NC'},
+  nc8:{label:'Active Listening/Reading',group:'Customer Experience',type:'NC'},
+  nc9:{label:'Hold & Dead Air SLA',group:'Customer Experience',type:'NC'},
+  nc10:{label:'Apologies, Empathy & Politeness',group:'Customer Experience',type:'NC'},
+  nc11:{label:'No Overlapping/Interruptions',group:'Customer Experience',type:'NC'},
+  nc12:{label:'Accurate Email to Client',group:'Customer Experience',type:'NC'},
+  cr1:{label:'Professional & polite throughout',group:'Critical',type:'CR'},
+  cr2:{label:'Called within timeframe / TZ',group:'Critical',type:'CR'},
+  cr3:{label:'Complete & accurate information',group:'Critical',type:'CR'},
+  cr4:{label:'Timely queries + right disposition',group:'Critical',type:'CR'},
+  cr5:{label:'Qualifying questions + notes updated',group:'Critical',type:'CR'},
+  cr6:{label:'Opportunity created post-call',group:'Critical',type:'CR'},
+  cr7:{label:'Special requirements noted',group:'Critical',type:'CR'},
+  cr8:{label:'Non-sales queries redirected',group:'Critical',type:'CR'},
+  cr9:{label:'All client questions answered',group:'Critical',type:'CR'},
+  cr10:{label:'Lead converted without pushing',group:'Critical',type:'CR'},
+};
+const NCK=['nc1','nc2','nc3','nc4','nc5','nc6','nc7','nc8','nc9','nc10','nc11','nc12'];
+const CRK=['cr1','cr2','cr3','cr4','cr5','cr6','cr7','cr8','cr9','cr10'];
+const AK=[...NCK,...CRK];
+const GROUPS={'Call Opening/Closing':['nc1','nc2','nc3','nc4'],'Issue Identification':['nc5','nc6','nc7'],'Customer Experience':['nc8','nc9','nc10','nc11','nc12'],'Critical Parameters':CRK};
+let CS={};
+let pCI=null,sCI=null;
+
+// ── TABS
+function switchTab(n,btn){
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+n).classList.add('active');
+  btn.classList.add('active');
+  if(n==='auditlog') renderAuditLog();
+  if(n==='performance') renderPerformance();
+  if(n==='pareto') renderPareto();
+}
+
+// ── SCORING
+function rate(btn,val,key){
+  const rg=btn.closest('.rg');
+  rg.querySelectorAll('.br').forEach(b=>b.classList.remove('ay','an','ana'));
+  if(CS[key]===val){delete CS[key];}
+  else{CS[key]=val;btn.classList.add(val==='yes'?'ay':val==='no'?'an':'ana');}
+  updateDash();
+}
+
+function calcPct(keys){
+  const rated=keys.filter(k=>k in CS);
+  let y=0,a=0;
+  rated.forEach(k=>{if(CS[k]==='yes'){y++;a++;}else if(CS[k]==='no'){a++;}});
+  return a>0?Math.round(y/a*100):null;
+}
+
+function updateDash(){
+  const ncP=calcPct(NCK.filter(k=>k in CS));
+  const crP=calcPct(CRK.filter(k=>k in CS));
+  let tot=ncP!==null&&crP!==null?Math.round(ncP*.4+crP*.6):ncP!==null?ncP:crP!==null?crP:null;
+  setCard('ncScore','ncBar',ncP,'var(--accent)');
+  setCard('crScore','crBar',crP,'var(--critical)');
+  setCard('totalScore','totalBar',tot,null);
+  const rv=document.getElementById('resultVal'),rs=document.getElementById('resultSub'),rb=document.getElementById('resultBar');
+  if(tot!==null){
+    const res=tot>=85?'PASS':tot>=70?'REVIEW':'FAIL';
+    rv.textContent=res;rv.style.fontSize='26px';
+    rv.style.color=res==='PASS'?'var(--success)':res==='REVIEW'?'var(--warning)':'var(--critical)';
+    rs.textContent=tot+'% overall';rb.style.width=tot+'%';
+    rb.style.background=res==='PASS'?'var(--success)':res==='REVIEW'?'var(--warning)':'var(--critical)';
+  }else{rv.textContent='—';rv.style.color='var(--success)';rs.textContent='Awaiting scores';rb.style.width='0%';}
+  updatePT(ncP,crP);
+}
+
+function setCard(vi,bi,p,c){
+  document.getElementById(vi).textContent=p!==null?p+'%':'—';
+  const b=document.getElementById(bi);b.style.width=(p||0)+'%';
+  if(c)b.style.background=c;
+}
+
+function updatePT(ncP,crP){
+  const tot=ncP!==null&&crP!==null?Math.round(ncP*.4+crP*.6):null;
+  const rows=[];
+  Object.entries(GROUPS).forEach(([name,keys])=>{
+    const type=keys[0].startsWith('cr')?'Critical':'Non-Critical';
+    const rated=keys.filter(k=>k in CS);
+    let y=0,a=0;rated.forEach(k=>{if(CS[k]==='yes'){y++;a++;}else if(CS[k]==='no'){a++;}});
+    const p=a>0?Math.round(y/a*100):null;
+    const c=p===null?'var(--muted)':p>=85?'var(--success)':p>=70?'var(--warning)':'var(--critical)';
+    rows.push(`<tr><td><strong>${name}</strong></td><td><span class="tag ${type==='Critical'?'tcr':'tnc'}">${type}</span></td><td style="font-family:var(--font-head);font-weight:700">${y}/${a}</td><td style="color:var(--muted)">${rated.length} rated</td><td class="sbc"><div class="sbw"><div class="smb"><div class="smf" style="width:${p||0}%;background:${c}"></div></div><span class="sv" style="color:${c}">${p!==null?p+'%':'—'}</span></div></td><td>${stag(p)}</td></tr>`);
+  });
+  rows.push(srow('NON-CRITICAL TOTAL (40%)',ncP,'var(--accent)'));
+  rows.push(srow('CRITICAL TOTAL (60%)',crP,'var(--critical)'));
+  rows.push(srow('OVERALL SCORE',tot,'var(--accent2)',true));
+  document.getElementById('perfTableBody').innerHTML=rows.join('');
+}
+
+function srow(label,p,color,bold=false){
+  return `<tr style="background:var(--surface2)"><td style="font-family:var(--font-head);font-weight:${bold?800:700};font-size:${bold?14:12}px">${label}</td><td></td><td></td><td></td><td class="sbc"><div class="sbw"><div class="smb"><div class="smf" style="width:${p||0}%;background:${color}"></div></div><span class="sv" style="color:${color};font-size:${bold?14:12}px">${p!==null?p+'%':'—'}</span></div></td><td>${stag(p)}</td></tr>`;
+}
+
+function stag(p){return p===null?'–':p>=85?'<span class="tag tp">Pass</span>':p>=70?'<span class="tag tr">Review</span>':'<span class="tag tf">Fail</span>';}
+
+// ── SAVE
+async function saveAudit(){
+  const agent=document.getElementById('agentName').value.trim();
+  const reviewer=document.getElementById('reviewerName').value.trim();
+  if(!agent||!reviewer){showToast('Enter Agent and Reviewer names.','e');return;}
+  const ncP=calcPct(NCK.filter(k=>k in CS));
+  const crP=calcPct(CRK.filter(k=>k in CS));
+  if(ncP===null&&crP===null){showToast('Score at least one parameter.','e');return;}
+  const tot=ncP!==null&&crP!==null?Math.round(ncP*.4+crP*.6):ncP!==null?ncP:crP;
+  const audit={
+    id:'audit:'+Date.now(),timestamp:Date.now(),
+    date:document.getElementById('evalDate').value,agent,reviewer,
+    callId:document.getElementById('callId').value,
+    channel:document.getElementById('channel').value,
+    team:document.getElementById('team').value,
+    tenure:parseInt(document.getElementById('tenure').value)||0,
+    language:document.getElementById('agentLang').value,
+    summary:document.getElementById('callSummary').value,
+    observations:document.getElementById('observations').value,
+    recommendation:document.getElementById('recommendation').value,
+    scores:{...CS},ncScore:ncP,crScore:crP,totalScore:tot,
+    result:tot>=85?'Pass':tot>=70?'Review':'Fail'
+  };
+  try{await window.storage.set(audit.id,JSON.stringify(audit));showToast('✅ Audit saved for '+agent,'s');updateBadge();}
+  catch(e){showToast('Storage error: '+e.message,'e');}
+}
+
+async function loadAudits(){
+  try{
+    const res=await window.storage.list('audit:');
+    const audits=[];
+    for(const key of(res?.keys||[])){try{const d=await window.storage.get(key);if(d)audits.push(JSON.parse(d.value));}catch(e){}}
+    return audits.sort((a,b)=>b.timestamp-a.timestamp);
+  }catch(e){return [];}
+}
+
+async function updateBadge(){
+  const a=await loadAudits();
+  document.getElementById('auditBadge').textContent=a.length;
+}
+
+// ── AUDIT LOG
+async function renderAuditLog(){
+  const tbody=document.getElementById('auditTableBody');
+  const audits=await loadAudits();
+  document.getElementById('auditBadge').textContent=audits.length;
+  const fa=document.getElementById('filterAgent').value.toLowerCase();
+  const fr=document.getElementById('filterResult').value;
+  const fc=document.getElementById('filterChannel').value;
+  const f=audits.filter(a=>{
+    if(fa&&!a.agent.toLowerCase().includes(fa))return false;
+    if(fr&&a.result!==fr)return false;
+    if(fc&&a.channel!==fc)return false;
+    return true;
+  });
+  if(!f.length){tbody.innerHTML=`<tr><td colspan="11"><div class="empty-state"><div class="ei">📭</div><h3>${audits.length?'No matches':'No audits yet'}</h3><p>${audits.length?'Try adjusting filters.':'Save a scorecard to begin.'}</p></div></td></tr>`;return;}
+  tbody.innerHTML=f.map((a,i)=>`
+    <tr onclick="td('adr-${i}')" style="cursor:pointer">
+      <td><span style="color:var(--muted);font-size:11px">▶</span></td>
+      <td style="white-space:nowrap">${a.date||'—'}</td>
+      <td style="font-family:var(--font-head);font-weight:700">${a.agent}</td>
+      <td style="color:var(--muted);font-size:12px">${a.reviewer||'—'}</td>
+      <td style="color:var(--muted);font-size:11px">${a.callId||'—'}</td>
+      <td><span class="tag" style="background:rgba(79,142,247,.1);color:var(--accent);font-size:9px">${a.channel||'—'}</span></td>
+      <td><span style="color:var(--accent);font-family:var(--font-head);font-weight:700">${a.ncScore!==null?a.ncScore+'%':'—'}</span></td>
+      <td><span style="color:var(--critical);font-family:var(--font-head);font-weight:700">${a.crScore!==null?a.crScore+'%':'—'}</span></td>
+      <td><span style="color:var(--accent2);font-family:var(--font-head);font-weight:700;font-size:14px">${a.totalScore!==null?a.totalScore+'%':'—'}</span></td>
+      <td>${stag(a.totalScore)}</td>
+      <td><button class="btn btn-danger btn-sm" onclick="delAudit(event,'${a.id}')">🗑</button></td>
+    </tr>
+    <tr class="adr" id="adr-${i}"><td colspan="11"><div class="dgrid">
+      <div class="di"><label>Team</label><p>${a.team||'—'}</p></div>
+      <div class="di"><label>Tenure</label><p>${a.tenure?a.tenure+' months':'—'}</p></div>
+      <div class="di"><label>Language</label><p>${a.language||'—'}</p></div>
+      <div class="di"><label>Channel</label><p>${a.channel||'—'}</p></div>
+      ${a.summary?`<div class="di" style="grid-column:span 4"><label>Summary</label><p style="color:var(--muted)">${esc(a.summary)}</p></div>`:''}
+      ${a.observations?`<div class="di" style="grid-column:span 2"><label>Observations</label><p style="color:var(--muted)">${esc(a.observations)}</p></div>`:''}
+      ${a.recommendation?`<div class="di" style="grid-column:span 2"><label>Recommendation</label><p style="color:var(--muted)">${esc(a.recommendation)}</p></div>`:''}
+    </div></td></tr>
+  `).join('');
+}
+
+function td(id){const el=document.getElementById(id);if(el)el.classList.toggle('open');}
+
+async function delAudit(e,id){
+  e.stopPropagation();if(!confirm('Delete this audit?'))return;
+  try{await window.storage.delete(id);showToast('Deleted','s');renderAuditLog();}catch(er){showToast('Error','e');}
+}
+
+async function clearAllAudits(){
+  if(!confirm('Delete ALL audit records? Cannot be undone.'))return;
+  try{const res=await window.storage.list('audit:');for(const k of(res?.keys||[])){try{await window.storage.delete(k);}catch(e){}}showToast('All audits cleared','s');renderAuditLog();renderPerformance();renderPareto();}
+  catch(e){showToast('Error','e');}
+}
+
+// ── PERFORMANCE
+async function renderPerformance(){
+  const audits=await loadAudits();
+  const uAgents=[...new Set(audits.map(a=>a.agent))];
+  document.getElementById('ps-total').textContent=audits.length;
+  document.getElementById('ps-agents').textContent=uAgents.length;
+  const ws=audits.filter(a=>a.totalScore!==null);
+  if(ws.length){
+    document.getElementById('ps-avg').textContent=Math.round(ws.reduce((s,a)=>s+a.totalScore,0)/ws.length)+'%';
+    document.getElementById('ps-pass').textContent=Math.round(ws.filter(a=>a.result==='Pass').length/ws.length*100)+'%';
+  }else{document.getElementById('ps-avg').textContent='—';document.getElementById('ps-pass').textContent='—';}
+
+  const aMap={};
+  audits.forEach(a=>{
+    if(!aMap[a.agent])aMap[a.agent]={name:a.agent,team:a.team||'—',tenure:a.tenure||0,evals:[],lastDate:a.date};
+    aMap[a.agent].evals.push(a);
+    if(a.date>aMap[a.agent].lastDate)aMap[a.agent].lastDate=a.date;
+    if(a.tenure)aMap[a.agent].tenure=a.tenure;
+  });
+
+  const agents=Object.values(aMap).map(ag=>{
+    const v=ag.evals.filter(e=>e.totalScore!==null);
+    const vn=v.filter(e=>e.ncScore!==null),vc=v.filter(e=>e.crScore!==null);
+    return{...ag,
+      avgTot:v.length?Math.round(v.reduce((s,e)=>s+e.totalScore,0)/v.length):null,
+      avgNc:vn.length?Math.round(vn.reduce((s,e)=>s+e.ncScore,0)/vn.length):null,
+      avgCr:vc.length?Math.round(vc.reduce((s,e)=>s+e.crScore,0)/vc.length):null,
+      passRate:v.length?Math.round(v.filter(e=>e.result==='Pass').length/v.length*100):null
+    };
+  }).sort((a,b)=>(b.avgTot||0)-(a.avgTot||0));
+
+  renderAgentCards('topPerformers',agents.slice(0,4),true);
+  renderAgentCards('bottomPerformers',agents.slice(-4).reverse(),false);
+
+  const atb=document.getElementById('agentTableBody');
+  atb.innerHTML=agents.length?agents.map((ag,i)=>`<tr>
+    <td style="color:var(--muted);font-family:var(--font-head)">${i+1}</td>
+    <td style="font-family:var(--font-head);font-weight:700">${ag.name}</td>
+    <td style="color:var(--muted)">${ag.team}</td>
+    <td><span class="ten-badge">${ag.tenure?ag.tenure+'m':'—'}</span></td>
+    <td>${ag.evals.length}</td>
+    <td>${ag.avgNc!==null?`<span style="color:var(--accent);font-family:var(--font-head);font-weight:700">${ag.avgNc}%</span>`:'—'}</td>
+    <td>${ag.avgCr!==null?`<span style="color:var(--critical);font-family:var(--font-head);font-weight:700">${ag.avgCr}%</span>`:'—'}</td>
+    <td class="sbc"><div class="sbw"><div class="smb"><div class="smf" style="width:${ag.avgTot||0}%;background:${ag.avgTot>=85?'var(--success)':ag.avgTot>=70?'var(--warning)':'var(--critical)'}"></div></div><span class="sv" style="color:${ag.avgTot>=85?'var(--success)':ag.avgTot>=70?'var(--warning)':'var(--critical)'}">${ag.avgTot!==null?ag.avgTot+'%':'—'}</span></div></td>
+    <td style="color:var(--muted);font-size:11px">${ag.lastDate||'—'}</td>
+    <td>${stag(ag.avgTot)}</td>
+  </tr>`).join(''):`<tr><td colspan="10"><div class="empty-state" style="padding:22px"><p>No data yet</p></div></td></tr>`;
+
+  const bands=[{l:'0–3 months',min:0,max:3},{l:'4–6 months',min:4,max:6},{l:'7–12 months',min:7,max:12},{l:'13–24 months',min:13,max:24},{l:'25+ months',min:25,max:9999}];
+  const ttb=document.getElementById('tenureTableBody');
+  const brows=bands.map(b=>{
+    const ba=agents.filter(ag=>ag.tenure>=b.min&&ag.tenure<=b.max);
+    if(!ba.length)return null;
+    const be=audits.filter(a=>a.tenure>=b.min&&a.tenure<=b.max&&a.totalScore!==null);
+    const vn=ba.filter(ag=>ag.avgNc!==null),vc=ba.filter(ag=>ag.avgCr!==null),vt=ba.filter(ag=>ag.avgTot!==null);
+    const avgNc=vn.length?Math.round(vn.reduce((s,ag)=>s+ag.avgNc,0)/vn.length):null;
+    const avgCr=vc.length?Math.round(vc.reduce((s,ag)=>s+ag.avgCr,0)/vc.length):null;
+    const avgTot=vt.length?Math.round(vt.reduce((s,ag)=>s+ag.avgTot,0)/vt.length):null;
+    const passR=be.length?Math.round(be.filter(e=>e.result==='Pass').length/be.length*100):null;
+    const c=avgTot>=85?'var(--success)':avgTot>=70?'var(--warning)':'var(--critical)';
+    return `<tr><td style="font-family:var(--font-head);font-weight:700">${b.l}</td><td>${ba.length}</td><td>${be.length}</td>
+      <td>${avgNc!==null?`<span style="color:var(--accent)">${avgNc}%</span>`:'—'}</td>
+      <td>${avgCr!==null?`<span style="color:var(--critical)">${avgCr}%</span>`:'—'}</td>
+      <td class="sbc"><div class="sbw"><div class="smb"><div class="smf" style="width:${avgTot||0}%;background:${c}"></div></div><span class="sv" style="color:${c}">${avgTot!==null?avgTot+'%':'—'}</span></div></td>
+      <td>${passR!==null?passR+'%':'—'}</td></tr>`;
+  }).filter(Boolean);
+  ttb.innerHTML=brows.length?brows.join(''):`<tr><td colspan="7"><div class="empty-state" style="padding:20px"><p>Add tenure when creating audits to see this breakdown.</p></div></td></tr>`;
+}
+
+function renderAgentCards(cid,agents,isTop){
+  const el=document.getElementById(cid);
+  if(!agents.length){el.innerHTML=`<div class="empty-state" style="padding:26px"><p>No data yet</p></div>`;return;}
+  el.innerHTML=agents.map((ag,i)=>{
+    const c=ag.avgTot>=85?'var(--success)':ag.avgTot>=70?'var(--warning)':'var(--critical)';
+    const m=isTop?['🥇','🥈','🥉','🏅'][i]:['⚠️','⚠️','⚠️','⚠️'][i];
+    return `<div class="arc" style="position:relative;border-top:3px solid ${c}">
+      <div class="arc-rank">${i+1}</div>
+      <div style="font-size:18px;margin-bottom:5px">${m}</div>
+      <div class="arc-name">${ag.name}</div>
+      <div class="arc-meta">${ag.team} · ${ag.evals.length} eval${ag.evals.length!==1?'s':''} <span class="ten-badge" style="margin-left:3px">${ag.tenure?ag.tenure+'m':'?'}</span></div>
+      <div class="arc-score" style="color:${c}">${ag.avgTot!==null?ag.avgTot+'%':'—'}</div>
+      <div style="display:flex;gap:7px;margin-top:5px"><span style="font-size:10px;color:var(--accent)">NC:${ag.avgNc!==null?ag.avgNc+'%':'—'}</span><span style="font-size:10px;color:var(--critical)">CR:${ag.avgCr!==null?ag.avgCr+'%':'—'}</span></div>
+    </div>`;
+  }).join('');
+}
+
+// ── PARETO
+async function renderPareto(){
+  const audits=await loadAudits();
+  if(!audits.length){
+    document.getElementById('paretoTableBody').innerHTML=`<tr><td colspan="8"><div class="empty-state" style="padding:22px"><p>No audit data yet.</p></div></td></tr>`;
+    ['par-total','par-top','par-cr','par-80'].forEach(id=>document.getElementById(id).textContent='—');
+    if(pCI){pCI.destroy();pCI=null;}if(sCI){sCI.destroy();sCI=null;}return;
+  }
+  const fc={},tr={};
+  AK.forEach(k=>{fc[k]=0;tr[k]=0;});
+  audits.forEach(a=>{
+    AK.forEach(k=>{if(k in a.scores){if(a.scores[k]==='yes'||a.scores[k]==='no')tr[k]++;if(a.scores[k]==='no')fc[k]++;}});
+  });
+  const sorted=AK.filter(k=>tr[k]>0).sort((a,b)=>fc[b]-fc[a]);
+  const totFails=sorted.reduce((s,k)=>s+fc[k],0);
+  let cum=0,p80=0;
+  const rows=sorted.map((k,i)=>{
+    cum+=fc[k];
+    const cp=totFails>0?Math.round(cum/totFails*100):0;
+    if(cp<=80)p80=i+1;
+    const fr=tr[k]>0?Math.round(fc[k]/tr[k]*100):0;
+    return{k,i,fc:fc[k],tr:tr[k],fr,cp};
+  });
+
+  document.getElementById('par-total').textContent=totFails;
+  document.getElementById('par-top').textContent=sorted.length?PM[sorted[0]].label.substring(0,24)+'…':'—';
+  document.getElementById('par-cr').textContent=sorted.filter(k=>PM[k].type==='CR').reduce((s,k)=>s+fc[k],0);
+  document.getElementById('par-80').textContent=p80||'—';
+
+  document.getElementById('paretoTableBody').innerHTML=rows.map(r=>{
+    const pm=PM[r.k];
+    const c=r.fr>=50?'var(--critical)':r.fr>=25?'var(--warning)':'var(--success)';
+    return `<tr>
+      <td style="font-family:var(--font-head);font-weight:700;color:var(--muted)">${r.i+1}</td>
+      <td>${pm.label}</td>
+      <td><span class="tag ${pm.type==='CR'?'tcr':'tnc'}">${pm.type}</span></td>
+      <td style="font-family:var(--font-head);font-weight:700;color:var(--critical)">${r.fc}</td>
+      <td style="color:var(--muted)">${r.tr}</td>
+      <td class="sbc"><div class="sbw"><div class="smb"><div class="smf" style="width:${r.fr}%;background:${c}"></div></div><span class="sv" style="color:${c}">${r.fr}%</span></div></td>
+      <td style="font-family:var(--font-head);font-weight:700;color:${r.cp<=80?'var(--accent2)':'var(--muted)'}">${r.cp}%</td>
+      <td>${r.cp<=80?'<span class="tag tf" style="font-size:9px">Top 80%</span>':'<span style="color:var(--muted);font-size:11px">—</span>'}</td>
+    </tr>`;
+  }).join('');
+
+  // Pareto Chart
+  const labels=sorted.map(k=>PM[k].label.length>18?PM[k].label.substring(0,18)+'…':PM[k].label);
+  const counts=sorted.map(k=>fc[k]);
+  const cumPcts=[];let c2=0;
+  sorted.forEach(k=>{c2+=fc[k];cumPcts.push(totFails>0?Math.round(c2/totFails*100):0);});
+  const bColors=sorted.map(k=>PM[k].type==='CR'?'rgba(247,79,106,.8)':'rgba(79,142,247,.8)');
+
+  if(pCI)pCI.destroy();
+  pCI=new Chart(document.getElementById('paretoChart').getContext('2d'),{
+    type:'bar',
+    data:{labels,datasets:[
+      {label:'Failure Count',data:counts,backgroundColor:bColors,borderColor:bColors,borderWidth:0,yAxisID:'y',order:2},
+      {label:'Cumulative %',data:cumPcts,type:'line',borderColor:'rgba(247,193,79,.9)',backgroundColor:'rgba(247,193,79,.05)',borderWidth:2.5,pointRadius:3,pointBackgroundColor:'rgba(247,193,79,1)',fill:false,yAxisID:'y1',tension:.3,order:1},
+      {label:'80% Line',data:Array(sorted.length).fill(80),type:'line',borderColor:'rgba(255,255,255,.2)',borderWidth:1.5,borderDash:[5,4],pointRadius:0,fill:false,yAxisID:'y1',order:0}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+      plugins:{legend:{display:false},tooltip:{backgroundColor:'rgba(20,25,40,.95)',borderColor:'rgba(79,142,247,.3)',borderWidth:1,titleColor:'#e8edf8',bodyColor:'#6b7a9e',padding:10}},
+      scales:{
+        x:{ticks:{color:'#6b7a9e',font:{size:9},maxRotation:50},grid:{color:'rgba(37,46,69,.5)'}},
+        y:{position:'left',ticks:{color:'#6b7a9e',font:{size:10}},grid:{color:'rgba(37,46,69,.5)'},title:{display:true,text:'Failures',color:'#6b7a9e',font:{size:10}}},
+        y1:{position:'right',min:0,max:100,ticks:{color:'rgba(247,193,79,.8)',font:{size:10},callback:v=>v+'%'},grid:{display:false},title:{display:true,text:'Cumulative %',color:'rgba(247,193,79,.8)',font:{size:10}}}
+      }
+    }
+  });
+
+  // Donut
+  const ncF=NCK.reduce((s,k)=>s+fc[k],0),crF=CRK.reduce((s,k)=>s+fc[k],0);
+  if(sCI)sCI.destroy();
+  sCI=new Chart(document.getElementById('splitChart').getContext('2d'),{
+    type:'doughnut',
+    data:{labels:['Non-Critical','Critical'],datasets:[{data:[ncF,crF],backgroundColor:['rgba(79,142,247,.75)','rgba(247,79,106,.75)'],borderColor:['rgba(79,142,247,1)','rgba(247,79,106,1)'],borderWidth:2,hoverOffset:8}]},
+    options:{responsive:false,cutout:'65%',plugins:{legend:{position:'bottom',labels:{color:'#6b7a9e',padding:14,font:{size:11}}},tooltip:{backgroundColor:'rgba(20,25,40,.95)',borderColor:'rgba(79,142,247,.3)',borderWidth:1,titleColor:'#e8edf8',bodyColor:'#6b7a9e',padding:10}}}
+  });
+}
+
+// ── EXCEL EXPORTS
+async function exportAllExcel(){
+  const audits=await loadAudits();
+  if(!audits.length){showToast('No data to export','e');return;}
+  const wb=XLSX.utils.book_new();
+  addAuditSheet(wb,audits);addAgentSheet(wb,audits);addParetoSheet(wb,audits);
+  XLSX.writeFile(wb,'QA_Dashboard_Export_'+new Date().toISOString().slice(0,10)+'.xlsx');
+  showToast('Excel exported successfully!','s');
+}
+async function exportAuditExcel(){const a=await loadAudits();if(!a.length){showToast('No data','e');return;}const wb=XLSX.utils.book_new();addAuditSheet(wb,a);XLSX.writeFile(wb,'QA_Audit_Log.xlsx');showToast('Exported!','s');}
+async function exportPerfExcel(){const a=await loadAudits();if(!a.length){showToast('No data','e');return;}const wb=XLSX.utils.book_new();addAgentSheet(wb,a);XLSX.writeFile(wb,'QA_Agent_Performance.xlsx');showToast('Exported!','s');}
+async function exportParetoExcel(){const a=await loadAudits();if(!a.length){showToast('No data','e');return;}const wb=XLSX.utils.book_new();addParetoSheet(wb,a);XLSX.writeFile(wb,'QA_Pareto_Analysis.xlsx');showToast('Exported!','s');}
+
+function addAuditSheet(wb,audits){
+  const rows=[['Date','Agent','Reviewer','Call ID','Channel','Team','Tenure (months)','Language','NC Score%','Critical Score%','Overall Score%','Result','Summary','Observations','Recommendation',...AK.map(k=>PM[k].label)]];
+  audits.forEach(a=>rows.push([a.date,a.agent,a.reviewer,a.callId,a.channel,a.team,a.tenure,a.language,a.ncScore,a.crScore,a.totalScore,a.result,a.summary,a.observations,a.recommendation,...AK.map(k=>a.scores[k]||'')]));
+  const ws=XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols']=[{wch:12},{wch:20},{wch:18},{wch:14},{wch:14},{wch:12},{wch:8},{wch:10},{wch:8},{wch:10},{wch:10},{wch:7},{wch:40},{wch:40},{wch:40},...AK.map(()=>({wch:10}))];
+  XLSX.utils.book_append_sheet(wb,ws,'Audit Log');
+}
+
+function addAgentSheet(wb,audits){
+  const aMap={};
+  audits.forEach(a=>{if(!aMap[a.agent])aMap[a.agent]={name:a.agent,team:a.team||'',tenure:a.tenure||0,evals:[]};aMap[a.agent].evals.push(a);if(a.tenure)aMap[a.agent].tenure=a.tenure;});
+  const rows=[['Agent','Team','Tenure (months)','Total Evals','Avg NC%','Avg Critical%','Avg Overall%','Pass Count','Fail Count','Review Count','Pass Rate%','Last Eval Date']];
+  Object.values(aMap).forEach(ag=>{
+    const v=ag.evals.filter(e=>e.totalScore!==null);
+    const avgTot=v.length?Math.round(v.reduce((s,e)=>s+e.totalScore,0)/v.length):null;
+    const vn=v.filter(e=>e.ncScore!==null),vc=v.filter(e=>e.crScore!==null);
+    const avgNc=vn.length?Math.round(vn.reduce((s,e)=>s+e.ncScore,0)/vn.length):null;
+    const avgCr=vc.length?Math.round(vc.reduce((s,e)=>s+e.crScore,0)/vc.length):null;
+    const pass=v.filter(e=>e.result==='Pass').length,fail=v.filter(e=>e.result==='Fail').length,rev=v.filter(e=>e.result==='Review').length;
+    const last=ag.evals.map(e=>e.date).sort().pop()||'';
+    rows.push([ag.name,ag.team,ag.tenure,ag.evals.length,avgNc,avgCr,avgTot,pass,fail,rev,v.length?Math.round(pass/v.length*100):'',last]);
+  });
+  const ws=XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols']=[{wch:20},{wch:14},{wch:8},{wch:8},{wch:8},{wch:10},{wch:10},{wch:8},{wch:8},{wch:8},{wch:10},{wch:14}];
+  XLSX.utils.book_append_sheet(wb,ws,'Agent Performance');
+}
+
+function addParetoSheet(wb,audits){
+  const fc={},tr={};AK.forEach(k=>{fc[k]=0;tr[k]=0;});
+  audits.forEach(a=>{AK.forEach(k=>{if(k in a.scores){if(a.scores[k]==='yes'||a.scores[k]==='no')tr[k]++;if(a.scores[k]==='no')fc[k]++;}});});
+  const sorted=AK.filter(k=>tr[k]>0).sort((a,b)=>fc[b]-fc[a]);
+  const totFails=sorted.reduce((s,k)=>s+fc[k],0);
+  let cum=0;
+  const rows=[['Rank','Parameter','Group','Type','Fail Count','Total Rated','Fail Rate%','Cumulative%','In 80% Pareto']];
+  sorted.forEach((k,i)=>{
+    cum+=fc[k];const cp=totFails>0?Math.round(cum/totFails*100):0;
+    const pm=PM[k];
+    rows.push([i+1,pm.label,pm.group,pm.type,fc[k],tr[k],tr[k]>0?Math.round(fc[k]/tr[k]*100):0,cp,cp<=80?'Yes':'No']);
+  });
+  const ws=XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols']=[{wch:6},{wch:44},{wch:22},{wch:8},{wch:10},{wch:10},{wch:10},{wch:12},{wch:14}];
+  XLSX.utils.book_append_sheet(wb,ws,'Pareto Analysis');
+}
+
+// ── UTILS
+function resetForm(){
+  if(!confirm('Reset form?'))return;
+  CS={};
+  document.querySelectorAll('.br').forEach(b=>b.classList.remove('ay','an','ana'));
+  ['agentName','reviewerName','callId','team','agentLang','callSummary','observations','recommendation'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('channel').value='';document.getElementById('tenure').value='';
+  document.getElementById('evalDate').valueAsDate=new Date();
+  updateDash();
+}
+
+function showToast(msg,type){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.className='show '+(type==='s'?'ts':'te');
+  setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+function esc(s){return s?.replace(/</g,'&lt;').replace(/>/g,'&gt;')||'';}
+
+// INIT
+document.getElementById('evalDate').valueAsDate=new Date();
+updateDash();
+updateBadge();
+</script>
+</body>
+</html>
