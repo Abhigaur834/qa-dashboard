@@ -485,13 +485,25 @@ async function saveAudit(){
     scores:{...CS},ncScore:ncP,crScore:crP,totalScore:tot,
     result:tot>=85?'Pass':tot>=70?'Review':'Fail'
   };
-  try{await window.storage.set(audit.id,JSON.stringify(audit));showToast('✅ Audit saved for '+agent,'s');updateBadge();}
+  try{await localStorage.setItem(audit.id, JSON.stringify(audit));showToast('✅ Audit saved for '+agent,'s');updateBadge();}
   catch(e){showToast('Storage error: '+e.message,'e');}
 }
 
-async function loadAudits(){
-  try{
-    const res=await window.storage.list('audit:');
+async function loadAudits() {
+  const audits = [];
+
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+
+    if (key.startsWith('audit:')) {
+      try {
+        audits.push(JSON.parse(localStorage.getItem(key)));
+      } catch (e) {}
+    }
+  }
+
+  return audits.sort((a, b) => b.timestamp - a.timestamp);
+}
     const audits=[];
     for(const key of(res?.keys||[])){try{const d=await window.storage.get(key);if(d)audits.push(JSON.parse(d.value));}catch(e){}}
     return audits.sort((a,b)=>b.timestamp-a.timestamp);
@@ -805,3 +817,4 @@ updateBadge();
 </script>
 </body>
 </html>
+
