@@ -485,30 +485,32 @@ async function saveAudit(){
     scores:{...CS},ncScore:ncP,crScore:crP,totalScore:tot,
     result:tot>=85?'Pass':tot>=70?'Review':'Fail'
   };
-  try{await localStorage.setItem(audit.id, JSON.stringify(audit));showToast('✅ Audit saved for '+agent,'s');updateBadge();}
-  catch(e){showToast('Storage error: '+e.message,'e');}
+  try{
+  localStorage.setItem(audit.id, JSON.stringify(audit));
+  showToast('✅ Audit saved for '+agent,'s');
+  updateBadge();
+}
+catch(e){
+  showToast('Storage error','e');
+}
 }
 
-async function loadAudits() {
+async function loadAudits(){
   const audits = [];
 
   for (let i = 0; i < localStorage.length; i++) {
     const key = localStorage.key(i);
 
-    if (key.startsWith('audit:')) {
+    if (key && key.startsWith('audit:')) {
       try {
         audits.push(JSON.parse(localStorage.getItem(key)));
-      } catch (e) {}
+      } catch(e){}
     }
   }
 
-  return audits.sort((a, b) => b.timestamp - a.timestamp);
-}
-    const audits=[];
-    for(const key of(res?.keys||[])){try{const d=await window.storage.get(key);if(d)audits.push(JSON.parse(d.value));}catch(e){}}
-    return audits.sort((a,b)=>b.timestamp-a.timestamp);
-  }catch(e){return [];}
-}
+  return audits.sort((a,b)=>b.timestamp - a.timestamp);
+}   
+    
 
 async function updateBadge(){
   const a=await loadAudits();
@@ -560,14 +562,28 @@ function td(id){const el=document.getElementById(id);if(el)el.classList.toggle('
 
 async function delAudit(e,id){
   e.stopPropagation();if(!confirm('Delete this audit?'))return;
-  try{await window.storage.delete(id);showToast('Deleted','s');renderAuditLog();}catch(er){showToast('Error','e');}
+  try{
+  localStorage.removeItem(id);
+  showToast('Deleted','s');
+  renderAuditLog();
+}catch(er){showToast('Error','e');}
 }
 
 async function clearAllAudits(){
-  if(!confirm('Delete ALL audit records? Cannot be undone.'))return;
-  try{const res=await window.storage.list('audit:');for(const k of(res?.keys||[])){try{await window.storage.delete(k);}catch(e){}}showToast('All audits cleared','s');renderAuditLog();renderPerformance();renderPareto();}
-  catch(e){showToast('Error','e');}
+  if(!confirm('Delete ALL audit records? Cannot be undone.')) return;
+
+  Object.keys(localStorage).forEach(key => {
+    if (key.startsWith('audit:')) {
+      localStorage.removeItem(key);
+    }
+  });
+
+  showToast('All audits cleared','s');
+  renderAuditLog();
+  renderPerformance();
+  renderPareto();
 }
+
 
 // ── PERFORMANCE
 async function renderPerformance(){
@@ -817,4 +833,5 @@ updateBadge();
 </script>
 </body>
 </html>
+
 
