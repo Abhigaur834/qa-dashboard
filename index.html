@@ -331,11 +331,19 @@ gap:10px;">
   <div class="sec-title">👥 All Agents Breakdown</div>
   <div class="card mb6">
     <div class="table-wrap"><table>
-      <thead><tr><th>#</th><th>Agent</th><th>Team</th><th>Tenure</th><th>Evals</th><th>Avg NC %</th><th>Avg Critical %</th><th style="width:120px">Avg Overall %</th><th>Last Eval</th><th>Status</th></tr></thead>
+      <thead><tr><th>#</th><th>Agent</th><th>Team</th><th>Tenure</th><th>Evals</th><th>Avg NC %</th><th>Avg Critical %</th><th style="width:120px">Avg Overall %</th><th>Last Eval</th><th>Status</th><th>Coaching Needed</th></tr></thead>
       <tbody id="agentTableBody"><tr><td colspan="10"><div class="empty-state" style="padding:22px"><p>No data yet</p></div></td></tr></tbody>
     </table></div>
   </div>
   <div class="abar"><button class="btn btn-excel btn-sm" onclick="exportPerfExcel()">⬇ Export Agent Performance</button></div>
+<div class="card mb6">
+  <div class="card-hdr">
+    <div class="card-title">📈 Monthly QA Trend</div>
+  </div>
+  <div class="chart-wrap" style="height:300px">
+    <canvas id="monthlyTrendChart"></canvas>
+  </div>
+</div>
 </div>
 
 <!-- ════ TAB 4: PARETO ANALYSIS ════ -->
@@ -425,10 +433,11 @@ window.loginUser = function () {
   const pass = document.getElementById('loginPassword').value;
 
   signInWithEmailAndPassword(auth, email, pass)
-    .then(() => {
-      document.getElementById('loginScreen').style.display = 'none';
-      showToast("Login successful", "s");
-    })
+    .then((userCredential) => {
+  const user = userCredential.user;
+  document.getElementById('loginScreen').style.display = 'none';
+  showToast("Welcome " + user.email, "s");
+})
     .catch(error => {
       alert(error.message);
     });
@@ -722,6 +731,11 @@ async function renderPerformance(){
     <td class="sbc"><div class="sbw"><div class="smb"><div class="smf" style="width:${ag.avgTot||0}%;background:${ag.avgTot>=85?'var(--success)':ag.avgTot>=70?'var(--warning)':'var(--critical)'}"></div></div><span class="sv" style="color:${ag.avgTot>=85?'var(--success)':ag.avgTot>=70?'var(--warning)':'var(--critical)'}">${ag.avgTot!==null?ag.avgTot+'%':'—'}</span></div></td>
     <td style="color:var(--muted);font-size:11px">${ag.lastDate||'—'}</td>
     <td>${stag(ag.avgTot)}</td>
+	<td>
+  ${ag.evals.some(e => e.coachingRequired) 
+    ? '<span class="tag tf">Yes</span>' 
+    : '<span class="tag tp">No</span>'}
+</td>
   </tr>`).join(''):`<tr><td colspan="10"><div class="empty-state" style="padding:22px"><p>No data yet</p></div></td></tr>`;
 
   const bands=[{l:'0–3 months',min:0,max:3},{l:'4–6 months',min:4,max:6},{l:'7–12 months',min:7,max:12},{l:'13–24 months',min:13,max:24},{l:'25+ months',min:25,max:9999}];
@@ -743,7 +757,73 @@ async function renderPerformance(){
       <td>${passR!==null?passR+'%':'—'}</td></tr>`;
   }).filter(Boolean);
   ttb.innerHTML=brows.length?brows.join(''):`<tr><td colspan="7"><div class="empty-state" style="padding:20px"><p>Add tenure when creating audits to see this breakdown.</p></div></td></tr>`;
+renderMonthlyTrend(audits);
 }
+
+let monthlyTrendChart = null;
+
+function renderMonthlyTrend(audits){
+
+  const canvas = document.getElementById('monthlyTrendChart');
+  if(!canvas) return;
+
+  const monthMap = {};
+
+  audits.forEach(a => {
+    if(!a.date || a.totalScore === null) return;
+
+    const month = a.date.substring(0,7); // YYYY-MM format
+
+    if(!monthMap[month]) monthMap[month] = [];
+    monthMap[month].push(a.totalScore);
+  });
+
+  const labels = Object.keys(monthMap).sort();
+
+  const avgScores = labels.map(month => {
+    const arr = monthMap[month];
+    return Math.round(arr.reduce((sum,val)=>sum+val,0) / arr.length);
+  });
+
+  if(monthlyTrendChart) monthlyTrendChart.destroy();
+
+  monthlyTrendChart = new Chart(canvas.getContext('2d'), {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Average QA Score',
+        data: avgScores,
+        borderColor: '#4f8ef7',
+        backgroundColor: 'rgba(79,142,247,0.1)',
+        fill: true,
+        tension: 0.3,
+        pointRadius: 4
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: {
+          min: 0,
+          max: 100,
+          ticks: { color: '#6b7a9e' }
+        },
+        x: {
+          ticks: { color: '#6b7a9e' }
+        }
+      },
+      plugins: {
+        legend: {
+          labels: { color: '#e8edf8' }
+        }
+      }
+    }
+  });
+}
+
+
 
 function renderAgentCards(cid,agents,isTop){
   const el=document.getElementById(cid);
@@ -924,4 +1004,3 @@ updateBadge();
 </script>
 </body>
 </html>
-
