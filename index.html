@@ -200,9 +200,27 @@ gap:10px;">
     <button class="nav-tab" onclick="switchTab('pareto',this)">📉 Pareto Analysis</button>
   </div>
   <div class="top-bar-right">
+
+  <div id="userProfile" style="
+    display:flex;
+    flex-direction:column;
+    margin-right:15px;
+    padding:8px 12px;
+    background:rgba(79,142,247,0.08);
+    border:1px solid #252e45;
+    border-radius:8px;
+    font-size:11px;
+    text-align:right;
+  ">
+    <div id="profileName" style="font-size:13px;font-weight:600;color:#e8edf8;"></div>
+    <div id="profileDesignation" style="color:#6b7a9e;"></div>
+    <div id="profileAccess" style="margin-top:3px;color:#4f8ef7;"></div>
+    <div id="profileEmail" style="font-size:10px;color:#6b7a9e;"></div>
+  </div>
+
   <button class="btn btn-excel" onclick="exportAllExcel()">⬇ Export All to Excel</button>
   <button class="btn btn-outline" onclick="logoutUser()">🚪 Logout</button>
-</div>
+
 </div>
 
 <div class="content">
@@ -420,17 +438,33 @@ window.push = push;
 window.get = get;
 window.remove = remove;
 window.set = set;
-
-
 window.auth = auth;
-window.signInWithEmailAndPassword = signInWithEmailAndPassword;
-window.onAuthStateChanged = onAuthStateChanged;
-window.signOut = signOut;
 
-// USER ROLE DETECTION
+/* ================= USER DIRECTORY ================= */
+
+const USER_PROFILES = {
+  "gaurabhi834@gmail.com": {
+    name: "Abhishek Gaur",
+    designation: "Deputy Manager – QA"
+  },
+  "tl.pinki@ocubeservices.com": {
+    name: "Pinki Kumari",
+    designation: "Team Leader – Sales"
+  },
+  "tl.shahid@ocubeservices.com": {
+    name: "Md Shahid",
+    designation: "Team Leader – Support"
+  },
+  "qa.prince@ocubeservices.com": {
+    name: "Prince Kumar",
+    designation: "Quality Analyst"
+  }
+};
+
+/* ================= ROLE DETECTION ================= */
+
 window.getUserRole = function () {
   const user = auth.currentUser;
-
   if (!user) return null;
 
   if (user.email === "gaurabhi834@gmail.com") return "admin";
@@ -439,18 +473,48 @@ window.getUserRole = function () {
   return "agent";
 };
 
-// AUTH STATE LISTENER
+/* ================= AUTH LISTENER ================= */
+
 onAuthStateChanged(auth, (user) => {
-  if(user){
+
+  if (user) {
+
     document.getElementById('loginScreen').style.display = 'none';
     document.getElementById('mainApp').style.display = 'flex';
+  updateBadge();
+    const role = getUserRole();
+    const profile = USER_PROFILES[user.email];
+
+    if (profile) {
+      document.getElementById("profileName").textContent = "👤 " + profile.name;
+      document.getElementById("profileDesignation").textContent = profile.designation;
+      document.getElementById("profileEmail").textContent = user.email;
+
+      document.getElementById("profileAccess").textContent =
+        role === "admin" ? "🔐 Admin Access" :
+        role === "qa" ? "🧪 QA Access" :
+        role === "tl" ? "👔 TL Access" :
+        "👤 Agent Access";
+    }
+
+    if (role !== "admin") {
+      const btn = document.getElementById("clearBtn");
+      if (btn) btn.style.display = "none";
+    }
+
   } else {
+
     document.getElementById('loginScreen').style.display = 'flex';
     document.getElementById('mainApp').style.display = 'none';
+
   }
+
 });
 
+/* ================= LOGIN ================= */
+
 window.loginUser = function () {
+
   const email = document.getElementById("loginEmail").value.trim();
   const password = document.getElementById("loginPassword").value.trim();
 
@@ -460,18 +524,17 @@ window.loginUser = function () {
   }
 
   signInWithEmailAndPassword(auth, email, password)
-    .then(() => {
-      showToast("Login successful", "s");
-    })
-    .catch(() => {
-      showToast("Invalid email or password", "e");
-    });
+    .then(() => showToast("Login successful", "s"))
+    .catch(() => showToast("Invalid email or password", "e"));
+
 };
+
 window.logoutUser = function () {
   signOut(auth).then(() => {
     showToast("Logged out successfully", "s");
   });
 };
+
 
 </script>
 
@@ -1025,7 +1088,7 @@ function esc(s){return s?.replace(/</g,'&lt;').replace(/>/g,'&gt;')||'';}
 // INIT
 document.getElementById('evalDate').valueAsDate=new Date();
 updateDash();
-updateBadge();
+
 </script>
 </body>
 </html>
