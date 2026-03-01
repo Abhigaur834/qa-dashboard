@@ -355,17 +355,23 @@ tbody td{padding:10px 14px;font-size:13px;color:var(--text);}
 </div><!-- /content -->
 </div><!-- /app -->
 <div id="toast"></div>
+
+
+
 <!-- STEP A: Firebase Script -->
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
-  import { getDatabase, ref, push, get, remove } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-database.js";
+  import { initializeApp } 
+  from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
+
+  import { getDatabase, ref, push, get, remove, set } 
+  from "https://www.gstatic.com/firebasejs/12.10.0/firebase-database.js";
 
   const firebaseConfig = {
-    apiKey: "YOUR_KEY",
+    apiKey: "AIzaSyCifkNrq_PA8FtW7devgVsaNGXW-Tce0n8",
     authDomain: "qa-dashboard-system.firebaseapp.com",
     databaseURL: "https://qa-dashboard-system-default-rtdb.asia-southeast1.firebasedatabase.app",
     projectId: "qa-dashboard-system",
-    storageBucket: "qa-dashboard-system.firebasestorage.app",
+    storageBucket: "qa-dashboard-system.appspot.com",
     messagingSenderId: "373240224146",
     appId: "1:373240224146:web:80576d03fea68b3583894b"
   };
@@ -373,21 +379,18 @@ tbody td{padding:10px 14px;font-size:13px;color:var(--text);}
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
 
-  // Make Firebase usable in normal JS
   window.db = db;
   window.ref = ref;
   window.push = push;
   window.get = get;
   window.remove = remove;
+  window.set = set;
+
 </script>
 
 <!-- STEP B: Your Big Existing Script -->
-<script>
-   const PM = { ... }
-   ...
-</script>
 
-  
+
 <script>
 const PM={
   nc1:{label:'Standard opening & name confirmation',group:'Call Opening/Closing',type:'NC'},
@@ -503,8 +506,8 @@ async function saveAudit(){
   const crP=calcPct(CRK.filter(k=>k in CS));
   if(ncP===null&&crP===null){showToast('Score at least one parameter.','e');return;}
   const tot=ncP!==null&&crP!==null?Math.round(ncP*.4+crP*.6):ncP!==null?ncP:crP;
-  const audit={
-    id:'audit:'+Date.now(),timestamp:Date.now(),
+  
+    const audit={timestamp:Date.now(),
     date:document.getElementById('evalDate').value,agent,reviewer,
     callId:document.getElementById('callId').value,
     channel:document.getElementById('channel').value,
@@ -517,27 +520,26 @@ async function saveAudit(){
     scores:{...CS},ncScore:ncP,crScore:crP,totalScore:tot,
     result:tot>=85?'Pass':tot>=70?'Review':'Fail'
   };
-  try{
-  localStorage.setItem(audit.id, JSON.stringify(audit));
-  showToast('✅ Audit saved for '+agent,'s');
+  try {
+  const newRef = await push(ref(db, 'audits'));
+  await set(newRef, audit);
+
+  showToast('✅ Audit saved for ' + agent, 's');
   updateBadge();
 }
 catch(e){
   showToast('Storage error','e');
 }
-}
 
+}
 async function loadAudits(){
+  const snapshot = await get(ref(db, 'audits'));
   const audits = [];
 
-  for (let i = 0; i < localStorage.length; i++) {
-    const key = localStorage.key(i);
-
-    if (key && key.startsWith('audit:')) {
-      try {
-        audits.push(JSON.parse(localStorage.getItem(key)));
-      } catch(e){}
-    }
+  if (snapshot.exists()) {
+    Object.entries(snapshot.val()).forEach(([id, data]) => {
+      audits.push({ id, ...data });
+    });
   }
 
   return audits.sort((a,b)=>b.timestamp - a.timestamp);
@@ -595,7 +597,7 @@ function td(id){const el=document.getElementById(id);if(el)el.classList.toggle('
 async function delAudit(e,id){
   e.stopPropagation();if(!confirm('Delete this audit?'))return;
   try{
-  localStorage.removeItem(id);
+  await remove(ref(db, 'audits/' + id));
   showToast('Deleted','s');
   renderAuditLog();
 }catch(er){showToast('Error','e');}
@@ -604,19 +606,16 @@ async function delAudit(e,id){
 async function clearAllAudits(){
   if(!confirm('Delete ALL audit records? Cannot be undone.')) return;
 
-  Object.keys(localStorage).forEach(key => {
-    if (key.startsWith('audit:')) {
-      localStorage.removeItem(key);
-    }
-  });
-
-  showToast('All audits cleared','s');
-  renderAuditLog();
-  renderPerformance();
-  renderPareto();
+  try {
+    await remove(ref(db, 'audits'));
+    showToast('All audits cleared','s');
+    renderAuditLog();
+    renderPerformance();
+    renderPareto();
+  } catch(e) {
+    showToast('Error clearing data','e');
+  }
 }
-
-
 // ── PERFORMANCE
 async function renderPerformance(){
   const audits=await loadAudits();
@@ -865,6 +864,4 @@ updateBadge();
 </script>
 </body>
 </html>
-
-
 
