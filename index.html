@@ -169,6 +169,27 @@ tbody td{padding:10px 14px;font-size:13px;color:var(--text);}
 </style>
 </head>
 <body>
+<div id="loginScreen" style="
+position:fixed;
+inset:0;
+background:#0b0f1a;
+display:flex;
+justify-content:center;
+align-items:center;
+z-index:9999;
+flex-direction:column;
+gap:10px;">
+
+  <h2 style="color:white">QA Hub Login</h2>
+
+  <input type="email" id="loginEmail" placeholder="Email">
+  <input type="password" id="loginPassword" placeholder="Password">
+
+  <button onclick="loginUser()">Login</button>
+
+</div>
+
+
 <div class="app">
 <div class="top-bar">
   <div class="logo">QA<span>.</span>Hub</div>
@@ -179,8 +200,9 @@ tbody td{padding:10px 14px;font-size:13px;color:var(--text);}
     <button class="nav-tab" onclick="switchTab('pareto',this)">📉 Pareto Analysis</button>
   </div>
   <div class="top-bar-right">
-    <button class="btn btn-excel" onclick="exportAllExcel()">⬇ Export All to Excel</button>
-  </div>
+  <button class="btn btn-excel" onclick="exportAllExcel()">⬇ Export All to Excel</button>
+  <button class="btn btn-outline" onclick="logoutUser()">🚪 Logout</button>
+</div>
 </div>
 
 <div class="content">
@@ -360,37 +382,73 @@ tbody td{padding:10px 14px;font-size:13px;color:var(--text);}
 
 <!-- STEP A: Firebase Script -->
 <script type="module">
-  import { initializeApp } 
-  from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
 
-  import { getDatabase, ref, push, get, remove, set } 
-  from "https://www.gstatic.com/firebasejs/12.10.0/firebase-database.js";
+import { initializeApp } 
+from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyCifkNrq_PA8FtW7devgVsaNGXW-Tce0n8",
-    authDomain: "qa-dashboard-system.firebaseapp.com",
-    databaseURL: "https://qa-dashboard-system-default-rtdb.asia-southeast1.firebasedatabase.app",
-    projectId: "qa-dashboard-system",
-    storageBucket: "qa-dashboard-system.appspot.com",
-    messagingSenderId: "373240224146",
-    appId: "1:373240224146:web:80576d03fea68b3583894b"
-  };
+import { getDatabase, ref, push, get, remove, set } 
+from "https://www.gstatic.com/firebasejs/12.10.0/firebase-database.js";
 
-  const app = initializeApp(firebaseConfig);
-  const db = getDatabase(app);
+import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } 
+from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
 
-  window.db = db;
-  window.ref = ref;
-  window.push = push;
-  window.get = get;
-  window.remove = remove;
-  window.set = set;
+const firebaseConfig = {
+  apiKey: "AIzaSyCifkNrq_PA8FtW7devgVsaNGXW-Tce0n8",
+  authDomain: "qa-dashboard-system.firebaseapp.com",
+  databaseURL: "https://qa-dashboard-system-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "qa-dashboard-system",
+  storageBucket: "qa-dashboard-system.appspot.com",
+  messagingSenderId: "373240224146",
+  appId: "1:373240224146:web:80576d03fea68b3583894b"
+};
+
+const app = initializeApp(firebaseConfig);
+
+const db = getDatabase(app);
+const auth = getAuth(app);
+
+window.db = db;
+window.ref = ref;
+window.push = push;
+window.get = get;
+window.remove = remove;
+window.set = set;
+
+window.auth = auth;
+window.signInWithEmailAndPassword = signInWithEmailAndPassword;
+window.onAuthStateChanged = onAuthStateChanged;
+window.signOut = signOut;
+
+// LOGIN FUNCTION
+window.loginUser = function () {
+  const email = document.getElementById('loginEmail').value;
+  const pass = document.getElementById('loginPassword').value;
+
+  signInWithEmailAndPassword(auth, email, pass)
+    .then(() => {
+      document.getElementById('loginScreen').style.display = 'none';
+      showToast("Login successful", "s");
+    })
+    .catch(error => {
+      alert(error.message);
+    });
+};
+
+// AUTH STATE LISTENER
+onAuthStateChanged(auth, (user) => {
+  document.getElementById('loginScreen').style.display = user ? 'none' : 'flex';
+});
+
+window.logoutUser = function () {
+  signOut(auth).then(() => {
+    document.getElementById('loginScreen').style.display = 'flex';
+    showToast("Logged out successfully", "s");
+  });
+};
 
 </script>
 
 <!-- STEP B: Your Big Existing Script -->
-
-
 <script>
 const PM={
   nc1:{label:'Standard opening & name confirmation',group:'Call Opening/Closing',type:'NC'},
@@ -518,7 +576,8 @@ async function saveAudit(){
     observations:document.getElementById('observations').value,
     recommendation:document.getElementById('recommendation').value,
     scores:{...CS},ncScore:ncP,crScore:crP,totalScore:tot,
-    result:tot>=85?'Pass':tot>=70?'Review':'Fail'
+    result: tot>=85?'Pass':tot>=70?'Review':'Fail',
+    coachingRequired: tot < 85
   };
   try {
   const newRef = await push(ref(db, 'audits'));
@@ -578,7 +637,9 @@ async function renderAuditLog(){
       <td><span style="color:var(--critical);font-family:var(--font-head);font-weight:700">${a.crScore!==null?a.crScore+'%':'—'}</span></td>
       <td><span style="color:var(--accent2);font-family:var(--font-head);font-weight:700;font-size:14px">${a.totalScore!==null?a.totalScore+'%':'—'}</span></td>
       <td>${stag(a.totalScore)}</td>
-      <td><button class="btn btn-danger btn-sm" onclick="delAudit(event,'${a.id}')">🗑</button></td>
+      <td>${auth.currentUser && auth.currentUser.email === "gaurabhi834@gmail.com"
+  ? `<button class="btn btn-danger btn-sm" onclick="delAudit(event,'${a.id}')">🗑</button>`
+  : ''}</td>
     </tr>
     <tr class="adr" id="adr-${i}"><td colspan="11"><div class="dgrid">
       <div class="di"><label>Team</label><p>${a.team||'—'}</p></div>
@@ -595,26 +656,25 @@ async function renderAuditLog(){
 function td(id){const el=document.getElementById(id);if(el)el.classList.toggle('open');}
 
 async function delAudit(e,id){
-  e.stopPropagation();if(!confirm('Delete this audit?'))return;
-  try{
-  await remove(ref(db, 'audits/' + id));
-  showToast('Deleted','s');
-  renderAuditLog();
-}catch(er){showToast('Error','e');}
-}
+  e.stopPropagation();
 
-async function clearAllAudits(){
-  if(!confirm('Delete ALL audit records? Cannot be undone.')) return;
+  const user = auth.currentUser;
 
-  try {
-    await remove(ref(db, 'audits'));
-    showToast('All audits cleared','s');
-    renderAuditLog();
-    renderPerformance();
-    renderPareto();
-  } catch(e) {
-    showToast('Error clearing data','e');
+  if(!user || user.email !== "gaurabhi834@gmail.com"){
+    showToast("Only Admin can delete records","e");
+    return;
   }
+
+  if(!confirm('Delete this audit?')) return;
+
+  try{
+    await remove(ref(db, 'audits/' + id));
+    showToast('Deleted','s');
+    renderAuditLog();
+  }catch(er){
+    showToast('Error','e');
+  }
+
 }
 // ── PERFORMANCE
 async function renderPerformance(){
