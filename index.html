@@ -355,7 +355,39 @@ tbody td{padding:10px 14px;font-size:13px;color:var(--text);}
 </div><!-- /content -->
 </div><!-- /app -->
 <div id="toast"></div>
+<!-- STEP A: Firebase Script -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
+  import { getDatabase, ref, push, get, remove } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-database.js";
 
+  const firebaseConfig = {
+    apiKey: "YOUR_KEY",
+    authDomain: "qa-dashboard-system.firebaseapp.com",
+    databaseURL: "https://qa-dashboard-system-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "qa-dashboard-system",
+    storageBucket: "qa-dashboard-system.firebasestorage.app",
+    messagingSenderId: "373240224146",
+    appId: "1:373240224146:web:80576d03fea68b3583894b"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+
+  // Make Firebase usable in normal JS
+  window.db = db;
+  window.ref = ref;
+  window.push = push;
+  window.get = get;
+  window.remove = remove;
+</script>
+
+<!-- STEP B: Your Big Existing Script -->
+<script>
+   const PM = { ... }
+   ...
+</script>
+
+  
 <script>
 const PM={
   nc1:{label:'Standard opening & name confirmation',group:'Call Opening/Closing',type:'NC'},
@@ -833,5 +865,6 @@ updateBadge();
 </script>
 </body>
 </html>
+
 
 
