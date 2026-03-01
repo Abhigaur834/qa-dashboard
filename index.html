@@ -190,7 +190,7 @@ gap:10px;">
 </div>
 
 
-<div class="app">
+<div class="app" id="mainApp" style="display:none;">
 <div class="top-bar">
   <div class="logo">QA<span>.</span>Hub</div>
   <div class="nav-tabs">
@@ -287,7 +287,7 @@ gap:10px;">
     <select id="filterChannel" onchange="renderAuditLog()"><option value="">All Channels</option><option>Inbound Call</option><option>Outbound Call</option><option>Live Chat</option><option>Email</option></select>
     <div style="margin-left:auto;display:flex;gap:7px">
       <button class="btn btn-excel btn-sm" onclick="exportAuditExcel()">⬇ Export Log</button>
-      <button class="btn btn-danger btn-sm" onclick="clearAllAudits()">🗑 Clear All</button>
+      <button id="clearBtn" class="btn btn-danger btn-sm" onclick="clearAllAudits()">🗑 Clear All</button>
     </div>
   </div>
   <div class="card">
@@ -411,7 +411,6 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-
 const db = getDatabase(app);
 const auth = getAuth(app);
 
@@ -422,35 +421,54 @@ window.get = get;
 window.remove = remove;
 window.set = set;
 
+
 window.auth = auth;
 window.signInWithEmailAndPassword = signInWithEmailAndPassword;
 window.onAuthStateChanged = onAuthStateChanged;
 window.signOut = signOut;
 
-// LOGIN FUNCTION
-window.loginUser = function () {
-  const email = document.getElementById('loginEmail').value;
-  const pass = document.getElementById('loginPassword').value;
+// USER ROLE DETECTION
+window.getUserRole = function () {
+  const user = auth.currentUser;
 
-  signInWithEmailAndPassword(auth, email, pass)
-    .then((userCredential) => {
-  const user = userCredential.user;
-  document.getElementById('loginScreen').style.display = 'none';
-  showToast("Welcome " + user.email, "s");
-})
-    .catch(error => {
-      alert(error.message);
-    });
+  if (!user) return null;
+
+  if (user.email === "gaurabhi834@gmail.com") return "admin";
+  if (user.email.includes("qa")) return "qa";
+  if (user.email.includes("tl")) return "tl";
+  return "agent";
 };
 
 // AUTH STATE LISTENER
 onAuthStateChanged(auth, (user) => {
-  document.getElementById('loginScreen').style.display = user ? 'none' : 'flex';
+  if(user){
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('mainApp').style.display = 'flex';
+  } else {
+    document.getElementById('loginScreen').style.display = 'flex';
+    document.getElementById('mainApp').style.display = 'none';
+  }
 });
 
+window.loginUser = function () {
+  const email = document.getElementById("loginEmail").value.trim();
+  const password = document.getElementById("loginPassword").value.trim();
+
+  if (!email || !password) {
+    showToast("Enter email and password", "e");
+    return;
+  }
+
+  signInWithEmailAndPassword(auth, email, password)
+    .then(() => {
+      showToast("Login successful", "s");
+    })
+    .catch(() => {
+      showToast("Invalid email or password", "e");
+    });
+};
 window.logoutUser = function () {
   signOut(auth).then(() => {
-    document.getElementById('loginScreen').style.display = 'flex';
     showToast("Logged out successfully", "s");
   });
 };
@@ -566,6 +584,10 @@ function stag(p){return p===null?'–':p>=85?'<span class="tag tp">Pass</span>':
 
 // ── SAVE
 async function saveAudit(){
+if(!auth.currentUser){
+  showToast("Please login first","e");
+  return;
+}
   const agent=document.getElementById('agentName').value.trim();
   const reviewer=document.getElementById('reviewerName').value.trim();
   if(!agent||!reviewer){showToast('Enter Agent and Reviewer names.','e');return;}
@@ -601,6 +623,9 @@ catch(e){
 
 }
 async function loadAudits(){
+  if(!auth.currentUser){
+  return [];
+}
   const snapshot = await get(ref(db, 'audits'));
   const audits = [];
 
@@ -646,7 +671,7 @@ async function renderAuditLog(){
       <td><span style="color:var(--critical);font-family:var(--font-head);font-weight:700">${a.crScore!==null?a.crScore+'%':'—'}</span></td>
       <td><span style="color:var(--accent2);font-family:var(--font-head);font-weight:700;font-size:14px">${a.totalScore!==null?a.totalScore+'%':'—'}</span></td>
       <td>${stag(a.totalScore)}</td>
-      <td>${auth.currentUser && auth.currentUser.email === "gaurabhi834@gmail.com"
+      <td>${getUserRole() === "admin"
   ? `<button class="btn btn-danger btn-sm" onclick="delAudit(event,'${a.id}')">🗑</button>`
   : ''}</td>
     </tr>
@@ -669,7 +694,7 @@ async function delAudit(e,id){
 
   const user = auth.currentUser;
 
-  if(!user || user.email !== "gaurabhi834@gmail.com"){
+  if(getUserRole() !== "admin"){
     showToast("Only Admin can delete records","e");
     return;
   }
