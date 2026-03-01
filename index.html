@@ -13,29 +13,32 @@
 body{background:var(--bg);color:var(--text);font-family:var(--font-body);min-height:100vh;}
 body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 20% 20%,rgba(79,142,247,.07) 0%,transparent 50%),radial-gradient(ellipse at 80% 80%,rgba(247,193,79,.05) 0%,transparent 50%);pointer-events:none;z-index:0;}
 .app{position:relative;z-index:1;display:flex;flex-direction:column;min-height:100vh;}
-.top-bar{
-  background:var(--surface);
-  border-bottom:1px solid var(--border);
-  padding:0 24px;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;   /* IMPORTANT */
-}.logo{font-family:var(--font-head);font-weight:800;font-size:16px;letter-spacing:-.3px;padding:18px 0;margin-right:28px;white-space:nowrap;color:var(--text);}
+.logo{font-family:var(--font-head);font-weight:800;font-size:16px;letter-spacing:-.3px;padding:18px 0;margin-right:28px;white-space:nowrap;color:var(--text);}
 .logo span{color:var(--accent);}
 .nav-tabs{
   display:flex;
   gap:6px;
-  flex-wrap:wrap;
+  justify-content:center;
 }
 .nav-tab{padding:18px 16px;font-family:var(--font-head);font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .2s;background:none;border-top:none;border-left:none;border-right:none;white-space:nowrap;}
 .nav-tab:hover{color:var(--text);}
 .nav-tab.active{color:var(--accent);border-bottom-color:var(--accent);}
 .tab-badge{background:var(--surface2);color:var(--muted);font-size:10px;padding:1px 6px;border-radius:10px;margin-left:5px;}
 .nav-tab.active .tab-badge{background:rgba(79,142,247,.15);color:var(--accent);}
+.top-bar{
+  display:grid;
+  grid-template-columns:auto 1fr auto;
+  align-items:center;
+  padding:0 32px;
+  height:60px;
+  background:var(--surface);
+  border-bottom:1px solid var(--border);
+}
 .top-bar-right{
   display:flex;
-  gap:12px;
   align-items:center;
+  justify-content:flex-end;
+  gap:12px;
 }
 .content{flex:1;padding:22px 24px;max-width:1380px;margin:0 auto;width:100%;}
 .tab-panel{display:none;animation:fadeIn .2s;}
@@ -220,6 +223,7 @@ gap:10px;">
     flex-direction:column;
     margin-right:15px;
     padding:8px 12px;
+    min-width:180px;
     background:rgba(79,142,247,0.08);
     border:1px solid #252e45;
     border-radius:8px;
