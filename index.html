@@ -558,7 +558,10 @@ window.loginUser = function () {
 
   signInWithEmailAndPassword(auth, email, password)
     .then(() => showToast("Login successful", "s"))
-    .catch(() => showToast("Invalid email or password", "e"));
+    .catch((error) => {
+  console.error(error);
+  showToast(error.message, "e");
+});
 
 };
 
