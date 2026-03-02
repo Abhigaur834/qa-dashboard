@@ -29,8 +29,8 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
   display:grid;
   grid-template-columns:auto 1fr auto;
   align-items:center;
-  padding:0 32px;
-  height:60px;
+  padding:0 40px;   /* slightly more breathing space */
+  height:70px;      /* more professional height */
   background:var(--surface);
   border-bottom:1px solid var(--border);
 }
@@ -38,8 +38,11 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
   display:flex;
   align-items:center;
   justify-content:flex-end;
-  gap:12px;
+  gap:16px;
+  min-width:420px;
+  flex-wrap:wrap;
 }
+
 .content{flex:1;padding:22px 24px;max-width:1380px;margin:0 auto;width:100%;}
 .tab-panel{display:none;animation:fadeIn .2s;}
 .tab-panel.active{display:block;}
@@ -137,7 +140,7 @@ tbody td{padding:10px 14px;font-size:13px;color:var(--text);}
 .tr{background:rgba(247,161,79,.15);color:var(--warning);}
 .tnc{background:rgba(79,142,247,.12);color:var(--accent);}
 .tcr{background:rgba(247,79,106,.12);color:var(--critical);}
-.btn{padding:8px 18px;border-radius:8px;font-family:var(--font-head);font-size:11px;font-weight:700;letter-spacing:.5px;cursor:pointer;border:none;transition:all .2s;display:inline-flex;align-items:center;gap:5px;}
+.btn{padding:10px 18px;height:40px;border-radius:8px;font-family:var(--font-head);font-size:11px;font-weight:700;letter-spacing:.5px;cursor:pointer;border:none;transition:all .2s;display:inline-flex;align-items:center;gap:5px;}
 .btn-outline{background:transparent;border:1px solid var(--border);color:var(--muted);}
 .btn-outline:hover{border-color:var(--accent);color:var(--accent);}
 .btn-primary{background:var(--accent);color:white;}
@@ -223,7 +226,7 @@ gap:10px;">
     flex-direction:column;
     margin-right:15px;
     padding:8px 12px;
-    min-width:180px;
+    min-width:220px;
     background:rgba(79,142,247,0.08);
     border:1px solid #252e45;
     border-radius:8px;
@@ -232,7 +235,7 @@ gap:10px;">
   ">
     <div id="profileName" style="font-size:13px;font-weight:600;color:#e8edf8;"></div>
     <div id="profileDesignation" style="color:#6b7a9e;"></div>
-    <div id="profileAccess" style="margin-top:3px;color:#4f8ef7;"></div>
+    <div id="profileAccess"style="margin-top:5px;color:#4f8ef7;font-size:11px;line-height:1.4;"></div>
     <div id="profileEmail" style="font-size:10px;color:#6b7a9e;"></div>
   </div>
 
@@ -485,9 +488,17 @@ window.getUserRole = function () {
   const user = auth.currentUser;
   if (!user) return null;
 
-  if (user.email === "gaurabhi834@gmail.com") return "admin";
-  if (user.email.includes("qa")) return "qa";
-  if (user.email.includes("tl")) return "tl";
+  const email = user.email;
+
+  if (email === "gaurabhi834@gmail.com") return "admin";
+
+  if (email === "qa.prince@ocubeservices.com") return "qa";
+
+  if (
+    email === "tl.pinki@ocubeservices.com" ||
+    email === "tl.shahid@ocubeservices.com"
+  ) return "tl";
+
   return "agent";
 };
 
@@ -508,12 +519,16 @@ onAuthStateChanged(auth, (user) => {
       document.getElementById("profileDesignation").textContent = profile.designation;
       document.getElementById("profileEmail").textContent = user.email;
 
-      document.getElementById("profileAccess").textContent =
-        role === "admin" ? "🔐 Admin Access" :
-        role === "qa" ? "🧪 QA Access" :
-        role === "tl" ? "👔 TL Access" :
-        "👤 Agent Access";
-    }
+      const loginTime = new Date().toLocaleTimeString();
+
+let accessText =
+  role === "admin" ? "🔐 Admin Access" :
+  role === "qa" ? "🧪 QA Access" :
+  role === "tl" ? "👔 TL Access" :
+  "👤 Agent Access";
+
+document.getElementById("profileAccess").innerHTML =
+  accessText + "<br>🕒 Logged in: " + loginTime;
 
     if (role !== "admin") {
       const btn = document.getElementById("clearBtn");
@@ -677,7 +692,9 @@ if(!auth.currentUser){
   if(ncP===null&&crP===null){showToast('Score at least one parameter.','e');return;}
   const tot=ncP!==null&&crP!==null?Math.round(ncP*.4+crP*.6):ncP!==null?ncP:crP;
   
-    const audit={timestamp:Date.now(),
+    const audit = {
+  timestamp: Date.now(),
+  createdBy: auth.currentUser.email,
     date:document.getElementById('evalDate').value,agent,reviewer,
     callId:document.getElementById('callId').value,
     channel:document.getElementById('channel').value,
@@ -697,6 +714,7 @@ if(!auth.currentUser){
 
   showToast('✅ Audit saved for ' + agent, 's');
   updateBadge();
+  resetForm(true);
 }
 catch(e){
   showToast('Storage error','e');
@@ -1085,15 +1103,28 @@ function addParetoSheet(wb,audits){
 }
 
 // ── UTILS
-function resetForm(){
-  if(!confirm('Reset form?'))return;
-  CS={};
-  document.querySelectorAll('.br').forEach(b=>b.classList.remove('ay','an','ana'));
-  ['agentName','reviewerName','callId','team','agentLang','callSummary','observations','recommendation'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('channel').value='';document.getElementById('tenure').value='';
+function resetForm(skipConfirm = false){
+
+  if(!skipConfirm){
+    if(!confirm('Reset form?')) return;
+  }
+
+  CS = {};
+
+  document.querySelectorAll('.br')
+    .forEach(b=>b.classList.remove('ay','an','ana'));
+
+  ['agentName','reviewerName','callId','team','agentLang',
+   'callSummary','observations','recommendation']
+   .forEach(id=>document.getElementById(id).value='');
+
+  document.getElementById('channel').value='';
+  document.getElementById('tenure').value='';
   document.getElementById('evalDate').valueAsDate=new Date();
+
   updateDash();
 }
+
 
 function showToast(msg,type){
   const t=document.getElementById('toast');
