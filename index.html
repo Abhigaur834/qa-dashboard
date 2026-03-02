@@ -510,7 +510,8 @@ onAuthStateChanged(auth, (user) => {
 
     document.getElementById('loginScreen').style.display = 'none';
     document.getElementById('mainApp').style.display = 'flex';
-  updateBadge();
+    updateBadge();
+
     const role = getUserRole();
     const profile = USER_PROFILES[user.email];
 
@@ -521,14 +522,15 @@ onAuthStateChanged(auth, (user) => {
 
       const loginTime = new Date().toLocaleTimeString();
 
-let accessText =
-  role === "admin" ? "🔐 Admin Access" :
-  role === "qa" ? "🧪 QA Access" :
-  role === "tl" ? "👔 TL Access" :
-  "👤 Agent Access";
+      let accessText =
+        role === "admin" ? "🔐 Admin Access" :
+        role === "qa" ? "🧪 QA Access" :
+        role === "tl" ? "👔 TL Access" :
+        "👤 Agent Access";
 
-document.getElementById("profileAccess").innerHTML =
-  accessText + "<br>🕒 Logged in: " + loginTime;
+      document.getElementById("profileAccess").innerHTML =
+        accessText + "<br>🕒 Logged in: " + loginTime;
+    }
 
     if (role !== "admin") {
       const btn = document.getElementById("clearBtn");
