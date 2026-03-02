@@ -13,36 +13,16 @@
 body{background:var(--bg);color:var(--text);font-family:var(--font-body);min-height:100vh;}
 body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 20% 20%,rgba(79,142,247,.07) 0%,transparent 50%),radial-gradient(ellipse at 80% 80%,rgba(247,193,79,.05) 0%,transparent 50%);pointer-events:none;z-index:0;}
 .app{position:relative;z-index:1;display:flex;flex-direction:column;min-height:100vh;}
+.top-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 24px;display:flex;align-items:center;}
 .logo{font-family:var(--font-head);font-weight:800;font-size:16px;letter-spacing:-.3px;padding:18px 0;margin-right:28px;white-space:nowrap;color:var(--text);}
 .logo span{color:var(--accent);}
-.nav-tabs{
-  display:flex;
-  gap:6px;
-  justify-content:center;
-}
+.nav-tabs{display:flex;}
 .nav-tab{padding:18px 16px;font-family:var(--font-head);font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .2s;background:none;border-top:none;border-left:none;border-right:none;white-space:nowrap;}
 .nav-tab:hover{color:var(--text);}
 .nav-tab.active{color:var(--accent);border-bottom-color:var(--accent);}
 .tab-badge{background:var(--surface2);color:var(--muted);font-size:10px;padding:1px 6px;border-radius:10px;margin-left:5px;}
 .nav-tab.active .tab-badge{background:rgba(79,142,247,.15);color:var(--accent);}
-.top-bar{
-  display:grid;
-  grid-template-columns:auto 1fr auto;
-  align-items:center;
-  padding:0 40px;   /* slightly more breathing space */
-  height:70px;      /* more professional height */
-  background:var(--surface);
-  border-bottom:1px solid var(--border);
-}
-.top-bar-right{
-  display:flex;
-  align-items:center;
-  justify-content:flex-end;
-  gap:16px;
-  min-width:420px;
-  flex-wrap:wrap;
-}
-
+.top-bar-right{margin-left:auto;display:flex;gap:8px;align-items:center;}
 .content{flex:1;padding:22px 24px;max-width:1380px;margin:0 auto;width:100%;}
 .tab-panel{display:none;animation:fadeIn .2s;}
 .tab-panel.active{display:block;}
@@ -140,7 +120,7 @@ tbody td{padding:10px 14px;font-size:13px;color:var(--text);}
 .tr{background:rgba(247,161,79,.15);color:var(--warning);}
 .tnc{background:rgba(79,142,247,.12);color:var(--accent);}
 .tcr{background:rgba(247,79,106,.12);color:var(--critical);}
-.btn{padding:10px 18px;height:40px;border-radius:8px;font-family:var(--font-head);font-size:11px;font-weight:700;letter-spacing:.5px;cursor:pointer;border:none;transition:all .2s;display:inline-flex;align-items:center;gap:5px;}
+.btn{padding:8px 18px;border-radius:8px;font-family:var(--font-head);font-size:11px;font-weight:700;letter-spacing:.5px;cursor:pointer;border:none;transition:all .2s;display:inline-flex;align-items:center;gap:5px;}
 .btn-outline{background:transparent;border:1px solid var(--border);color:var(--muted);}
 .btn-outline:hover{border-color:var(--accent);color:var(--accent);}
 .btn-primary{background:var(--accent);color:white;}
@@ -220,28 +200,9 @@ gap:10px;">
     <button class="nav-tab" onclick="switchTab('pareto',this)">📉 Pareto Analysis</button>
   </div>
   <div class="top-bar-right">
-
-  <div id="userProfile" style="
-    display:flex;
-    flex-direction:column;
-    margin-right:15px;
-    padding:8px 12px;
-    min-width:220px;
-    background:rgba(79,142,247,0.08);
-    border:1px solid #252e45;
-    border-radius:8px;
-    font-size:11px;
-    text-align:right;
-  ">
-    <div id="profileName" style="font-size:13px;font-weight:600;color:#e8edf8;"></div>
-    <div id="profileDesignation" style="color:#6b7a9e;"></div>
-    <div id="profileAccess"style="margin-top:5px;color:#4f8ef7;font-size:11px;line-height:1.4;"></div>
-    <div id="profileEmail" style="font-size:10px;color:#6b7a9e;"></div>
-  </div>
-
   <button class="btn btn-excel" onclick="exportAllExcel()">⬇ Export All to Excel</button>
   <button class="btn btn-outline" onclick="logoutUser()">🚪 Logout</button>
-
+</div>
 </div>
 
 <div class="content">
@@ -459,97 +420,37 @@ window.push = push;
 window.get = get;
 window.remove = remove;
 window.set = set;
+
+
 window.auth = auth;
+window.signInWithEmailAndPassword = signInWithEmailAndPassword;
+window.onAuthStateChanged = onAuthStateChanged;
+window.signOut = signOut;
 
-/* ================= USER DIRECTORY ================= */
-
-const USER_PROFILES = {
-  "gaurabhi834@gmail.com": {
-    name: "Abhishek Gaur",
-    designation: "Deputy Manager – QA"
-  },
-  "tl.pinki@ocubeservices.com": {
-    name: "Pinki Kumari",
-    designation: "Team Leader – Sales"
-  },
-  "tl.shahid@ocubeservices.com": {
-    name: "Md Shahid",
-    designation: "Team Leader – Support"
-  },
-  "qa.prince@ocubeservices.com": {
-    name: "Prince Kumar",
-    designation: "Quality Analyst"
-  }
-};
-
-/* ================= ROLE DETECTION ================= */
-
+// USER ROLE DETECTION
 window.getUserRole = function () {
   const user = auth.currentUser;
+
   if (!user) return null;
 
-  const email = user.email;
-
-  if (email === "gaurabhi834@gmail.com") return "admin";
-
-  if (email === "qa.prince@ocubeservices.com") return "qa";
-
-  if (
-    email === "tl.pinki@ocubeservices.com" ||
-    email === "tl.shahid@ocubeservices.com"
-  ) return "tl";
-
+  if (user.email === "gaurabhi834@gmail.com") return "admin";
+  if (user.email.includes("qa")) return "qa";
+  if (user.email.includes("tl")) return "tl";
   return "agent";
 };
 
-/* ================= AUTH LISTENER ================= */
-
+// AUTH STATE LISTENER
 onAuthStateChanged(auth, (user) => {
-
-  if (user) {
-
+  if(user){
     document.getElementById('loginScreen').style.display = 'none';
     document.getElementById('mainApp').style.display = 'flex';
-    updateBadge();
-
-    const role = getUserRole();
-    const profile = USER_PROFILES[user.email];
-
-    if (profile) {
-      document.getElementById("profileName").textContent = "👤 " + profile.name;
-      document.getElementById("profileDesignation").textContent = profile.designation;
-      document.getElementById("profileEmail").textContent = user.email;
-
-      const loginTime = new Date().toLocaleTimeString();
-
-      let accessText =
-        role === "admin" ? "🔐 Admin Access" :
-        role === "qa" ? "🧪 QA Access" :
-        role === "tl" ? "👔 TL Access" :
-        "👤 Agent Access";
-
-      document.getElementById("profileAccess").innerHTML =
-        accessText + "<br>🕒 Logged in: " + loginTime;
-    }
-
-    if (role !== "admin") {
-      const btn = document.getElementById("clearBtn");
-      if (btn) btn.style.display = "none";
-    }
-
   } else {
-
     document.getElementById('loginScreen').style.display = 'flex';
     document.getElementById('mainApp').style.display = 'none';
-
   }
-
 });
 
-/* ================= LOGIN ================= */
-
 window.loginUser = function () {
-
   const email = document.getElementById("loginEmail").value.trim();
   const password = document.getElementById("loginPassword").value.trim();
 
@@ -559,20 +460,18 @@ window.loginUser = function () {
   }
 
   signInWithEmailAndPassword(auth, email, password)
-    .then(() => showToast("Login successful", "s"))
-    .catch((error) => {
-  console.error(error);
-  showToast(error.message, "e");
-});
-
+    .then(() => {
+      showToast("Login successful", "s");
+    })
+    .catch(() => {
+      showToast("Invalid email or password", "e");
+    });
 };
-
 window.logoutUser = function () {
   signOut(auth).then(() => {
     showToast("Logged out successfully", "s");
   });
 };
-
 
 </script>
 
@@ -697,9 +596,7 @@ if(!auth.currentUser){
   if(ncP===null&&crP===null){showToast('Score at least one parameter.','e');return;}
   const tot=ncP!==null&&crP!==null?Math.round(ncP*.4+crP*.6):ncP!==null?ncP:crP;
   
-    const audit = {
-  timestamp: Date.now(),
-  createdBy: auth.currentUser.email,
+    const audit={timestamp:Date.now(),
     date:document.getElementById('evalDate').value,agent,reviewer,
     callId:document.getElementById('callId').value,
     channel:document.getElementById('channel').value,
@@ -719,7 +616,6 @@ if(!auth.currentUser){
 
   showToast('✅ Audit saved for ' + agent, 's');
   updateBadge();
-  resetForm(true);
 }
 catch(e){
   showToast('Storage error','e');
@@ -1108,28 +1004,15 @@ function addParetoSheet(wb,audits){
 }
 
 // ── UTILS
-function resetForm(skipConfirm = false){
-
-  if(!skipConfirm){
-    if(!confirm('Reset form?')) return;
-  }
-
-  CS = {};
-
-  document.querySelectorAll('.br')
-    .forEach(b=>b.classList.remove('ay','an','ana'));
-
-  ['agentName','reviewerName','callId','team','agentLang',
-   'callSummary','observations','recommendation']
-   .forEach(id=>document.getElementById(id).value='');
-
-  document.getElementById('channel').value='';
-  document.getElementById('tenure').value='';
+function resetForm(){
+  if(!confirm('Reset form?'))return;
+  CS={};
+  document.querySelectorAll('.br').forEach(b=>b.classList.remove('ay','an','ana'));
+  ['agentName','reviewerName','callId','team','agentLang','callSummary','observations','recommendation'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('channel').value='';document.getElementById('tenure').value='';
   document.getElementById('evalDate').valueAsDate=new Date();
-
   updateDash();
 }
-
 
 function showToast(msg,type){
   const t=document.getElementById('toast');
@@ -1142,7 +1025,7 @@ function esc(s){return s?.replace(/</g,'&lt;').replace(/>/g,'&gt;')||'';}
 // INIT
 document.getElementById('evalDate').valueAsDate=new Date();
 updateDash();
-
+updateBadge();
 </script>
 </body>
 </html>
