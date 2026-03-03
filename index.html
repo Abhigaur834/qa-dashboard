@@ -12,56 +12,19 @@
 *{box-sizing:border-box;margin:0;padding:0;}
 body{background:var(--bg);color:var(--text);font-family:var(--font-body);min-height:100vh;}
 body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 20% 20%,rgba(79,142,247,.07) 0%,transparent 50%),radial-gradient(ellipse at 80% 80%,rgba(247,193,79,.05) 0%,transparent 50%);pointer-events:none;z-index:0;}
-.container{
-  width:100%;
-  max-width:1380px;
-  margin:0 auto;
-  padding:0 24px;
-}
-
-.top-bar{
-  width:100%;
-  display:flex;
-  justify-content:center;
-  background:var(--surface);
-  border-bottom:1px solid var(--border);
-}
-.logo{
-  font-family:var(--font-head);
-  font-weight:800;
-  font-size:16px;
-  letter-spacing:-.3px;
-  padding:18px 0;
-  margin-right:28px;
-  white-space:nowrap;
-  color:var(--text);
-  flex:0 0 auto;
-}
-
+.container{width:100%;max-width:1380px;margin:0 auto;padding:0 24px;}
+.top-bar{width:100%;background:var(--surface);border-bottom:1px solid var(--border);}
+.header-inner{display:flex;align-items:center;width:100%;}
+.logo{font-family:var(--font-head);font-weight:800;font-size:16px;letter-spacing:-.3px;padding:18px 0;margin-right:28px;white-space:nowrap;color:var(--text);flex:0 0 auto;}
 .logo span{color:var(--accent);}
-.nav-tabs{
-  flex:1;                  /* Takes middle space */
-  display:flex;
-  justify-content:center;  /* Centers tabs */
-  align-items:center;
-  gap:20px;
-}
+.nav-tabs{flex:1;display:flex;justify-content:center;align-items:center;gap:20px;}
 .nav-tab{padding:18px 16px;font-family:var(--font-head);font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .2s;background:none;border-top:none;border-left:none;border-right:none;white-space:nowrap;}
 .nav-tab:hover{color:var(--text);}
 .nav-tab.active{color:var(--accent);border-bottom-color:var(--accent);}
 .tab-badge{background:var(--surface2);color:var(--muted);font-size:10px;padding:1px 6px;border-radius:10px;margin-left:5px;}
 .nav-tab.active .tab-badge{background:rgba(79,142,247,.15);color:var(--accent);}
-
-.top-bar-right{
-  display:flex;
-  align-items:center;
-  gap:16px;
-flex:0 0 auto;
-}
-
-.content{
-  padding:22px 0;
-}
+.top-bar-right{display:flex;align-items:center;gap:10px;flex:0 0 auto;}
+.content{padding:22px 0;}
 .tab-panel{display:none;animation:fadeIn .2s;}
 .tab-panel.active{display:block;}
 @keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
@@ -85,7 +48,6 @@ flex:0 0 auto;
 .s-label{font-size:10px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);margin-bottom:8px;}
 .s-val{font-family:var(--font-head);font-size:32px;font-weight:800;line-height:1;}
 .s-sub{font-size:11px;color:var(--muted);margin-top:4px;}
-/* meta */
 .meta-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px;margin-bottom:20px;}
 .meta-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;}
 .meta-card label{display:block;font-size:10px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);margin-bottom:5px;}
@@ -169,7 +131,7 @@ tbody td{padding:10px 14px;font-size:13px;color:var(--text);}
 .btn-excel:hover{background:rgba(79,197,79,.22);}
 .btn-danger{background:rgba(247,79,106,.1);border:1px solid rgba(247,79,106,.25);color:var(--critical);}
 .btn-danger:hover{background:rgba(247,79,106,.2);}
-.btn-sm{padding:5px 12px;font-size:10px;}
+.btn-sm{padding:5px 12px;height:32px;font-size:10px;}
 .abar{display:flex;gap:8px;justify-content:flex-end;padding-top:6px;flex-wrap:wrap;}
 .pt-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:18px;}
 .pt-hdr{padding:13px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
@@ -199,6 +161,13 @@ tbody td{padding:10px 14px;font-size:13px;color:var(--text);}
 .dgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
 .di label{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);}
 .di p{font-size:12px;margin-top:2px;}
+/* Login */
+#loginScreen{position:fixed;inset:0;background:#0b0f1a;display:flex;justify-content:center;align-items:center;z-index:9999;flex-direction:column;gap:12px;}
+#loginScreen h2{font-family:var(--font-head);font-size:22px;color:var(--text);margin-bottom:6px;}
+#loginScreen input{background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:var(--font-body);font-size:13px;padding:10px 14px;outline:none;width:280px;}
+#loginScreen input:focus{border-color:var(--accent);}
+#loginScreen button{background:var(--accent);color:white;border:none;border-radius:8px;padding:10px 28px;font-family:var(--font-head);font-size:13px;font-weight:700;cursor:pointer;width:280px;margin-top:4px;}
+#loginScreen button:hover{background:#6ba2f9;}
 ::-webkit-scrollbar{width:5px;height:5px;}
 ::-webkit-scrollbar-track{background:var(--bg);}
 ::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
@@ -207,261 +176,215 @@ tbody td{padding:10px 14px;font-size:13px;color:var(--text);}
 </style>
 </head>
 <body>
-<div id="loginScreen" style="
-position:fixed;
-inset:0;
-background:#0b0f1a;
-display:flex;
-justify-content:center;
-align-items:center;
-z-index:9999;
-flex-direction:column;
-gap:10px;">
 
-  <h2 style="color:white">QA Hub Login</h2>
-
-  <input type="email" id="loginEmail" placeholder="Email">
+<!-- ═══ LOGIN SCREEN ═══ -->
+<div id="loginScreen">
+  <h2>QA<span style="color:var(--accent)">.</span>Hub Login</h2>
+  <input type="email" id="loginEmail" placeholder="Email address">
   <input type="password" id="loginPassword" placeholder="Password">
-
   <button onclick="loginUser()">Login</button>
-
 </div>
 
+<!-- ═══ MAIN APP ═══ -->
+<div id="mainApp" style="display:none;">
 
-<div class="app" id="mainApp" style="display:none;">
-<div class="top-bar">
-  <div class="container header-inner">
-    
-    <div class="logo">QA<span>.</span>Hub</div>
-
-    <div class="nav-tabs">
-      <!-- your tab buttons here -->
-    </div>
-
-    <div class="top-bar-right">
-      <!-- profile + buttons -->
-    </div>
-
-  </div>
-</div>
-
-  <div id="userProfile" style="
-    display:flex;
-    flex-direction:column;
-    margin-right:15px;
-    padding:8px 12px;
-    min-width:220px;
-    background:rgba(79,142,247,0.08);
-    border:1px solid #252e45;
-    border-radius:8px;
-    font-size:11px;
-    text-align:right;
-  ">
-    <div id="profileName" style="font-size:13px;font-weight:600;color:#e8edf8;"></div>
-    <div id="profileDesignation" style="color:#6b7a9e;"></div>
-    <div id="profileAccess"style="margin-top:5px;color:#4f8ef7;font-size:11px;line-height:1.4;"></div>
-    <div id="profileEmail" style="font-size:10px;color:#6b7a9e;"></div>
-  </div>
-
-  <button class="btn btn-excel" onclick="exportAllExcel()">⬇ Export All to Excel</button>
-  <button class="btn btn-outline" onclick="logoutUser()">🚪 Logout</button>
-
-</div>
-
-<div class="content container">
-
-<!-- ════ TAB 1: SCORECARD ════ -->
-<div id="tab-scorecard" class="tab-panel active">
-  <div class="meta-grid">
-    <div class="meta-card"><label>Agent Name</label><input type="text" id="agentName" placeholder="Enter agent name"></div>
-    <div class="meta-card"><label>Reviewer Name</label><input type="text" id="reviewerName" placeholder="Reviewer name"></div>
-    <div class="meta-card"><label>Date of Evaluation</label><input type="date" id="evalDate"></div>
-    <div class="meta-card"><label>Call / Chat ID</label><input type="text" id="callId" placeholder="e.g. CHT-00421"></div>
-    <div class="meta-card"><label>Channel</label><select id="channel"><option value="">Select channel</option><option>Inbound Call</option><option>Outbound Call</option><option>Live Chat</option><option>Email</option></select></div>
-    <div class="meta-card"><label>Team / Queue</label><input type="text" id="team" placeholder="e.g. Sales"></div>
-    <div class="meta-card"><label>Tenure (months)</label><input type="number" id="tenure" placeholder="e.g. 6" min="0"></div>
-    <div class="meta-card"><label>Language</label><input type="text" id="agentLang" placeholder="e.g. English"></div>
-  </div>
-
-  <div class="score-dash">
-    <div class="sc-card sct"><div class="sc-label">Overall Score</div><div class="sc-val" id="totalScore">—</div><div class="sc-sub">out of 100%</div><div class="pbar"><div class="pfill" id="totalBar" style="width:0%"></div></div></div>
-    <div class="sc-card scnc"><div class="sc-label">Non-Critical</div><div class="sc-val" id="ncScore">—</div><div class="sc-sub">weighted 40%</div><div class="pbar"><div class="pfill" id="ncBar" style="width:0%"></div></div></div>
-    <div class="sc-card sccr"><div class="sc-label">Critical</div><div class="sc-val" id="crScore">—</div><div class="sc-sub">weighted 60%</div><div class="pbar"><div class="pfill" id="crBar" style="width:0%"></div></div></div>
-    <div class="sc-card scres"><div class="sc-label">Final Result</div><div class="sc-val" id="resultVal">—</div><div class="sc-sub" id="resultSub">Awaiting scores</div><div class="pbar"><div class="pfill" id="resultBar" style="width:0%"></div></div></div>
-  </div>
-
-  <div class="sections-grid">
-    <div class="sec-card">
-      <div class="sec-hdr"><div class="sec-hdr-title">Non-Critical Parameters</div><span class="sbadge nc-badge">Non-Critical</span></div>
-      <div class="pgh"><div class="pgl">Call Opening / Closing</div></div>
-      <div class="param-row" data-key="nc1"><div class="pl">Standard opening & customer name confirmation</div><div class="rg"><button class="br" onclick="rate(this,'yes','nc1')">Y</button><button class="br" onclick="rate(this,'no','nc1')">N</button><button class="br" onclick="rate(this,'na','nc1')">N/A</button></div></div>
-      <div class="param-row" data-key="nc2"><div class="pl">Summarization</div><div class="rg"><button class="br" onclick="rate(this,'yes','nc2')">Y</button><button class="br" onclick="rate(this,'no','nc2')">N</button><button class="br" onclick="rate(this,'na','nc2')">N/A</button></div></div>
-      <div class="param-row" data-key="nc3"><div class="pl">Further assistance offered</div><div class="rg"><button class="br" onclick="rate(this,'yes','nc3')">Y</button><button class="br" onclick="rate(this,'no','nc3')">N</button><button class="br" onclick="rate(this,'na','nc3')">N/A</button></div></div>
-      <div class="param-row" data-key="nc4"><div class="pl">Prescribed call closing</div><div class="rg"><button class="br" onclick="rate(this,'yes','nc4')">Y</button><button class="br" onclick="rate(this,'no','nc4')">N</button><button class="br" onclick="rate(this,'na','nc4')">N/A</button></div></div>
-      <div class="pgh"><div class="pgl">Issue Identification</div></div>
-      <div class="param-row" data-key="nc5"><div class="pl">Paraphrasing to ensure agent/customer alignment</div><div class="rg"><button class="br" onclick="rate(this,'yes','nc5')">Y</button><button class="br" onclick="rate(this,'no','nc5')">N</button><button class="br" onclick="rate(this,'na','nc5')">N/A</button></div></div>
-      <div class="param-row" data-key="nc6"><div class="pl">Customer VOC understood and acknowledged</div><div class="rg"><button class="br" onclick="rate(this,'yes','nc6')">Y</button><button class="br" onclick="rate(this,'no','nc6')">N</button><button class="br" onclick="rate(this,'na','nc6')">N/A</button></div></div>
-      <div class="param-row" data-key="nc7"><div class="pl">Relevant probing questions were asked</div><div class="rg"><button class="br" onclick="rate(this,'yes','nc7')">Y</button><button class="br" onclick="rate(this,'no','nc7')">N</button><button class="br" onclick="rate(this,'na','nc7')">N/A</button></div></div>
-      <div class="pgh"><div class="pgl">Customer Experience</div></div>
-      <div class="param-row" data-key="nc8"><div class="pl">Active Listening / Reading Demonstration</div><div class="rg"><button class="br" onclick="rate(this,'yes','nc8')">Y</button><button class="br" onclick="rate(this,'no','nc8')">N</button><button class="br" onclick="rate(this,'na','nc8')">N/A</button></div></div>
-      <div class="param-row" data-key="nc9"><div class="pl">Hold and Dead Air SLA Followed</div><div class="rg"><button class="br" onclick="rate(this,'yes','nc9')">Y</button><button class="br" onclick="rate(this,'no','nc9')">N</button><button class="br" onclick="rate(this,'na','nc9')">N/A</button></div></div>
-      <div class="param-row" data-key="nc10"><div class="pl">Apologies, Empathy, and Politeness Demonstrated</div><div class="rg"><button class="br" onclick="rate(this,'yes','nc10')">Y</button><button class="br" onclick="rate(this,'no','nc10')">N</button><button class="br" onclick="rate(this,'na','nc10')">N/A</button></div></div>
-      <div class="param-row" data-key="nc11"><div class="pl">Conversation without Overlapping and Interruptions</div><div class="rg"><button class="br" onclick="rate(this,'yes','nc11')">Y</button><button class="br" onclick="rate(this,'no','nc11')">N</button><button class="br" onclick="rate(this,'na','nc11')">N/A</button></div></div>
-      <div class="param-row" data-key="nc12"><div class="pl">Accurate Email Sent to Client</div><div class="rg"><button class="br" onclick="rate(this,'yes','nc12')">Y</button><button class="br" onclick="rate(this,'no','nc12')">N</button><button class="br" onclick="rate(this,'na','nc12')">N/A</button></div></div>
-    </div>
-    <div class="sec-card">
-      <div class="sec-hdr"><div class="sec-hdr-title">Critical Parameters</div><span class="sbadge cr-badge">Critical</span></div>
-      <div class="param-row" data-key="cr1"><div class="pl">Agent remained professional, polite, and pleasant throughout</div><div class="rg"><button class="br" onclick="rate(this,'yes','cr1')">Y</button><button class="br" onclick="rate(this,'no','cr1')">N</button><button class="br" onclick="rate(this,'na','cr1')">N/A</button></div></div>
-      <div class="param-row" data-key="cr2"><div class="pl">Called client within timeframe & accommodated callback per global TZ</div><div class="rg"><button class="br" onclick="rate(this,'yes','cr2')">Y</button><button class="br" onclick="rate(this,'no','cr2')">N</button><button class="br" onclick="rate(this,'na','cr2')">N/A</button></div></div>
-      <div class="param-row" data-key="cr3"><div class="pl">Provided complete and accurate information on call/chat</div><div class="rg"><button class="br" onclick="rate(this,'yes','cr3')">Y</button><button class="br" onclick="rate(this,'no','cr3')">N</button><button class="br" onclick="rate(this,'na','cr3')">N/A</button></div></div>
-      <div class="param-row" data-key="cr4"><div class="pl">Answered queries timely and effectively; chose right disposition</div><div class="rg"><button class="br" onclick="rate(this,'yes','cr4')">Y</button><button class="br" onclick="rate(this,'no','cr4')">N</button><button class="br" onclick="rate(this,'na','cr4')">N/A</button></div></div>
-      <div class="param-row" data-key="cr5"><div class="pl">Asked qualifying questions and updated notes per standard procedure</div><div class="rg"><button class="br" onclick="rate(this,'yes','cr5')">Y</button><button class="br" onclick="rate(this,'no','cr5')">N</button><button class="br" onclick="rate(this,'na','cr5')">N/A</button></div></div>
-      <div class="param-row" data-key="cr6"><div class="pl">Successfully created an opportunity after the conversation</div><div class="rg"><button class="br" onclick="rate(this,'yes','cr6')">Y</button><button class="br" onclick="rate(this,'no','cr6')">N</button><button class="br" onclick="rate(this,'na','cr6')">N/A</button></div></div>
-      <div class="param-row" data-key="cr7"><div class="pl">Updated special requirements in notes for other teams</div><div class="rg"><button class="br" onclick="rate(this,'yes','cr7')">Y</button><button class="br" onclick="rate(this,'no','cr7')">N</button><button class="br" onclick="rate(this,'na','cr7')">N/A</button></div></div>
-      <div class="param-row" data-key="cr8"><div class="pl">Directed non-sales queries to relevant team for quick resolution</div><div class="rg"><button class="br" onclick="rate(this,'yes','cr8')">Y</button><button class="br" onclick="rate(this,'no','cr8')">N</button><button class="br" onclick="rate(this,'na','cr8')">N/A</button></div></div>
-      <div class="param-row" data-key="cr9"><div class="pl">All client questions answered accurately (installment plan, social media price)</div><div class="rg"><button class="br" onclick="rate(this,'yes','cr9')">Y</button><button class="br" onclick="rate(this,'no','cr9')">N</button><button class="br" onclick="rate(this,'na','cr9')">N/A</button></div></div>
-      <div class="param-row" data-key="cr10"><div class="pl">Converted lead without pushing client (language barrier, busy, etc.)</div><div class="rg"><button class="br" onclick="rate(this,'yes','cr10')">Y</button><button class="br" onclick="rate(this,'no','cr10')">N</button><button class="br" onclick="rate(this,'na','cr10')">N/A</button></div></div>
-    </div>
-  </div>
-
-  <div class="fc"><div class="fc-hdr">📋 Call Summary</div><textarea id="callSummary" placeholder="Write a brief summary of the call or chat interaction..."></textarea></div>
-  <div class="bg2">
-    <div class="tc"><div class="tc-hdr">🔍 Observations</div><textarea id="observations" placeholder="Note specific behaviors, tone issues, missed opportunities..."></textarea></div>
-    <div class="tc"><div class="tc-hdr">💡 Recommendation</div><textarea id="recommendation" placeholder="Coaching points, training suggestions, or commendations..."></textarea></div>
-  </div>
-
-  <div class="pt-card mb6">
-    <div class="pt-hdr"><div class="card-title">Performance Breakdown</div><span style="font-size:11px;color:var(--muted)">Live score per group</span></div>
-    <div class="table-wrap"><table><thead><tr><th>Parameter Group</th><th>Type</th><th>Scored</th><th>Applicable</th><th style="width:150px">Score %</th><th>Status</th></tr></thead><tbody id="perfTableBody"><tr><td colspan="6" style="color:var(--muted);text-align:center;padding:18px">Start scoring above to see breakdown.</td></tr></tbody></table></div>
-  </div>
-
-  <div class="abar">
-    <button class="btn btn-danger btn-sm" onclick="resetForm()">↺ Reset</button>
-    <button class="btn btn-outline" onclick="window.print()">🖨 Print</button>
-    <button class="btn btn-success" onclick="saveAudit()">💾 Save Audit</button>
-  </div>
-</div>
-
-<!-- ════ TAB 2: AUDIT LOG ════ -->
-<div id="tab-auditlog" class="tab-panel">
-  <div class="filter-bar">
-    <input type="text" id="filterAgent" placeholder="Search agent..." oninput="renderAuditLog()">
-    <select id="filterResult" onchange="renderAuditLog()"><option value="">All Results</option><option>Pass</option><option>Review</option><option>Fail</option></select>
-    <select id="filterChannel" onchange="renderAuditLog()"><option value="">All Channels</option><option>Inbound Call</option><option>Outbound Call</option><option>Live Chat</option><option>Email</option></select>
-    <div style="margin-left:auto;display:flex;gap:7px">
-      <button class="btn btn-excel btn-sm" onclick="exportAuditExcel()">⬇ Export Log</button>
-      <button id="clearBtn" class="btn btn-danger btn-sm" onclick="clearAllAudits()">🗑 Clear All</button>
-    </div>
-  </div>
-  <div class="card">
-    <div class="table-wrap">
-      <table>
-        <thead><tr><th></th><th>Date</th><th>Agent</th><th>Reviewer</th><th>Call ID</th><th>Channel</th><th>NC %</th><th>Critical %</th><th>Overall %</th><th>Result</th><th>Action</th></tr></thead>
-        <tbody id="auditTableBody"><tr><td colspan="11"><div class="empty-state"><div class="ei">📭</div><h3>No audits yet</h3><p>Complete and save a scorecard to see it here.</p></div></td></tr></tbody>
-      </table>
-    </div>
-  </div>
-</div>
-
-<!-- ════ TAB 3: AGENT PERFORMANCE ════ -->
-<div id="tab-performance" class="tab-panel">
-  <div class="g4 mb6">
-    <div class="stat-card s-blue"><div class="s-label">Total Evaluations</div><div class="s-val" id="ps-total">0</div><div class="s-sub">All agents</div></div>
-    <div class="stat-card s-green"><div class="s-label">Avg Overall Score</div><div class="s-val" id="ps-avg">—</div><div class="s-sub">Across all audits</div></div>
-    <div class="stat-card s-yellow"><div class="s-label">Pass Rate</div><div class="s-val" id="ps-pass">—</div><div class="s-sub">≥85% threshold</div></div>
-    <div class="stat-card s-red"><div class="s-label">Agents Evaluated</div><div class="s-val" id="ps-agents">0</div><div class="s-sub">Unique agents</div></div>
-  </div>
-
-  <div class="g2 mb6">
-    <div>
-      <div class="sec-title">🏆 Top Performers</div>
-      <div id="topPerformers" class="g2"><div class="empty-state" style="padding:28px"><p>No data yet</p></div></div>
-    </div>
-    <div>
-      <div class="sec-title">⚠️ Needs Coaching</div>
-      <div id="bottomPerformers" class="g2"><div class="empty-state" style="padding:28px"><p>No data yet</p></div></div>
-    </div>
-  </div>
-
-  <div class="sec-title">📅 Performance by Tenure Band</div>
-  <div class="card mb6">
-    <div class="table-wrap"><table>
-      <thead><tr><th>Tenure Band</th><th>Agents</th><th>Evaluations</th><th>Avg NC %</th><th>Avg Critical %</th><th style="width:130px">Avg Overall %</th><th>Pass Rate</th></tr></thead>
-      <tbody id="tenureTableBody"><tr><td colspan="7"><div class="empty-state" style="padding:22px"><p>No data yet</p></div></td></tr></tbody>
-    </table></div>
-  </div>
-
-  <div class="sec-title">👥 All Agents Breakdown</div>
-  <div class="card mb6">
-    <div class="table-wrap"><table>
-      <thead><tr><th>#</th><th>Agent</th><th>Team</th><th>Tenure</th><th>Evals</th><th>Avg NC %</th><th>Avg Critical %</th><th style="width:120px">Avg Overall %</th><th>Last Eval</th><th>Status</th><th>Coaching Needed</th></tr></thead>
-      <tbody id="agentTableBody"><tr><td colspan="10"><div class="empty-state" style="padding:22px"><p>No data yet</p></div></td></tr></tbody>
-    </table></div>
-  </div>
-  <div class="abar"><button class="btn btn-excel btn-sm" onclick="exportPerfExcel()">⬇ Export Agent Performance</button></div>
-<div class="card mb6">
-  <div class="card-hdr">
-    <div class="card-title">📈 Monthly QA Trend</div>
-  </div>
-  <div class="chart-wrap" style="height:300px">
-    <canvas id="monthlyTrendChart"></canvas>
-  </div>
-</div>
-</div>
-
-<!-- ════ TAB 4: PARETO ANALYSIS ════ -->
-<div id="tab-pareto" class="tab-panel">
-  <div class="g4 mb6">
-    <div class="stat-card s-red"><div class="s-label">Total Failures</div><div class="s-val" id="par-total">0</div><div class="s-sub">Across all parameters</div></div>
-    <div class="stat-card s-yellow"><div class="s-label">Top Failure</div><div class="s-val" id="par-top" style="font-size:16px;line-height:1.4">—</div><div class="s-sub">Most common miss</div></div>
-    <div class="stat-card s-purple"><div class="s-label">Critical Failures</div><div class="s-val" id="par-cr">0</div><div class="s-sub">Critical param fails</div></div>
-    <div class="stat-card s-blue"><div class="s-label">80% Rule — # Params</div><div class="s-val" id="par-80">—</div><div class="s-sub">Params causing 80% fails</div></div>
-  </div>
-
-  <div class="g2 mb6">
-    <div class="card">
-      <div class="card-hdr"><div class="card-title">Pareto Chart — Failures by Parameter</div></div>
-      <div class="p-legend">
-        <div class="p-leg-item"><div class="p-leg-dot" style="background:var(--critical)"></div>Critical Fail</div>
-        <div class="p-leg-item"><div class="p-leg-dot" style="background:var(--accent)"></div>NC Fail</div>
-        <div class="p-leg-item"><div class="p-leg-dot" style="background:var(--accent2)"></div>Cumulative %</div>
-        <div class="p-leg-item"><div class="p-leg-dot" style="background:rgba(255,255,255,.2)"></div>80% Line</div>
+  <!-- ═══ TOP BAR (FIXED) ═══ -->
+  <div class="top-bar">
+    <div class="container header-inner">
+      <div class="logo">QA<span>.</span>Hub</div>
+      <div class="nav-tabs">
+        <button class="nav-tab active" onclick="switchTab('scorecard',this)">Scorecard</button>
+        <button class="nav-tab" onclick="switchTab('auditlog',this)">Audit Log <span class="tab-badge" id="auditBadge">0</span></button>
+        <button class="nav-tab" onclick="switchTab('performance',this)">Agent Performance</button>
+        <button class="nav-tab" onclick="switchTab('pareto',this)">Pareto Analysis</button>
       </div>
-      <div class="chart-wrap" style="height:310px"><canvas id="paretoChart"></canvas></div>
-    </div>
-    <div class="card">
-      <div class="card-hdr"><div class="card-title">NC vs Critical Failure Split</div></div>
-      <div class="chart-wrap" style="display:flex;align-items:center;justify-content:center;min-height:310px"><canvas id="splitChart" width="250" height="250"></canvas></div>
+      <div class="top-bar-right">
+        <div id="userProfile" style="display:flex;flex-direction:column;padding:6px 12px;background:rgba(79,142,247,0.08);border:1px solid #252e45;border-radius:8px;font-size:11px;text-align:right;">
+          <div id="profileName" style="font-size:13px;font-weight:600;color:#e8edf8;"></div>
+          <div id="profileDesignation" style="color:#6b7a9e;"></div>
+          <div id="profileAccess" style="margin-top:3px;color:#4f8ef7;font-size:11px;line-height:1.4;"></div>
+          <div id="profileEmail" style="font-size:10px;color:#6b7a9e;"></div>
+        </div>
+        <button class="btn btn-excel" onclick="exportAllExcel()">⬇ Export All</button>
+        <button id="clearBtn" class="btn btn-danger btn-sm" onclick="clearAllAudits()" style="display:none;">🗑 Clear All</button>
+        <button class="btn btn-outline" onclick="logoutUser()">🚪 Logout</button>
+      </div>
     </div>
   </div>
 
-  <div class="sec-title">📋 Failure Detail by Parameter</div>
-  <div class="card mb6">
-    <div class="table-wrap"><table>
-      <thead><tr><th>Rank</th><th>Parameter</th><th>Type</th><th>Fails</th><th>Total Rated</th><th style="width:110px">Fail Rate %</th><th>Cumulative %</th><th>80% Rule</th></tr></thead>
-      <tbody id="paretoTableBody"><tr><td colspan="8"><div class="empty-state" style="padding:22px"><p>Save evaluations to populate this analysis.</p></div></td></tr></tbody>
-    </table></div>
-  </div>
-  <div class="abar"><button class="btn btn-excel btn-sm" onclick="exportParetoExcel()">⬇ Export Pareto Data</button></div>
-</div>
+  <!-- ═══ CONTENT ═══ -->
+  <div class="content container">
 
-</div><!-- /content -->
-</div><!-- /app -->
+    <!-- TAB 1: SCORECARD -->
+    <div id="tab-scorecard" class="tab-panel active">
+      <div class="meta-grid">
+        <div class="meta-card"><label>Agent Name</label><input type="text" id="agentName" placeholder="Enter agent name"></div>
+        <div class="meta-card"><label>Reviewer Name</label><input type="text" id="reviewerName" placeholder="Reviewer name"></div>
+        <div class="meta-card"><label>Date of Evaluation</label><input type="date" id="evalDate"></div>
+        <div class="meta-card"><label>Call / Chat ID</label><input type="text" id="callId" placeholder="e.g. CHT-00421"></div>
+        <div class="meta-card"><label>Channel</label><select id="channel"><option value="">Select channel</option><option>Inbound Call</option><option>Outbound Call</option><option>Live Chat</option><option>Email</option></select></div>
+        <div class="meta-card"><label>Team / Queue</label><input type="text" id="team" placeholder="e.g. Sales"></div>
+        <div class="meta-card"><label>Tenure (months)</label><input type="number" id="tenure" placeholder="e.g. 6" min="0"></div>
+        <div class="meta-card"><label>Language</label><input type="text" id="agentLang" placeholder="e.g. English"></div>
+      </div>
+
+      <div class="score-dash">
+        <div class="sc-card sct"><div class="sc-label">Overall Score</div><div class="sc-val" id="totalScore">—</div><div class="sc-sub">out of 100%</div><div class="pbar"><div class="pfill" id="totalBar" style="width:0%"></div></div></div>
+        <div class="sc-card scnc"><div class="sc-label">Non-Critical</div><div class="sc-val" id="ncScore">—</div><div class="sc-sub">weighted 40%</div><div class="pbar"><div class="pfill" id="ncBar" style="width:0%"></div></div></div>
+        <div class="sc-card sccr"><div class="sc-label">Critical</div><div class="sc-val" id="crScore">—</div><div class="sc-sub">weighted 60%</div><div class="pbar"><div class="pfill" id="crBar" style="width:0%"></div></div></div>
+        <div class="sc-card scres"><div class="sc-label">Final Result</div><div class="sc-val" id="resultVal">—</div><div class="sc-sub" id="resultSub">Awaiting scores</div><div class="pbar"><div class="pfill" id="resultBar" style="width:0%"></div></div></div>
+      </div>
+
+      <div class="sections-grid">
+        <div class="sec-card">
+          <div class="sec-hdr"><div class="sec-hdr-title">Non-Critical Parameters</div><span class="sbadge nc-badge">Non-Critical</span></div>
+          <div class="pgh"><div class="pgl">Call Opening / Closing</div></div>
+          <div class="param-row" data-key="nc1"><div class="pl">Standard opening & customer name confirmation</div><div class="rg"><button class="br" onclick="rate(this,'yes','nc1')">Y</button><button class="br" onclick="rate(this,'no','nc1')">N</button><button class="br" onclick="rate(this,'na','nc1')">N/A</button></div></div>
+          <div class="param-row" data-key="nc2"><div class="pl">Summarization</div><div class="rg"><button class="br" onclick="rate(this,'yes','nc2')">Y</button><button class="br" onclick="rate(this,'no','nc2')">N</button><button class="br" onclick="rate(this,'na','nc2')">N/A</button></div></div>
+          <div class="param-row" data-key="nc3"><div class="pl">Further assistance offered</div><div class="rg"><button class="br" onclick="rate(this,'yes','nc3')">Y</button><button class="br" onclick="rate(this,'no','nc3')">N</button><button class="br" onclick="rate(this,'na','nc3')">N/A</button></div></div>
+          <div class="param-row" data-key="nc4"><div class="pl">Prescribed call closing</div><div class="rg"><button class="br" onclick="rate(this,'yes','nc4')">Y</button><button class="br" onclick="rate(this,'no','nc4')">N</button><button class="br" onclick="rate(this,'na','nc4')">N/A</button></div></div>
+          <div class="pgh"><div class="pgl">Issue Identification</div></div>
+          <div class="param-row" data-key="nc5"><div class="pl">Paraphrasing to ensure agent/customer alignment</div><div class="rg"><button class="br" onclick="rate(this,'yes','nc5')">Y</button><button class="br" onclick="rate(this,'no','nc5')">N</button><button class="br" onclick="rate(this,'na','nc5')">N/A</button></div></div>
+          <div class="param-row" data-key="nc6"><div class="pl">Customer VOC understood and acknowledged</div><div class="rg"><button class="br" onclick="rate(this,'yes','nc6')">Y</button><button class="br" onclick="rate(this,'no','nc6')">N</button><button class="br" onclick="rate(this,'na','nc6')">N/A</button></div></div>
+          <div class="param-row" data-key="nc7"><div class="pl">Relevant probing questions were asked</div><div class="rg"><button class="br" onclick="rate(this,'yes','nc7')">Y</button><button class="br" onclick="rate(this,'no','nc7')">N</button><button class="br" onclick="rate(this,'na','nc7')">N/A</button></div></div>
+          <div class="pgh"><div class="pgl">Customer Experience</div></div>
+          <div class="param-row" data-key="nc8"><div class="pl">Active Listening / Reading Demonstration</div><div class="rg"><button class="br" onclick="rate(this,'yes','nc8')">Y</button><button class="br" onclick="rate(this,'no','nc8')">N</button><button class="br" onclick="rate(this,'na','nc8')">N/A</button></div></div>
+          <div class="param-row" data-key="nc9"><div class="pl">Hold and Dead Air SLA Followed</div><div class="rg"><button class="br" onclick="rate(this,'yes','nc9')">Y</button><button class="br" onclick="rate(this,'no','nc9')">N</button><button class="br" onclick="rate(this,'na','nc9')">N/A</button></div></div>
+          <div class="param-row" data-key="nc10"><div class="pl">Apologies, Empathy, and Politeness Demonstrated</div><div class="rg"><button class="br" onclick="rate(this,'yes','nc10')">Y</button><button class="br" onclick="rate(this,'no','nc10')">N</button><button class="br" onclick="rate(this,'na','nc10')">N/A</button></div></div>
+          <div class="param-row" data-key="nc11"><div class="pl">Conversation without Overlapping and Interruptions</div><div class="rg"><button class="br" onclick="rate(this,'yes','nc11')">Y</button><button class="br" onclick="rate(this,'no','nc11')">N</button><button class="br" onclick="rate(this,'na','nc11')">N/A</button></div></div>
+          <div class="param-row" data-key="nc12"><div class="pl">Accurate Email Sent to Client</div><div class="rg"><button class="br" onclick="rate(this,'yes','nc12')">Y</button><button class="br" onclick="rate(this,'no','nc12')">N</button><button class="br" onclick="rate(this,'na','nc12')">N/A</button></div></div>
+        </div>
+        <div class="sec-card">
+          <div class="sec-hdr"><div class="sec-hdr-title">Critical Parameters</div><span class="sbadge cr-badge">Critical</span></div>
+          <div class="param-row" data-key="cr1"><div class="pl">Agent remained professional, polite, and pleasant throughout</div><div class="rg"><button class="br" onclick="rate(this,'yes','cr1')">Y</button><button class="br" onclick="rate(this,'no','cr1')">N</button><button class="br" onclick="rate(this,'na','cr1')">N/A</button></div></div>
+          <div class="param-row" data-key="cr2"><div class="pl">Called client within timeframe & accommodated callback per global TZ</div><div class="rg"><button class="br" onclick="rate(this,'yes','cr2')">Y</button><button class="br" onclick="rate(this,'no','cr2')">N</button><button class="br" onclick="rate(this,'na','cr2')">N/A</button></div></div>
+          <div class="param-row" data-key="cr3"><div class="pl">Provided complete and accurate information on call/chat</div><div class="rg"><button class="br" onclick="rate(this,'yes','cr3')">Y</button><button class="br" onclick="rate(this,'no','cr3')">N</button><button class="br" onclick="rate(this,'na','cr3')">N/A</button></div></div>
+          <div class="param-row" data-key="cr4"><div class="pl">Answered queries timely and effectively; chose right disposition</div><div class="rg"><button class="br" onclick="rate(this,'yes','cr4')">Y</button><button class="br" onclick="rate(this,'no','cr4')">N</button><button class="br" onclick="rate(this,'na','cr4')">N/A</button></div></div>
+          <div class="param-row" data-key="cr5"><div class="pl">Asked qualifying questions and updated notes per standard procedure</div><div class="rg"><button class="br" onclick="rate(this,'yes','cr5')">Y</button><button class="br" onclick="rate(this,'no','cr5')">N</button><button class="br" onclick="rate(this,'na','cr5')">N/A</button></div></div>
+          <div class="param-row" data-key="cr6"><div class="pl">Successfully created an opportunity after the conversation</div><div class="rg"><button class="br" onclick="rate(this,'yes','cr6')">Y</button><button class="br" onclick="rate(this,'no','cr6')">N</button><button class="br" onclick="rate(this,'na','cr6')">N/A</button></div></div>
+          <div class="param-row" data-key="cr7"><div class="pl">Updated special requirements in notes for other teams</div><div class="rg"><button class="br" onclick="rate(this,'yes','cr7')">Y</button><button class="br" onclick="rate(this,'no','cr7')">N</button><button class="br" onclick="rate(this,'na','cr7')">N/A</button></div></div>
+          <div class="param-row" data-key="cr8"><div class="pl">Directed non-sales queries to relevant team for quick resolution</div><div class="rg"><button class="br" onclick="rate(this,'yes','cr8')">Y</button><button class="br" onclick="rate(this,'no','cr8')">N</button><button class="br" onclick="rate(this,'na','cr8')">N/A</button></div></div>
+          <div class="param-row" data-key="cr9"><div class="pl">All client questions answered accurately (installment plan, social media price)</div><div class="rg"><button class="br" onclick="rate(this,'yes','cr9')">Y</button><button class="br" onclick="rate(this,'no','cr9')">N</button><button class="br" onclick="rate(this,'na','cr9')">N/A</button></div></div>
+          <div class="param-row" data-key="cr10"><div class="pl">Converted lead without pushing client (language barrier, busy, etc.)</div><div class="rg"><button class="br" onclick="rate(this,'yes','cr10')">Y</button><button class="br" onclick="rate(this,'no','cr10')">N</button><button class="br" onclick="rate(this,'na','cr10')">N/A</button></div></div>
+        </div>
+      </div>
+
+      <div class="fc"><div class="fc-hdr">📋 Call Summary</div><textarea id="callSummary" placeholder="Write a brief summary of the call or chat interaction..."></textarea></div>
+      <div class="bg2">
+        <div class="tc"><div class="tc-hdr">🔍 Observations</div><textarea id="observations" placeholder="Note specific behaviors, tone issues, missed opportunities..."></textarea></div>
+        <div class="tc"><div class="tc-hdr">💡 Recommendation</div><textarea id="recommendation" placeholder="Coaching points, training suggestions, or commendations..."></textarea></div>
+      </div>
+
+      <div class="pt-card mb6">
+        <div class="pt-hdr"><div class="card-title">Performance Breakdown</div><span style="font-size:11px;color:var(--muted)">Live score per group</span></div>
+        <div class="table-wrap"><table><thead><tr><th>Parameter Group</th><th>Type</th><th>Scored</th><th>Applicable</th><th style="width:150px">Score %</th><th>Status</th></tr></thead><tbody id="perfTableBody"><tr><td colspan="6" style="color:var(--muted);text-align:center;padding:18px">Start scoring above to see breakdown.</td></tr></tbody></table></div>
+      </div>
+
+      <div class="abar">
+        <button class="btn btn-danger btn-sm" onclick="resetForm()">↺ Reset</button>
+        <button class="btn btn-outline" onclick="window.print()">🖨 Print</button>
+        <button class="btn btn-success" onclick="saveAudit()">💾 Save Audit</button>
+      </div>
+    </div>
+
+    <!-- TAB 2: AUDIT LOG -->
+    <div id="tab-auditlog" class="tab-panel">
+      <div class="filter-bar">
+        <input type="text" id="filterAgent" placeholder="Search agent..." oninput="renderAuditLog()">
+        <select id="filterResult" onchange="renderAuditLog()"><option value="">All Results</option><option>Pass</option><option>Review</option><option>Fail</option></select>
+        <select id="filterChannel" onchange="renderAuditLog()"><option value="">All Channels</option><option>Inbound Call</option><option>Outbound Call</option><option>Live Chat</option><option>Email</option></select>
+        <div style="margin-left:auto;display:flex;gap:7px">
+          <button class="btn btn-excel btn-sm" onclick="exportAuditExcel()">⬇ Export Log</button>
+          <button id="clearBtn2" class="btn btn-danger btn-sm" onclick="clearAllAudits()" style="display:none;">🗑 Clear All</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th></th><th>Date</th><th>Agent</th><th>Reviewer</th><th>Call ID</th><th>Channel</th><th>NC %</th><th>Critical %</th><th>Overall %</th><th>Result</th><th>Action</th></tr></thead>
+            <tbody id="auditTableBody"><tr><td colspan="11"><div class="empty-state"><div class="ei">📭</div><h3>No audits yet</h3><p>Complete and save a scorecard to see it here.</p></div></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: AGENT PERFORMANCE -->
+    <div id="tab-performance" class="tab-panel">
+      <div class="g4 mb6">
+        <div class="stat-card s-blue"><div class="s-label">Total Evaluations</div><div class="s-val" id="ps-total">0</div><div class="s-sub">All agents</div></div>
+        <div class="stat-card s-green"><div class="s-label">Avg Overall Score</div><div class="s-val" id="ps-avg">—</div><div class="s-sub">Across all audits</div></div>
+        <div class="stat-card s-yellow"><div class="s-label">Pass Rate</div><div class="s-val" id="ps-pass">—</div><div class="s-sub">≥85% threshold</div></div>
+        <div class="stat-card s-red"><div class="s-label">Agents Evaluated</div><div class="s-val" id="ps-agents">0</div><div class="s-sub">Unique agents</div></div>
+      </div>
+      <div class="g2 mb6">
+        <div><div class="sec-title">🏆 Top Performers</div><div id="topPerformers" class="g2"><div class="empty-state" style="padding:28px"><p>No data yet</p></div></div></div>
+        <div><div class="sec-title">⚠️ Needs Coaching</div><div id="bottomPerformers" class="g2"><div class="empty-state" style="padding:28px"><p>No data yet</p></div></div></div>
+      </div>
+      <div class="sec-title">📅 Performance by Tenure Band</div>
+      <div class="card mb6">
+        <div class="table-wrap"><table>
+          <thead><tr><th>Tenure Band</th><th>Agents</th><th>Evaluations</th><th>Avg NC %</th><th>Avg Critical %</th><th style="width:130px">Avg Overall %</th><th>Pass Rate</th></tr></thead>
+          <tbody id="tenureTableBody"><tr><td colspan="7"><div class="empty-state" style="padding:22px"><p>No data yet</p></div></td></tr></tbody>
+        </table></div>
+      </div>
+      <div class="sec-title">👥 All Agents Breakdown</div>
+      <div class="card mb6">
+        <div class="table-wrap"><table>
+          <thead><tr><th>#</th><th>Agent</th><th>Team</th><th>Tenure</th><th>Evals</th><th>Avg NC %</th><th>Avg Critical %</th><th style="width:120px">Avg Overall %</th><th>Last Eval</th><th>Status</th><th>Coaching Needed</th></tr></thead>
+          <tbody id="agentTableBody"><tr><td colspan="11"><div class="empty-state" style="padding:22px"><p>No data yet</p></div></td></tr></tbody>
+        </table></div>
+      </div>
+      <div class="abar"><button class="btn btn-excel btn-sm" onclick="exportPerfExcel()">⬇ Export Agent Performance</button></div>
+      <div class="card mb6">
+        <div class="card-hdr"><div class="card-title">📈 Monthly QA Trend</div></div>
+        <div class="chart-wrap" style="height:300px"><canvas id="monthlyTrendChart"></canvas></div>
+      </div>
+    </div>
+
+    <!-- TAB 4: PARETO -->
+    <div id="tab-pareto" class="tab-panel">
+      <div class="g4 mb6">
+        <div class="stat-card s-red"><div class="s-label">Total Failures</div><div class="s-val" id="par-total">0</div><div class="s-sub">Across all parameters</div></div>
+        <div class="stat-card s-yellow"><div class="s-label">Top Failure</div><div class="s-val" id="par-top" style="font-size:16px;line-height:1.4">—</div><div class="s-sub">Most common miss</div></div>
+        <div class="stat-card s-purple"><div class="s-label">Critical Failures</div><div class="s-val" id="par-cr">0</div><div class="s-sub">Critical param fails</div></div>
+        <div class="stat-card s-blue"><div class="s-label">80% Rule — # Params</div><div class="s-val" id="par-80">—</div><div class="s-sub">Params causing 80% fails</div></div>
+      </div>
+      <div class="g2 mb6">
+        <div class="card">
+          <div class="card-hdr"><div class="card-title">Pareto Chart — Failures by Parameter</div></div>
+          <div class="p-legend">
+            <div class="p-leg-item"><div class="p-leg-dot" style="background:var(--critical)"></div>Critical Fail</div>
+            <div class="p-leg-item"><div class="p-leg-dot" style="background:var(--accent)"></div>NC Fail</div>
+            <div class="p-leg-item"><div class="p-leg-dot" style="background:var(--accent2)"></div>Cumulative %</div>
+            <div class="p-leg-item"><div class="p-leg-dot" style="background:rgba(255,255,255,.2)"></div>80% Line</div>
+          </div>
+          <div class="chart-wrap" style="height:310px"><canvas id="paretoChart"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-hdr"><div class="card-title">NC vs Critical Failure Split</div></div>
+          <div class="chart-wrap" style="display:flex;align-items:center;justify-content:center;min-height:310px"><canvas id="splitChart" width="250" height="250"></canvas></div>
+        </div>
+      </div>
+      <div class="sec-title">📋 Failure Detail by Parameter</div>
+      <div class="card mb6">
+        <div class="table-wrap"><table>
+          <thead><tr><th>Rank</th><th>Parameter</th><th>Type</th><th>Fails</th><th>Total Rated</th><th style="width:110px">Fail Rate %</th><th>Cumulative %</th><th>80% Rule</th></tr></thead>
+          <tbody id="paretoTableBody"><tr><td colspan="8"><div class="empty-state" style="padding:22px"><p>Save evaluations to populate this analysis.</p></div></td></tr></tbody>
+        </table></div>
+      </div>
+      <div class="abar"><button class="btn btn-excel btn-sm" onclick="exportParetoExcel()">⬇ Export Pareto Data</button></div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /mainApp -->
+
 <div id="toast"></div>
 
-
-
-<!-- STEP A: Firebase Script -->
+<!-- ═══ FIREBASE ═══ -->
 <script type="module">
-
-import { initializeApp } 
-from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
-
-import { getDatabase, ref, push, get, remove, set } 
-from "https://www.gstatic.com/firebasejs/12.10.0/firebase-database.js";
-
-import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } 
-from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
+import { getDatabase, ref, push, get, remove, set } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-database.js";
+import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCifkNrq_PA8FtW7devgVsaNGXW-Tce0n8",
@@ -485,122 +408,65 @@ window.remove = remove;
 window.set = set;
 window.auth = auth;
 
-/* ================= USER DIRECTORY ================= */
-
 const USER_PROFILES = {
-  "gaurabhi834@gmail.com": {
-    name: "Abhishek Gaur",
-    designation: "Deputy Manager – QA"
-  },
-  "tl.pinki@ocubeservices.com": {
-    name: "Pinki Kumari",
-    designation: "Team Leader – Sales"
-  },
-  "tl.shahid@ocubeservices.com": {
-    name: "Md Shahid",
-    designation: "Team Leader – Support"
-  },
-  "qa.prince@ocubeservices.com": {
-    name: "Prince Kumar",
-    designation: "Quality Analyst"
-  }
+  "gaurabhi834@gmail.com":        { name: "Abhishek Gaur",  designation: "Deputy Manager – QA" },
+  "tl.pinki@ocubeservices.com":   { name: "Pinki Kumari",   designation: "Team Leader – Sales" },
+  "tl.shahid@ocubeservices.com":  { name: "Md Shahid",      designation: "Team Leader – Support" },
+  "qa.prince@ocubeservices.com":  { name: "Prince Kumar",   designation: "Quality Analyst" }
 };
 
-/* ================= ROLE DETECTION ================= */
-
-window.getUserRole = function () {
+window.getUserRole = function() {
   const user = auth.currentUser;
   if (!user) return null;
-
-  const email = user.email;
-
-  if (email === "gaurabhi834@gmail.com") return "admin";
-
-  if (email === "qa.prince@ocubeservices.com") return "qa";
-
-  if (
-    email === "tl.pinki@ocubeservices.com" ||
-    email === "tl.shahid@ocubeservices.com"
-  ) return "tl";
-
+  const e = user.email;
+  if (e === "gaurabhi834@gmail.com") return "admin";
+  if (e === "qa.prince@ocubeservices.com") return "qa";
+  if (e === "tl.pinki@ocubeservices.com" || e === "tl.shahid@ocubeservices.com") return "tl";
   return "agent";
 };
 
-/* ================= AUTH LISTENER ================= */
-
 onAuthStateChanged(auth, (user) => {
-
   if (user) {
-
     document.getElementById('loginScreen').style.display = 'none';
-    document.getElementById('mainApp').style.display = 'flex';
+    document.getElementById('mainApp').style.display = 'block';
     updateBadge();
-
     const role = getUserRole();
     const profile = USER_PROFILES[user.email];
-
     if (profile) {
       document.getElementById("profileName").textContent = "👤 " + profile.name;
       document.getElementById("profileDesignation").textContent = profile.designation;
       document.getElementById("profileEmail").textContent = user.email;
-
       const loginTime = new Date().toLocaleTimeString();
-
-      let accessText =
-        role === "admin" ? "🔐 Admin Access" :
-        role === "qa" ? "🧪 QA Access" :
-        role === "tl" ? "👔 TL Access" :
-        "👤 Agent Access";
-
-      document.getElementById("profileAccess").innerHTML =
-        accessText + "<br>🕒 Logged in: " + loginTime;
+      const accessText = role==="admin"?"🔐 Admin Access":role==="qa"?"🧪 QA Access":role==="tl"?"👔 TL Access":"👤 Agent Access";
+      document.getElementById("profileAccess").innerHTML = accessText + "<br>🕒 Logged in: " + loginTime;
     }
-
-    if (role !== "admin") {
-      const btn = document.getElementById("clearBtn");
-      if (btn) btn.style.display = "none";
+    if (role === "admin") {
+      const cb = document.getElementById("clearBtn");
+      const cb2 = document.getElementById("clearBtn2");
+      if (cb) cb.style.display = "inline-flex";
+      if (cb2) cb2.style.display = "inline-flex";
     }
-
   } else {
-
     document.getElementById('loginScreen').style.display = 'flex';
     document.getElementById('mainApp').style.display = 'none';
-
   }
-
 });
 
-/* ================= LOGIN ================= */
-
-window.loginUser = function () {
-
+window.loginUser = function() {
   const email = document.getElementById("loginEmail").value.trim();
   const password = document.getElementById("loginPassword").value.trim();
-
-  if (!email || !password) {
-    showToast("Enter email and password", "e");
-    return;
-  }
-
+  if (!email || !password) { showToast("Enter email and password", "e"); return; }
   signInWithEmailAndPassword(auth, email, password)
     .then(() => showToast("Login successful", "s"))
-    .catch((error) => {
-  console.error(error);
-  showToast(error.message, "e");
-});
-
+    .catch((error) => { console.error(error); showToast(error.message, "e"); });
 };
 
-window.logoutUser = function () {
-  signOut(auth).then(() => {
-    showToast("Logged out successfully", "s");
-  });
+window.logoutUser = function() {
+  signOut(auth).then(() => showToast("Logged out successfully", "s"));
 };
-
-
 </script>
 
-<!-- STEP B: Your Big Existing Script -->
+<!-- ═══ APP LOGIC ═══ -->
 <script>
 const PM={
   nc1:{label:'Standard opening & name confirmation',group:'Call Opening/Closing',type:'NC'},
@@ -633,7 +499,6 @@ const GROUPS={'Call Opening/Closing':['nc1','nc2','nc3','nc4'],'Issue Identifica
 let CS={};
 let pCI=null,sCI=null;
 
-// ── TABS
 function switchTab(n,btn){
   document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-tab').forEach(b=>b.classList.remove('active'));
@@ -644,7 +509,6 @@ function switchTab(n,btn){
   if(n==='pareto') renderPareto();
 }
 
-// ── SCORING
 function rate(btn,val,key){
   const rg=btn.closest('.rg');
   rg.querySelectorAll('.br').forEach(b=>b.classList.remove('ay','an','ana'));
@@ -707,12 +571,8 @@ function srow(label,p,color,bold=false){
 
 function stag(p){return p===null?'–':p>=85?'<span class="tag tp">Pass</span>':p>=70?'<span class="tag tr">Review</span>':'<span class="tag tf">Fail</span>';}
 
-// ── SAVE
 async function saveAudit(){
-if(!auth.currentUser){
-  showToast("Please login first","e");
-  return;
-}
+  if(!auth.currentUser){showToast("Please login first","e");return;}
   const agent=document.getElementById('agentName').value.trim();
   const reviewer=document.getElementById('reviewerName').value.trim();
   if(!agent||!reviewer){showToast('Enter Agent and Reviewer names.','e');return;}
@@ -720,11 +580,11 @@ if(!auth.currentUser){
   const crP=calcPct(CRK.filter(k=>k in CS));
   if(ncP===null&&crP===null){showToast('Score at least one parameter.','e');return;}
   const tot=ncP!==null&&crP!==null?Math.round(ncP*.4+crP*.6):ncP!==null?ncP:crP;
-  
-    const audit = {
-  timestamp: Date.now(),
-  createdBy: auth.currentUser.email,
-    date:document.getElementById('evalDate').value,agent,reviewer,
+  const audit={
+    timestamp:Date.now(),
+    createdBy:auth.currentUser.email,
+    date:document.getElementById('evalDate').value,
+    agent,reviewer,
     callId:document.getElementById('callId').value,
     channel:document.getElementById('channel').value,
     team:document.getElementById('team').value,
@@ -734,45 +594,33 @@ if(!auth.currentUser){
     observations:document.getElementById('observations').value,
     recommendation:document.getElementById('recommendation').value,
     scores:{...CS},ncScore:ncP,crScore:crP,totalScore:tot,
-    result: tot>=85?'Pass':tot>=70?'Review':'Fail',
-    coachingRequired: tot < 85
+    result:tot>=85?'Pass':tot>=70?'Review':'Fail',
+    coachingRequired:tot<85
   };
-  try {
-  const newRef = await push(ref(db, 'audits'));
-  await set(newRef, audit);
-
-  showToast('✅ Audit saved for ' + agent, 's');
-  updateBadge();
-  resetForm(true);
-}
-catch(e){
-  showToast('Storage error','e');
+  try{
+    const newRef=await push(ref(db,'audits'));
+    await set(newRef,audit);
+    showToast('✅ Audit saved for '+agent,'s');
+    updateBadge();
+    resetForm(true);
+  }catch(e){showToast('Storage error','e');}
 }
 
-}
 async function loadAudits(){
-  if(!auth.currentUser){
-  return [];
-}
-  const snapshot = await get(ref(db, 'audits'));
-  const audits = [];
-
-  if (snapshot.exists()) {
-    Object.entries(snapshot.val()).forEach(([id, data]) => {
-      audits.push({ id, ...data });
-    });
+  if(!auth.currentUser) return [];
+  const snapshot=await get(ref(db,'audits'));
+  const audits=[];
+  if(snapshot.exists()){
+    Object.entries(snapshot.val()).forEach(([id,data])=>audits.push({id,...data}));
   }
-
-  return audits.sort((a,b)=>b.timestamp - a.timestamp);
-}   
-    
+  return audits.sort((a,b)=>b.timestamp-a.timestamp);
+}
 
 async function updateBadge(){
   const a=await loadAudits();
   document.getElementById('auditBadge').textContent=a.length;
 }
 
-// ── AUDIT LOG
 async function renderAuditLog(){
   const tbody=document.getElementById('auditTableBody');
   const audits=await loadAudits();
@@ -799,9 +647,7 @@ async function renderAuditLog(){
       <td><span style="color:var(--critical);font-family:var(--font-head);font-weight:700">${a.crScore!==null?a.crScore+'%':'—'}</span></td>
       <td><span style="color:var(--accent2);font-family:var(--font-head);font-weight:700;font-size:14px">${a.totalScore!==null?a.totalScore+'%':'—'}</span></td>
       <td>${stag(a.totalScore)}</td>
-      <td>${getUserRole() === "admin"
-  ? `<button class="btn btn-danger btn-sm" onclick="delAudit(event,'${a.id}')">🗑</button>`
-  : ''}</td>
+      <td>${getUserRole()==="admin"?`<button class="btn btn-danger btn-sm" onclick="delAudit(event,'${a.id}')">🗑</button>`:''}</td>
     </tr>
     <tr class="adr" id="adr-${i}"><td colspan="11"><div class="dgrid">
       <div class="di"><label>Team</label><p>${a.team||'—'}</p></div>
@@ -819,26 +665,26 @@ function td(id){const el=document.getElementById(id);if(el)el.classList.toggle('
 
 async function delAudit(e,id){
   e.stopPropagation();
-
-  const user = auth.currentUser;
-
-  if(getUserRole() !== "admin"){
-    showToast("Only Admin can delete records","e");
-    return;
-  }
-
-  if(!confirm('Delete this audit?')) return;
-
+  if(getUserRole()!=="admin"){showToast("Only Admin can delete records","e");return;}
+  if(!confirm('Delete this audit?'))return;
   try{
-    await remove(ref(db, 'audits/' + id));
+    await remove(ref(db,'audits/'+id));
     showToast('Deleted','s');
     renderAuditLog();
-  }catch(er){
-    showToast('Error','e');
-  }
-
+  }catch(er){showToast('Error','e');}
 }
-// ── PERFORMANCE
+
+async function clearAllAudits(){
+  if(getUserRole()!=="admin"){showToast("Only Admin can clear all records","e");return;}
+  if(!confirm('Delete ALL audits? This cannot be undone.'))return;
+  try{
+    await remove(ref(db,'audits'));
+    showToast('All audits cleared','s');
+    renderAuditLog();
+    updateBadge();
+  }catch(er){showToast('Error','e');}
+}
+
 async function renderPerformance(){
   const audits=await loadAudits();
   const uAgents=[...new Set(audits.map(a=>a.agent))];
@@ -849,7 +695,6 @@ async function renderPerformance(){
     document.getElementById('ps-avg').textContent=Math.round(ws.reduce((s,a)=>s+a.totalScore,0)/ws.length)+'%';
     document.getElementById('ps-pass').textContent=Math.round(ws.filter(a=>a.result==='Pass').length/ws.length*100)+'%';
   }else{document.getElementById('ps-avg').textContent='—';document.getElementById('ps-pass').textContent='—';}
-
   const aMap={};
   audits.forEach(a=>{
     if(!aMap[a.agent])aMap[a.agent]={name:a.agent,team:a.team||'—',tenure:a.tenure||0,evals:[],lastDate:a.date};
@@ -857,7 +702,6 @@ async function renderPerformance(){
     if(a.date>aMap[a.agent].lastDate)aMap[a.agent].lastDate=a.date;
     if(a.tenure)aMap[a.agent].tenure=a.tenure;
   });
-
   const agents=Object.values(aMap).map(ag=>{
     const v=ag.evals.filter(e=>e.totalScore!==null);
     const vn=v.filter(e=>e.ncScore!==null),vc=v.filter(e=>e.crScore!==null);
@@ -868,10 +712,8 @@ async function renderPerformance(){
       passRate:v.length?Math.round(v.filter(e=>e.result==='Pass').length/v.length*100):null
     };
   }).sort((a,b)=>(b.avgTot||0)-(a.avgTot||0));
-
   renderAgentCards('topPerformers',agents.slice(0,4),true);
   renderAgentCards('bottomPerformers',agents.slice(-4).reverse(),false);
-
   const atb=document.getElementById('agentTableBody');
   atb.innerHTML=agents.length?agents.map((ag,i)=>`<tr>
     <td style="color:var(--muted);font-family:var(--font-head)">${i+1}</td>
@@ -884,13 +726,8 @@ async function renderPerformance(){
     <td class="sbc"><div class="sbw"><div class="smb"><div class="smf" style="width:${ag.avgTot||0}%;background:${ag.avgTot>=85?'var(--success)':ag.avgTot>=70?'var(--warning)':'var(--critical)'}"></div></div><span class="sv" style="color:${ag.avgTot>=85?'var(--success)':ag.avgTot>=70?'var(--warning)':'var(--critical)'}">${ag.avgTot!==null?ag.avgTot+'%':'—'}</span></div></td>
     <td style="color:var(--muted);font-size:11px">${ag.lastDate||'—'}</td>
     <td>${stag(ag.avgTot)}</td>
-	<td>
-  ${ag.evals.some(e => e.coachingRequired) 
-    ? '<span class="tag tf">Yes</span>' 
-    : '<span class="tag tp">No</span>'}
-</td>
-  </tr>`).join(''):`<tr><td colspan="10"><div class="empty-state" style="padding:22px"><p>No data yet</p></div></td></tr>`;
-
+    <td>${ag.evals.some(e=>e.coachingRequired)?'<span class="tag tf">Yes</span>':'<span class="tag tp">No</span>'}</td>
+  </tr>`).join(''):`<tr><td colspan="11"><div class="empty-state" style="padding:22px"><p>No data yet</p></div></td></tr>`;
   const bands=[{l:'0–3 months',min:0,max:3},{l:'4–6 months',min:4,max:6},{l:'7–12 months',min:7,max:12},{l:'13–24 months',min:13,max:24},{l:'25+ months',min:25,max:9999}];
   const ttb=document.getElementById('tenureTableBody');
   const brows=bands.map(b=>{
@@ -910,73 +747,29 @@ async function renderPerformance(){
       <td>${passR!==null?passR+'%':'—'}</td></tr>`;
   }).filter(Boolean);
   ttb.innerHTML=brows.length?brows.join(''):`<tr><td colspan="7"><div class="empty-state" style="padding:20px"><p>Add tenure when creating audits to see this breakdown.</p></div></td></tr>`;
-renderMonthlyTrend(audits);
+  renderMonthlyTrend(audits);
 }
 
-let monthlyTrendChart = null;
-
+let monthlyTrendChart=null;
 function renderMonthlyTrend(audits){
-
-  const canvas = document.getElementById('monthlyTrendChart');
-  if(!canvas) return;
-
-  const monthMap = {};
-
-  audits.forEach(a => {
-    if(!a.date || a.totalScore === null) return;
-
-    const month = a.date.substring(0,7); // YYYY-MM format
-
-    if(!monthMap[month]) monthMap[month] = [];
+  const canvas=document.getElementById('monthlyTrendChart');
+  if(!canvas)return;
+  const monthMap={};
+  audits.forEach(a=>{
+    if(!a.date||a.totalScore===null)return;
+    const month=a.date.substring(0,7);
+    if(!monthMap[month])monthMap[month]=[];
     monthMap[month].push(a.totalScore);
   });
-
-  const labels = Object.keys(monthMap).sort();
-
-  const avgScores = labels.map(month => {
-    const arr = monthMap[month];
-    return Math.round(arr.reduce((sum,val)=>sum+val,0) / arr.length);
-  });
-
-  if(monthlyTrendChart) monthlyTrendChart.destroy();
-
-  monthlyTrendChart = new Chart(canvas.getContext('2d'), {
-    type: 'line',
-    data: {
-      labels: labels,
-      datasets: [{
-        label: 'Average QA Score',
-        data: avgScores,
-        borderColor: '#4f8ef7',
-        backgroundColor: 'rgba(79,142,247,0.1)',
-        fill: true,
-        tension: 0.3,
-        pointRadius: 4
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      scales: {
-        y: {
-          min: 0,
-          max: 100,
-          ticks: { color: '#6b7a9e' }
-        },
-        x: {
-          ticks: { color: '#6b7a9e' }
-        }
-      },
-      plugins: {
-        legend: {
-          labels: { color: '#e8edf8' }
-        }
-      }
-    }
+  const labels=Object.keys(monthMap).sort();
+  const avgScores=labels.map(m=>{const arr=monthMap[m];return Math.round(arr.reduce((s,v)=>s+v,0)/arr.length);});
+  if(monthlyTrendChart)monthlyTrendChart.destroy();
+  monthlyTrendChart=new Chart(canvas.getContext('2d'),{
+    type:'line',
+    data:{labels,datasets:[{label:'Average QA Score',data:avgScores,borderColor:'#4f8ef7',backgroundColor:'rgba(79,142,247,0.1)',fill:true,tension:.3,pointRadius:4}]},
+    options:{responsive:true,maintainAspectRatio:false,scales:{y:{min:0,max:100,ticks:{color:'#6b7a9e'}},x:{ticks:{color:'#6b7a9e'}}},plugins:{legend:{labels:{color:'#e8edf8'}}}}
   });
 }
-
-
 
 function renderAgentCards(cid,agents,isTop){
   const el=document.getElementById(cid);
@@ -995,7 +788,6 @@ function renderAgentCards(cid,agents,isTop){
   }).join('');
 }
 
-// ── PARETO
 async function renderPareto(){
   const audits=await loadAudits();
   if(!audits.length){
@@ -1005,9 +797,7 @@ async function renderPareto(){
   }
   const fc={},tr={};
   AK.forEach(k=>{fc[k]=0;tr[k]=0;});
-  audits.forEach(a=>{
-    AK.forEach(k=>{if(k in a.scores){if(a.scores[k]==='yes'||a.scores[k]==='no')tr[k]++;if(a.scores[k]==='no')fc[k]++;}});
-  });
+  audits.forEach(a=>{AK.forEach(k=>{if(k in a.scores){if(a.scores[k]==='yes'||a.scores[k]==='no')tr[k]++;if(a.scores[k]==='no')fc[k]++;}});});
   const sorted=AK.filter(k=>tr[k]>0).sort((a,b)=>fc[b]-fc[a]);
   const totFails=sorted.reduce((s,k)=>s+fc[k],0);
   let cum=0,p80=0;
@@ -1018,12 +808,10 @@ async function renderPareto(){
     const fr=tr[k]>0?Math.round(fc[k]/tr[k]*100):0;
     return{k,i,fc:fc[k],tr:tr[k],fr,cp};
   });
-
   document.getElementById('par-total').textContent=totFails;
   document.getElementById('par-top').textContent=sorted.length?PM[sorted[0]].label.substring(0,24)+'…':'—';
   document.getElementById('par-cr').textContent=sorted.filter(k=>PM[k].type==='CR').reduce((s,k)=>s+fc[k],0);
   document.getElementById('par-80').textContent=p80||'—';
-
   document.getElementById('paretoTableBody').innerHTML=rows.map(r=>{
     const pm=PM[r.k];
     const c=r.fr>=50?'var(--critical)':r.fr>=25?'var(--warning)':'var(--success)';
@@ -1038,14 +826,11 @@ async function renderPareto(){
       <td>${r.cp<=80?'<span class="tag tf" style="font-size:9px">Top 80%</span>':'<span style="color:var(--muted);font-size:11px">—</span>'}</td>
     </tr>`;
   }).join('');
-
-  // Pareto Chart
   const labels=sorted.map(k=>PM[k].label.length>18?PM[k].label.substring(0,18)+'…':PM[k].label);
   const counts=sorted.map(k=>fc[k]);
   const cumPcts=[];let c2=0;
   sorted.forEach(k=>{c2+=fc[k];cumPcts.push(totFails>0?Math.round(c2/totFails*100):0);});
   const bColors=sorted.map(k=>PM[k].type==='CR'?'rgba(247,79,106,.8)':'rgba(79,142,247,.8)');
-
   if(pCI)pCI.destroy();
   pCI=new Chart(document.getElementById('paretoChart').getContext('2d'),{
     type:'bar',
@@ -1063,8 +848,6 @@ async function renderPareto(){
       }
     }
   });
-
-  // Donut
   const ncF=NCK.reduce((s,k)=>s+fc[k],0),crF=CRK.reduce((s,k)=>s+fc[k],0);
   if(sCI)sCI.destroy();
   sCI=new Chart(document.getElementById('splitChart').getContext('2d'),{
@@ -1074,7 +857,6 @@ async function renderPareto(){
   });
 }
 
-// ── EXCEL EXPORTS
 async function exportAllExcel(){
   const audits=await loadAudits();
   if(!audits.length){showToast('No data to export','e');return;}
@@ -1094,7 +876,6 @@ function addAuditSheet(wb,audits){
   ws['!cols']=[{wch:12},{wch:20},{wch:18},{wch:14},{wch:14},{wch:12},{wch:8},{wch:10},{wch:8},{wch:10},{wch:10},{wch:7},{wch:40},{wch:40},{wch:40},...AK.map(()=>({wch:10}))];
   XLSX.utils.book_append_sheet(wb,ws,'Audit Log');
 }
-
 function addAgentSheet(wb,audits){
   const aMap={};
   audits.forEach(a=>{if(!aMap[a.agent])aMap[a.agent]={name:a.agent,team:a.team||'',tenure:a.tenure||0,evals:[]};aMap[a.agent].evals.push(a);if(a.tenure)aMap[a.agent].tenure=a.tenure;});
@@ -1113,7 +894,6 @@ function addAgentSheet(wb,audits){
   ws['!cols']=[{wch:20},{wch:14},{wch:8},{wch:8},{wch:8},{wch:10},{wch:10},{wch:8},{wch:8},{wch:8},{wch:10},{wch:14}];
   XLSX.utils.book_append_sheet(wb,ws,'Agent Performance');
 }
-
 function addParetoSheet(wb,audits){
   const fc={},tr={};AK.forEach(k=>{fc[k]=0;tr[k]=0;});
   audits.forEach(a=>{AK.forEach(k=>{if(k in a.scores){if(a.scores[k]==='yes'||a.scores[k]==='no')tr[k]++;if(a.scores[k]==='no')fc[k]++;}});});
@@ -1131,29 +911,16 @@ function addParetoSheet(wb,audits){
   XLSX.utils.book_append_sheet(wb,ws,'Pareto Analysis');
 }
 
-// ── UTILS
-function resetForm(skipConfirm = false){
-
-  if(!skipConfirm){
-    if(!confirm('Reset form?')) return;
-  }
-
-  CS = {};
-
-  document.querySelectorAll('.br')
-    .forEach(b=>b.classList.remove('ay','an','ana'));
-
-  ['agentName','reviewerName','callId','team','agentLang',
-   'callSummary','observations','recommendation']
-   .forEach(id=>document.getElementById(id).value='');
-
+function resetForm(skipConfirm=false){
+  if(!skipConfirm){if(!confirm('Reset form?'))return;}
+  CS={};
+  document.querySelectorAll('.br').forEach(b=>b.classList.remove('ay','an','ana'));
+  ['agentName','reviewerName','callId','team','agentLang','callSummary','observations','recommendation'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('channel').value='';
   document.getElementById('tenure').value='';
   document.getElementById('evalDate').valueAsDate=new Date();
-
   updateDash();
 }
-
 
 function showToast(msg,type){
   const t=document.getElementById('toast');
@@ -1163,10 +930,8 @@ function showToast(msg,type){
 
 function esc(s){return s?.replace(/</g,'&lt;').replace(/>/g,'&gt;')||'';}
 
-// INIT
 document.getElementById('evalDate').valueAsDate=new Date();
 updateDash();
-
 </script>
 </body>
 </html>
