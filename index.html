@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>QA Quality Dashboard</title>
+<title>QA Intelligence Dashboard</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -12,19 +12,20 @@
 *{box-sizing:border-box;margin:0;padding:0;}
 body{background:var(--bg);color:var(--text);font-family:var(--font-body);min-height:100vh;}
 body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 20% 20%,rgba(79,142,247,.07) 0%,transparent 50%),radial-gradient(ellipse at 80% 80%,rgba(247,193,79,.05) 0%,transparent 50%);pointer-events:none;z-index:0;}
-.container{width:100%;max-width:1380px;margin:0 auto;padding:0 24px;}
-.top-bar{width:100%;background:var(--surface);border-bottom:1px solid var(--border);}
+.container{width:100%;max-width:1400px;margin:0 auto;padding:0 24px;}
+.top-bar{width:100%;background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;}
 .header-inner{display:flex;align-items:center;width:100%;}
-.logo{font-family:var(--font-head);font-weight:800;font-size:16px;letter-spacing:-.3px;padding:18px 0;margin-right:28px;white-space:nowrap;color:var(--text);flex:0 0 auto;}
+.logo{font-family:var(--font-head);font-weight:800;font-size:15px;padding:16px 0;margin-right:20px;white-space:nowrap;color:var(--text);flex:0 0 auto;}
 .logo span{color:var(--accent);}
-.nav-tabs{flex:1;display:flex;justify-content:center;align-items:center;gap:20px;}
-.nav-tab{padding:18px 16px;font-family:var(--font-head);font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .2s;background:none;border-top:none;border-left:none;border-right:none;white-space:nowrap;}
+.logo small{font-size:9px;color:var(--muted);display:block;letter-spacing:1px;margin-top:-2px;}
+.nav-tabs{flex:1;display:flex;justify-content:center;align-items:center;gap:2px;overflow-x:auto;}
+.nav-tab{padding:16px 13px;font-family:var(--font-head);font-size:11px;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .2s;background:none;border-top:none;border-left:none;border-right:none;white-space:nowrap;}
 .nav-tab:hover{color:var(--text);}
 .nav-tab.active{color:var(--accent);border-bottom-color:var(--accent);}
-.tab-badge{background:var(--surface2);color:var(--muted);font-size:10px;padding:1px 6px;border-radius:10px;margin-left:5px;}
+.tab-badge{background:var(--surface2);color:var(--muted);font-size:9px;padding:1px 5px;border-radius:10px;margin-left:4px;}
 .nav-tab.active .tab-badge{background:rgba(79,142,247,.15);color:var(--accent);}
-.top-bar-right{display:flex;align-items:center;gap:10px;flex:0 0 auto;}
-.content{padding:22px 0;}
+.top-bar-right{display:flex;align-items:center;gap:8px;flex:0 0 auto;}
+.content{padding:20px 0 40px;}
 .tab-panel{display:none;animation:fadeIn .2s;}
 .tab-panel.active{display:block;}
 @keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
@@ -35,6 +36,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
 .g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;}
 .g4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
+.g5{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;}
 .mb4{margin-bottom:16px;}
 .mb6{margin-bottom:22px;}
 .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px;position:relative;overflow:hidden;transition:transform .2s;}
@@ -45,10 +47,11 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .s-green::before{background:var(--success);}
 .s-yellow::before{background:var(--accent2);}
 .s-purple::before{background:var(--purple);}
+.s-orange::before{background:var(--warning);}
 .s-label{font-size:10px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);margin-bottom:8px;}
-.s-val{font-family:var(--font-head);font-size:32px;font-weight:800;line-height:1;}
+.s-val{font-family:var(--font-head);font-size:30px;font-weight:800;line-height:1;}
 .s-sub{font-size:11px;color:var(--muted);margin-top:4px;}
-.meta-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px;margin-bottom:20px;}
+.meta-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-bottom:20px;}
 .meta-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;}
 .meta-card label{display:block;font-size:10px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);margin-bottom:5px;}
 .meta-card input,.meta-card select{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:var(--font-body);font-size:13px;padding:5px 9px;outline:none;transition:border-color .2s;}
@@ -62,7 +65,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .sccr::before{background:var(--critical);}
 .scres::before{background:var(--success);}
 .sc-card .sc-label{font-size:10px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);margin-bottom:8px;}
-.sc-card .sc-val{font-family:var(--font-head);font-size:36px;font-weight:800;line-height:1;margin-bottom:4px;}
+.sc-card .sc-val{font-family:var(--font-head);font-size:34px;font-weight:800;line-height:1;margin-bottom:4px;}
 .sct .sc-val{color:var(--accent2);}
 .scnc .sc-val{color:var(--accent);}
 .sccr .sc-val{color:var(--critical);}
@@ -120,6 +123,7 @@ tbody td{padding:10px 14px;font-size:13px;color:var(--text);}
 .tr{background:rgba(247,161,79,.15);color:var(--warning);}
 .tnc{background:rgba(79,142,247,.12);color:var(--accent);}
 .tcr{background:rgba(247,79,106,.12);color:var(--critical);}
+.tpur{background:rgba(167,139,250,.12);color:var(--purple);}
 .btn{padding:10px 18px;height:40px;border-radius:8px;font-family:var(--font-head);font-size:11px;font-weight:700;letter-spacing:.5px;cursor:pointer;border:none;transition:all .2s;display:inline-flex;align-items:center;gap:5px;}
 .btn-outline{background:transparent;border:1px solid var(--border);color:var(--muted);}
 .btn-outline:hover{border-color:var(--accent);color:var(--accent);}
@@ -138,65 +142,104 @@ tbody td{padding:10px 14px;font-size:13px;color:var(--text);}
 .filter-bar{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center;}
 .filter-bar input,.filter-bar select{background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:var(--font-body);font-size:12px;padding:7px 10px;outline:none;}
 .filter-bar input:focus,.filter-bar select:focus{border-color:var(--accent);}
-.arc{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;}
+.arc{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;position:relative;}
 .arc-rank{position:absolute;top:12px;right:12px;font-family:var(--font-head);font-size:24px;font-weight:800;opacity:.07;}
 .arc-name{font-family:var(--font-head);font-weight:700;font-size:14px;margin-bottom:3px;}
 .arc-meta{font-size:11px;color:var(--muted);margin-bottom:10px;}
-.arc-score{font-family:var(--font-head);font-size:32px;font-weight:800;line-height:1;margin-bottom:4px;}
+.arc-score{font-family:var(--font-head);font-size:30px;font-weight:800;line-height:1;margin-bottom:4px;}
 .ten-badge{font-size:10px;padding:2px 8px;border-radius:20px;background:rgba(167,139,250,.12);color:var(--purple);font-weight:600;}
 .chart-wrap{padding:18px;}
 .p-legend{display:flex;gap:16px;padding:0 18px 14px;flex-wrap:wrap;}
 .p-leg-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted);}
 .p-leg-dot{width:9px;height:9px;border-radius:2px;}
-.empty-state{text-align:center;padding:50px 20px;color:var(--muted);}
-.empty-state .ei{font-size:42px;margin-bottom:10px;}
+.empty-state{text-align:center;padding:40px 20px;color:var(--muted);}
+.empty-state .ei{font-size:40px;margin-bottom:10px;}
 .empty-state h3{font-family:var(--font-head);font-size:15px;color:var(--text);margin-bottom:5px;}
-#toast{position:fixed;bottom:22px;right:22px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:11px 18px;font-size:13px;font-weight:500;z-index:9999;transform:translateY(80px);opacity:0;transition:all .3s;max-width:280px;}
-#toast.show{transform:none;opacity:1;}
-#toast.ts{border-color:rgba(79,247,160,.4);color:var(--success);}
-#toast.te{border-color:rgba(247,79,106,.4);color:var(--critical);}
+/* Alert Cards */
+.alert-card{border-radius:10px;padding:12px 16px;display:flex;align-items:center;gap:12px;margin-bottom:10px;border:1px solid;}
+.alert-critical{background:rgba(247,79,106,.08);border-color:rgba(247,79,106,.3);}
+.alert-warning{background:rgba(247,161,79,.08);border-color:rgba(247,161,79,.3);}
+.alert-icon{font-size:20px;flex:0 0 auto;}
+.alert-agent{font-family:var(--font-head);font-weight:700;font-size:13px;}
+.alert-type{font-size:11px;color:var(--muted);margin-top:2px;}
+.alert-badge-cr{background:rgba(247,79,106,.2);color:var(--critical);font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;margin-left:auto;}
+.alert-badge-wa{background:rgba(247,161,79,.2);color:var(--warning);font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;margin-left:auto;}
+/* Heatmap */
+.heatmap-wrap{overflow-x:auto;padding:16px;}
+.heatmap-table{border-collapse:collapse;font-size:11px;}
+.heatmap-table th{padding:6px 8px;text-align:center;font-size:9px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);font-weight:600;white-space:nowrap;max-width:70px;overflow:hidden;text-overflow:ellipsis;}
+.heatmap-table th.agent-col{text-align:left;min-width:130px;position:sticky;left:0;background:var(--surface2);z-index:1;}
+.heatmap-table td{padding:5px 6px;text-align:center;font-size:10px;font-weight:600;font-family:var(--font-head);border:1px solid var(--border);min-width:46px;}
+.heatmap-table td.agent-name{text-align:left;font-size:11px;color:var(--text);padding:6px 10px;position:sticky;left:0;background:var(--surface);z-index:1;font-family:var(--font-head);font-weight:700;white-space:nowrap;}
+/* Coaching */
+.coaching-form{padding:18px;display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;}
+.coaching-form>div{display:flex;flex-direction:column;gap:5px;}
+.coaching-form label{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);}
+.coaching-form input,.coaching-form select{background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-family:var(--font-body);font-size:13px;padding:7px 11px;outline:none;min-width:180px;}
+.coaching-form input:focus{border-color:var(--accent);}
+.roi-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px;margin-bottom:14px;}
+.roi-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.roi-agent{font-family:var(--font-head);font-weight:700;font-size:14px;}
+.roi-date{font-size:11px;color:var(--muted);}
+.roi-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+.roi-stat{text-align:center;padding:12px;background:var(--surface2);border-radius:8px;border:1px solid var(--border);}
+.roi-stat-label{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:6px;}
+.roi-stat-val{font-family:var(--font-head);font-size:26px;font-weight:800;}
+/* Risk */
+.risk-high{color:var(--critical);}
+.risk-med{color:var(--warning);}
+.risk-low{color:var(--success);}
+/* Login */
+#loginScreen{position:fixed;inset:0;background:#0b0f1a;display:flex;justify-content:center;align-items:center;z-index:9999;flex-direction:column;gap:12px;}
+#loginScreen h2{font-family:var(--font-head);font-size:22px;color:var(--text);margin-bottom:6px;}
+#loginScreen h2 span{color:var(--accent);}
+#loginScreen p{font-size:12px;color:var(--muted);margin-top:-4px;}
+#loginScreen input{background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:var(--font-body);font-size:13px;padding:10px 14px;outline:none;width:290px;}
+#loginScreen input:focus{border-color:var(--accent);}
+#loginScreen button{background:var(--accent);color:white;border:none;border-radius:8px;padding:10px 28px;font-family:var(--font-head);font-size:13px;font-weight:700;cursor:pointer;width:290px;margin-top:4px;}
+#loginScreen button:hover{background:#6ba2f9;}
+/* Drawer */
 .adr{display:none;background:var(--surface2);}
 .adr td{padding:12px 14px;}
 .adr.open{display:table-row;}
 .dgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
 .di label{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);}
 .di p{font-size:12px;margin-top:2px;}
-/* Login */
-#loginScreen{position:fixed;inset:0;background:#0b0f1a;display:flex;justify-content:center;align-items:center;z-index:9999;flex-direction:column;gap:12px;}
-#loginScreen h2{font-family:var(--font-head);font-size:22px;color:var(--text);margin-bottom:6px;}
-#loginScreen input{background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:var(--font-body);font-size:13px;padding:10px 14px;outline:none;width:280px;}
-#loginScreen input:focus{border-color:var(--accent);}
-#loginScreen button{background:var(--accent);color:white;border:none;border-radius:8px;padding:10px 28px;font-family:var(--font-head);font-size:13px;font-weight:700;cursor:pointer;width:280px;margin-top:4px;}
-#loginScreen button:hover{background:#6ba2f9;}
+/* Toast */
+#toast{position:fixed;bottom:22px;right:22px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:11px 18px;font-size:13px;font-weight:500;z-index:9999;transform:translateY(80px);opacity:0;transition:all .3s;max-width:300px;}
+#toast.show{transform:none;opacity:1;}
+#toast.ts{border-color:rgba(79,247,160,.4);color:var(--success);}
+#toast.te{border-color:rgba(247,79,106,.4);color:var(--critical);}
 ::-webkit-scrollbar{width:5px;height:5px;}
 ::-webkit-scrollbar-track{background:var(--bg);}
 ::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
 ::-webkit-scrollbar-thumb:hover{background:var(--muted);}
-@media(max-width:900px){.score-dash,.g4{grid-template-columns:1fr 1fr;}.sections-grid,.bg2,.g2,.g3{grid-template-columns:1fr;}}
+@media(max-width:900px){.score-dash,.g4,.g5{grid-template-columns:1fr 1fr;}.sections-grid,.bg2,.g2,.g3{grid-template-columns:1fr;}}
 </style>
 </head>
 <body>
 
-<!-- ═══ LOGIN SCREEN ═══ -->
+<!-- LOGIN -->
 <div id="loginScreen">
-  <h2>QA<span style="color:var(--accent)">.</span>Hub Login</h2>
+  <h2>QA<span>.</span>Hub</h2>
+  <p>Performance Intelligence System</p>
   <input type="email" id="loginEmail" placeholder="Email address">
   <input type="password" id="loginPassword" placeholder="Password">
   <button onclick="loginUser()">Login</button>
 </div>
 
-<!-- ═══ MAIN APP ═══ -->
+<!-- MAIN APP -->
 <div id="mainApp" style="display:none;">
-
-  <!-- ═══ TOP BAR (FIXED) ═══ -->
   <div class="top-bar">
     <div class="container header-inner">
-      <div class="logo">QA<span>.</span>Hub</div>
+      <div class="logo">QA<span>.</span>Hub <small>INTELLIGENCE</small></div>
       <div class="nav-tabs">
-        <button class="nav-tab active" onclick="switchTab('scorecard',this)">Scorecard</button>
-        <button class="nav-tab" onclick="switchTab('auditlog',this)">Audit Log <span class="tab-badge" id="auditBadge">0</span></button>
-        <button class="nav-tab" onclick="switchTab('performance',this)">Agent Performance</button>
-        <button class="nav-tab" onclick="switchTab('pareto',this)">Pareto Analysis</button>
+        <button class="nav-tab active" onclick="switchTab('scorecard',this)">📋 Scorecard</button>
+        <button class="nav-tab" onclick="switchTab('auditlog',this)">📁 Audit Log <span class="tab-badge" id="auditBadge">0</span></button>
+        <button class="nav-tab" onclick="switchTab('performance',this)">📊 Performance</button>
+        <button class="nav-tab" onclick="switchTab('analytics',this)">🧠 Analytics</button>
+        <button class="nav-tab" onclick="switchTab('coaching',this)">🎯 Coaching ROI</button>
+        <button class="nav-tab" onclick="switchTab('pareto',this)">📉 Pareto</button>
       </div>
       <div class="top-bar-right">
         <div id="userProfile" style="display:flex;flex-direction:column;padding:6px 12px;background:rgba(79,142,247,0.08);border:1px solid #252e45;border-radius:8px;font-size:11px;text-align:right;">
@@ -205,17 +248,16 @@ tbody td{padding:10px 14px;font-size:13px;color:var(--text);}
           <div id="profileAccess" style="margin-top:3px;color:#4f8ef7;font-size:11px;line-height:1.4;"></div>
           <div id="profileEmail" style="font-size:10px;color:#6b7a9e;"></div>
         </div>
-        <button class="btn btn-excel" onclick="exportAllExcel()">⬇ Export All</button>
-        <button id="clearBtn" class="btn btn-danger btn-sm" onclick="clearAllAudits()" style="display:none;">🗑 Clear All</button>
-        <button class="btn btn-outline" onclick="logoutUser()">🚪 Logout</button>
+        <button class="btn btn-excel btn-sm" onclick="exportAllExcel()">⬇ Export</button>
+        <button id="clearBtn" class="btn btn-danger btn-sm" onclick="clearAllAudits()" style="display:none;">🗑 Clear</button>
+        <button class="btn btn-outline btn-sm" onclick="logoutUser()">🚪 Logout</button>
       </div>
     </div>
   </div>
 
-  <!-- ═══ CONTENT ═══ -->
   <div class="content container">
 
-    <!-- TAB 1: SCORECARD -->
+    <!-- ══ TAB 1: SCORECARD ══ -->
     <div id="tab-scorecard" class="tab-panel active">
       <div class="meta-grid">
         <div class="meta-card"><label>Agent Name</label><input type="text" id="agentName" placeholder="Enter agent name"></div>
@@ -226,6 +268,7 @@ tbody td{padding:10px 14px;font-size:13px;color:var(--text);}
         <div class="meta-card"><label>Team / Queue</label><input type="text" id="team" placeholder="e.g. Sales"></div>
         <div class="meta-card"><label>Tenure (months)</label><input type="number" id="tenure" placeholder="e.g. 6" min="0"></div>
         <div class="meta-card"><label>Language</label><input type="text" id="agentLang" placeholder="e.g. English"></div>
+        <div class="meta-card"><label>Lead Converted?</label><select id="converted"><option value="">Select</option><option value="yes">Yes ✓</option><option value="no">No ✗</option><option value="na">N/A</option></select></div>
       </div>
 
       <div class="score-dash">
@@ -239,33 +282,33 @@ tbody td{padding:10px 14px;font-size:13px;color:var(--text);}
         <div class="sec-card">
           <div class="sec-hdr"><div class="sec-hdr-title">Non-Critical Parameters</div><span class="sbadge nc-badge">Non-Critical</span></div>
           <div class="pgh"><div class="pgl">Call Opening / Closing</div></div>
-          <div class="param-row" data-key="nc1"><div class="pl">Standard opening & customer name confirmation</div><div class="rg"><button class="br" onclick="rate(this,'yes','nc1')">Y</button><button class="br" onclick="rate(this,'no','nc1')">N</button><button class="br" onclick="rate(this,'na','nc1')">N/A</button></div></div>
-          <div class="param-row" data-key="nc2"><div class="pl">Summarization</div><div class="rg"><button class="br" onclick="rate(this,'yes','nc2')">Y</button><button class="br" onclick="rate(this,'no','nc2')">N</button><button class="br" onclick="rate(this,'na','nc2')">N/A</button></div></div>
-          <div class="param-row" data-key="nc3"><div class="pl">Further assistance offered</div><div class="rg"><button class="br" onclick="rate(this,'yes','nc3')">Y</button><button class="br" onclick="rate(this,'no','nc3')">N</button><button class="br" onclick="rate(this,'na','nc3')">N/A</button></div></div>
-          <div class="param-row" data-key="nc4"><div class="pl">Prescribed call closing</div><div class="rg"><button class="br" onclick="rate(this,'yes','nc4')">Y</button><button class="br" onclick="rate(this,'no','nc4')">N</button><button class="br" onclick="rate(this,'na','nc4')">N/A</button></div></div>
+          <div class="param-row"><div class="pl">Standard opening & customer name confirmation</div><div class="rg"><button class="br" onclick="rate(this,'yes','nc1')">Y</button><button class="br" onclick="rate(this,'no','nc1')">N</button><button class="br" onclick="rate(this,'na','nc1')">N/A</button></div></div>
+          <div class="param-row"><div class="pl">Summarization</div><div class="rg"><button class="br" onclick="rate(this,'yes','nc2')">Y</button><button class="br" onclick="rate(this,'no','nc2')">N</button><button class="br" onclick="rate(this,'na','nc2')">N/A</button></div></div>
+          <div class="param-row"><div class="pl">Further assistance offered</div><div class="rg"><button class="br" onclick="rate(this,'yes','nc3')">Y</button><button class="br" onclick="rate(this,'no','nc3')">N</button><button class="br" onclick="rate(this,'na','nc3')">N/A</button></div></div>
+          <div class="param-row"><div class="pl">Prescribed call closing</div><div class="rg"><button class="br" onclick="rate(this,'yes','nc4')">Y</button><button class="br" onclick="rate(this,'no','nc4')">N</button><button class="br" onclick="rate(this,'na','nc4')">N/A</button></div></div>
           <div class="pgh"><div class="pgl">Issue Identification</div></div>
-          <div class="param-row" data-key="nc5"><div class="pl">Paraphrasing to ensure agent/customer alignment</div><div class="rg"><button class="br" onclick="rate(this,'yes','nc5')">Y</button><button class="br" onclick="rate(this,'no','nc5')">N</button><button class="br" onclick="rate(this,'na','nc5')">N/A</button></div></div>
-          <div class="param-row" data-key="nc6"><div class="pl">Customer VOC understood and acknowledged</div><div class="rg"><button class="br" onclick="rate(this,'yes','nc6')">Y</button><button class="br" onclick="rate(this,'no','nc6')">N</button><button class="br" onclick="rate(this,'na','nc6')">N/A</button></div></div>
-          <div class="param-row" data-key="nc7"><div class="pl">Relevant probing questions were asked</div><div class="rg"><button class="br" onclick="rate(this,'yes','nc7')">Y</button><button class="br" onclick="rate(this,'no','nc7')">N</button><button class="br" onclick="rate(this,'na','nc7')">N/A</button></div></div>
+          <div class="param-row"><div class="pl">Paraphrasing to ensure agent/customer alignment</div><div class="rg"><button class="br" onclick="rate(this,'yes','nc5')">Y</button><button class="br" onclick="rate(this,'no','nc5')">N</button><button class="br" onclick="rate(this,'na','nc5')">N/A</button></div></div>
+          <div class="param-row"><div class="pl">Customer VOC understood and acknowledged</div><div class="rg"><button class="br" onclick="rate(this,'yes','nc6')">Y</button><button class="br" onclick="rate(this,'no','nc6')">N</button><button class="br" onclick="rate(this,'na','nc6')">N/A</button></div></div>
+          <div class="param-row"><div class="pl">Relevant probing questions were asked</div><div class="rg"><button class="br" onclick="rate(this,'yes','nc7')">Y</button><button class="br" onclick="rate(this,'no','nc7')">N</button><button class="br" onclick="rate(this,'na','nc7')">N/A</button></div></div>
           <div class="pgh"><div class="pgl">Customer Experience</div></div>
-          <div class="param-row" data-key="nc8"><div class="pl">Active Listening / Reading Demonstration</div><div class="rg"><button class="br" onclick="rate(this,'yes','nc8')">Y</button><button class="br" onclick="rate(this,'no','nc8')">N</button><button class="br" onclick="rate(this,'na','nc8')">N/A</button></div></div>
-          <div class="param-row" data-key="nc9"><div class="pl">Hold and Dead Air SLA Followed</div><div class="rg"><button class="br" onclick="rate(this,'yes','nc9')">Y</button><button class="br" onclick="rate(this,'no','nc9')">N</button><button class="br" onclick="rate(this,'na','nc9')">N/A</button></div></div>
-          <div class="param-row" data-key="nc10"><div class="pl">Apologies, Empathy, and Politeness Demonstrated</div><div class="rg"><button class="br" onclick="rate(this,'yes','nc10')">Y</button><button class="br" onclick="rate(this,'no','nc10')">N</button><button class="br" onclick="rate(this,'na','nc10')">N/A</button></div></div>
-          <div class="param-row" data-key="nc11"><div class="pl">Conversation without Overlapping and Interruptions</div><div class="rg"><button class="br" onclick="rate(this,'yes','nc11')">Y</button><button class="br" onclick="rate(this,'no','nc11')">N</button><button class="br" onclick="rate(this,'na','nc11')">N/A</button></div></div>
-          <div class="param-row" data-key="nc12"><div class="pl">Accurate Email Sent to Client</div><div class="rg"><button class="br" onclick="rate(this,'yes','nc12')">Y</button><button class="br" onclick="rate(this,'no','nc12')">N</button><button class="br" onclick="rate(this,'na','nc12')">N/A</button></div></div>
+          <div class="param-row"><div class="pl">Active Listening / Reading Demonstration</div><div class="rg"><button class="br" onclick="rate(this,'yes','nc8')">Y</button><button class="br" onclick="rate(this,'no','nc8')">N</button><button class="br" onclick="rate(this,'na','nc8')">N/A</button></div></div>
+          <div class="param-row"><div class="pl">Hold and Dead Air SLA Followed</div><div class="rg"><button class="br" onclick="rate(this,'yes','nc9')">Y</button><button class="br" onclick="rate(this,'no','nc9')">N</button><button class="br" onclick="rate(this,'na','nc9')">N/A</button></div></div>
+          <div class="param-row"><div class="pl">Apologies, Empathy, and Politeness Demonstrated</div><div class="rg"><button class="br" onclick="rate(this,'yes','nc10')">Y</button><button class="br" onclick="rate(this,'no','nc10')">N</button><button class="br" onclick="rate(this,'na','nc10')">N/A</button></div></div>
+          <div class="param-row"><div class="pl">Conversation without Overlapping and Interruptions</div><div class="rg"><button class="br" onclick="rate(this,'yes','nc11')">Y</button><button class="br" onclick="rate(this,'no','nc11')">N</button><button class="br" onclick="rate(this,'na','nc11')">N/A</button></div></div>
+          <div class="param-row"><div class="pl">Accurate Email Sent to Client</div><div class="rg"><button class="br" onclick="rate(this,'yes','nc12')">Y</button><button class="br" onclick="rate(this,'no','nc12')">N</button><button class="br" onclick="rate(this,'na','nc12')">N/A</button></div></div>
         </div>
         <div class="sec-card">
           <div class="sec-hdr"><div class="sec-hdr-title">Critical Parameters</div><span class="sbadge cr-badge">Critical</span></div>
-          <div class="param-row" data-key="cr1"><div class="pl">Agent remained professional, polite, and pleasant throughout</div><div class="rg"><button class="br" onclick="rate(this,'yes','cr1')">Y</button><button class="br" onclick="rate(this,'no','cr1')">N</button><button class="br" onclick="rate(this,'na','cr1')">N/A</button></div></div>
-          <div class="param-row" data-key="cr2"><div class="pl">Called client within timeframe & accommodated callback per global TZ</div><div class="rg"><button class="br" onclick="rate(this,'yes','cr2')">Y</button><button class="br" onclick="rate(this,'no','cr2')">N</button><button class="br" onclick="rate(this,'na','cr2')">N/A</button></div></div>
-          <div class="param-row" data-key="cr3"><div class="pl">Provided complete and accurate information on call/chat</div><div class="rg"><button class="br" onclick="rate(this,'yes','cr3')">Y</button><button class="br" onclick="rate(this,'no','cr3')">N</button><button class="br" onclick="rate(this,'na','cr3')">N/A</button></div></div>
-          <div class="param-row" data-key="cr4"><div class="pl">Answered queries timely and effectively; chose right disposition</div><div class="rg"><button class="br" onclick="rate(this,'yes','cr4')">Y</button><button class="br" onclick="rate(this,'no','cr4')">N</button><button class="br" onclick="rate(this,'na','cr4')">N/A</button></div></div>
-          <div class="param-row" data-key="cr5"><div class="pl">Asked qualifying questions and updated notes per standard procedure</div><div class="rg"><button class="br" onclick="rate(this,'yes','cr5')">Y</button><button class="br" onclick="rate(this,'no','cr5')">N</button><button class="br" onclick="rate(this,'na','cr5')">N/A</button></div></div>
-          <div class="param-row" data-key="cr6"><div class="pl">Successfully created an opportunity after the conversation</div><div class="rg"><button class="br" onclick="rate(this,'yes','cr6')">Y</button><button class="br" onclick="rate(this,'no','cr6')">N</button><button class="br" onclick="rate(this,'na','cr6')">N/A</button></div></div>
-          <div class="param-row" data-key="cr7"><div class="pl">Updated special requirements in notes for other teams</div><div class="rg"><button class="br" onclick="rate(this,'yes','cr7')">Y</button><button class="br" onclick="rate(this,'no','cr7')">N</button><button class="br" onclick="rate(this,'na','cr7')">N/A</button></div></div>
-          <div class="param-row" data-key="cr8"><div class="pl">Directed non-sales queries to relevant team for quick resolution</div><div class="rg"><button class="br" onclick="rate(this,'yes','cr8')">Y</button><button class="br" onclick="rate(this,'no','cr8')">N</button><button class="br" onclick="rate(this,'na','cr8')">N/A</button></div></div>
-          <div class="param-row" data-key="cr9"><div class="pl">All client questions answered accurately (installment plan, social media price)</div><div class="rg"><button class="br" onclick="rate(this,'yes','cr9')">Y</button><button class="br" onclick="rate(this,'no','cr9')">N</button><button class="br" onclick="rate(this,'na','cr9')">N/A</button></div></div>
-          <div class="param-row" data-key="cr10"><div class="pl">Converted lead without pushing client (language barrier, busy, etc.)</div><div class="rg"><button class="br" onclick="rate(this,'yes','cr10')">Y</button><button class="br" onclick="rate(this,'no','cr10')">N</button><button class="br" onclick="rate(this,'na','cr10')">N/A</button></div></div>
+          <div class="param-row"><div class="pl">Agent remained professional, polite, and pleasant throughout</div><div class="rg"><button class="br" onclick="rate(this,'yes','cr1')">Y</button><button class="br" onclick="rate(this,'no','cr1')">N</button><button class="br" onclick="rate(this,'na','cr1')">N/A</button></div></div>
+          <div class="param-row"><div class="pl">Called client within timeframe & accommodated callback per global TZ</div><div class="rg"><button class="br" onclick="rate(this,'yes','cr2')">Y</button><button class="br" onclick="rate(this,'no','cr2')">N</button><button class="br" onclick="rate(this,'na','cr2')">N/A</button></div></div>
+          <div class="param-row"><div class="pl">Provided complete and accurate information on call/chat</div><div class="rg"><button class="br" onclick="rate(this,'yes','cr3')">Y</button><button class="br" onclick="rate(this,'no','cr3')">N</button><button class="br" onclick="rate(this,'na','cr3')">N/A</button></div></div>
+          <div class="param-row"><div class="pl">Answered queries timely and effectively; chose right disposition</div><div class="rg"><button class="br" onclick="rate(this,'yes','cr4')">Y</button><button class="br" onclick="rate(this,'no','cr4')">N</button><button class="br" onclick="rate(this,'na','cr4')">N/A</button></div></div>
+          <div class="param-row"><div class="pl">Asked qualifying questions and updated notes per standard procedure</div><div class="rg"><button class="br" onclick="rate(this,'yes','cr5')">Y</button><button class="br" onclick="rate(this,'no','cr5')">N</button><button class="br" onclick="rate(this,'na','cr5')">N/A</button></div></div>
+          <div class="param-row"><div class="pl">Successfully created an opportunity after the conversation</div><div class="rg"><button class="br" onclick="rate(this,'yes','cr6')">Y</button><button class="br" onclick="rate(this,'no','cr6')">N</button><button class="br" onclick="rate(this,'na','cr6')">N/A</button></div></div>
+          <div class="param-row"><div class="pl">Updated special requirements in notes for other teams</div><div class="rg"><button class="br" onclick="rate(this,'yes','cr7')">Y</button><button class="br" onclick="rate(this,'no','cr7')">N</button><button class="br" onclick="rate(this,'na','cr7')">N/A</button></div></div>
+          <div class="param-row"><div class="pl">Directed non-sales queries to relevant team for quick resolution</div><div class="rg"><button class="br" onclick="rate(this,'yes','cr8')">Y</button><button class="br" onclick="rate(this,'no','cr8')">N</button><button class="br" onclick="rate(this,'na','cr8')">N/A</button></div></div>
+          <div class="param-row"><div class="pl">All client questions answered accurately (installment plan, social media price)</div><div class="rg"><button class="br" onclick="rate(this,'yes','cr9')">Y</button><button class="br" onclick="rate(this,'no','cr9')">N</button><button class="br" onclick="rate(this,'na','cr9')">N/A</button></div></div>
+          <div class="param-row"><div class="pl">Converted lead without pushing client (language barrier, busy, etc.)</div><div class="rg"><button class="br" onclick="rate(this,'yes','cr10')">Y</button><button class="br" onclick="rate(this,'no','cr10')">N</button><button class="br" onclick="rate(this,'na','cr10')">N/A</button></div></div>
         </div>
       </div>
 
@@ -279,20 +322,21 @@ tbody td{padding:10px 14px;font-size:13px;color:var(--text);}
         <div class="pt-hdr"><div class="card-title">Performance Breakdown</div><span style="font-size:11px;color:var(--muted)">Live score per group</span></div>
         <div class="table-wrap"><table><thead><tr><th>Parameter Group</th><th>Type</th><th>Scored</th><th>Applicable</th><th style="width:150px">Score %</th><th>Status</th></tr></thead><tbody id="perfTableBody"><tr><td colspan="6" style="color:var(--muted);text-align:center;padding:18px">Start scoring above to see breakdown.</td></tr></tbody></table></div>
       </div>
-
       <div class="abar">
         <button class="btn btn-danger btn-sm" onclick="resetForm()">↺ Reset</button>
-        <button class="btn btn-outline" onclick="window.print()">🖨 Print</button>
+        <button class="btn btn-outline btn-sm" onclick="window.print()">🖨 Print</button>
         <button class="btn btn-success" onclick="saveAudit()">💾 Save Audit</button>
       </div>
     </div>
 
-    <!-- TAB 2: AUDIT LOG -->
+    <!-- ══ TAB 2: AUDIT LOG ══ -->
     <div id="tab-auditlog" class="tab-panel">
       <div class="filter-bar">
         <input type="text" id="filterAgent" placeholder="Search agent..." oninput="renderAuditLog()">
         <select id="filterResult" onchange="renderAuditLog()"><option value="">All Results</option><option>Pass</option><option>Review</option><option>Fail</option></select>
         <select id="filterChannel" onchange="renderAuditLog()"><option value="">All Channels</option><option>Inbound Call</option><option>Outbound Call</option><option>Live Chat</option><option>Email</option></select>
+        <select id="filterCoaching" onchange="renderAuditLog()"><option value="">All Coaching</option><option value="yes">Coaching Required</option><option value="no">No Coaching Needed</option></select>
+        <select id="filterConverted" onchange="renderAuditLog()"><option value="">All Conversions</option><option value="yes">Converted</option><option value="no">Not Converted</option><option value="na">N/A</option></select>
         <div style="margin-left:auto;display:flex;gap:7px">
           <button class="btn btn-excel btn-sm" onclick="exportAuditExcel()">⬇ Export Log</button>
           <button id="clearBtn2" class="btn btn-danger btn-sm" onclick="clearAllAudits()" style="display:none;">🗑 Clear All</button>
@@ -301,25 +345,31 @@ tbody td{padding:10px 14px;font-size:13px;color:var(--text);}
       <div class="card">
         <div class="table-wrap">
           <table>
-            <thead><tr><th></th><th>Date</th><th>Agent</th><th>Reviewer</th><th>Call ID</th><th>Channel</th><th>NC %</th><th>Critical %</th><th>Overall %</th><th>Result</th><th>Action</th></tr></thead>
-            <tbody id="auditTableBody"><tr><td colspan="11"><div class="empty-state"><div class="ei">📭</div><h3>No audits yet</h3><p>Complete and save a scorecard to see it here.</p></div></td></tr></tbody>
+            <thead><tr><th></th><th>Date</th><th>Agent</th><th>Reviewer</th><th>Call ID</th><th>Channel</th><th>NC %</th><th>Critical %</th><th>Overall %</th><th>Result</th><th>Coaching</th><th>Converted</th><th>Action</th></tr></thead>
+            <tbody id="auditTableBody"><tr><td colspan="13"><div class="empty-state"><div class="ei">📭</div><h3>No audits yet</h3><p>Complete and save a scorecard to see it here.</p></div></td></tr></tbody>
           </table>
         </div>
       </div>
     </div>
 
-    <!-- TAB 3: AGENT PERFORMANCE -->
+    <!-- ══ TAB 3: PERFORMANCE ══ -->
     <div id="tab-performance" class="tab-panel">
-      <div class="g4 mb6">
+      <div class="g5 mb6">
         <div class="stat-card s-blue"><div class="s-label">Total Evaluations</div><div class="s-val" id="ps-total">0</div><div class="s-sub">All agents</div></div>
         <div class="stat-card s-green"><div class="s-label">Avg Overall Score</div><div class="s-val" id="ps-avg">—</div><div class="s-sub">Across all audits</div></div>
         <div class="stat-card s-yellow"><div class="s-label">Pass Rate</div><div class="s-val" id="ps-pass">—</div><div class="s-sub">≥85% threshold</div></div>
-        <div class="stat-card s-red"><div class="s-label">Agents Evaluated</div><div class="s-val" id="ps-agents">0</div><div class="s-sub">Unique agents</div></div>
+        <div class="stat-card s-red"><div class="s-label">At-Risk Agents</div><div class="s-val" id="ps-atrisk">0</div><div class="s-sub">Dip detected</div></div>
+        <div class="stat-card s-purple"><div class="s-label">Agents Evaluated</div><div class="s-val" id="ps-agents">0</div><div class="s-sub">Unique agents</div></div>
       </div>
+
+      <div class="sec-title">🚨 QA Dip Detection Alerts</div>
+      <div id="dipAlertsPerf" class="mb6"></div>
+
       <div class="g2 mb6">
-        <div><div class="sec-title">🏆 Top Performers</div><div id="topPerformers" class="g2"><div class="empty-state" style="padding:28px"><p>No data yet</p></div></div></div>
-        <div><div class="sec-title">⚠️ Needs Coaching</div><div id="bottomPerformers" class="g2"><div class="empty-state" style="padding:28px"><p>No data yet</p></div></div></div>
+        <div><div class="sec-title">🏆 Top Performers</div><div id="topPerformers" class="g2"></div></div>
+        <div><div class="sec-title">⚠️ Needs Coaching</div><div id="bottomPerformers" class="g2"></div></div>
       </div>
+
       <div class="sec-title">📅 Performance by Tenure Band</div>
       <div class="card mb6">
         <div class="table-wrap"><table>
@@ -327,25 +377,78 @@ tbody td{padding:10px 14px;font-size:13px;color:var(--text);}
           <tbody id="tenureTableBody"><tr><td colspan="7"><div class="empty-state" style="padding:22px"><p>No data yet</p></div></td></tr></tbody>
         </table></div>
       </div>
+
       <div class="sec-title">👥 All Agents Breakdown</div>
       <div class="card mb6">
         <div class="table-wrap"><table>
-          <thead><tr><th>#</th><th>Agent</th><th>Team</th><th>Tenure</th><th>Evals</th><th>Avg NC %</th><th>Avg Critical %</th><th style="width:120px">Avg Overall %</th><th>Last Eval</th><th>Status</th><th>Coaching Needed</th></tr></thead>
-          <tbody id="agentTableBody"><tr><td colspan="11"><div class="empty-state" style="padding:22px"><p>No data yet</p></div></td></tr></tbody>
+          <thead><tr><th>#</th><th>Agent</th><th>Team</th><th>Tenure</th><th>Evals</th><th>Avg NC %</th><th>Avg CR %</th><th style="width:110px">Avg Overall %</th><th>Stability</th><th style="width:90px">Risk Score</th><th>Last Eval</th><th>Status</th><th>Coaching</th></tr></thead>
+          <tbody id="agentTableBody"><tr><td colspan="13"><div class="empty-state" style="padding:22px"><p>No data yet</p></div></td></tr></tbody>
         </table></div>
       </div>
       <div class="abar"><button class="btn btn-excel btn-sm" onclick="exportPerfExcel()">⬇ Export Agent Performance</button></div>
+
       <div class="card mb6">
         <div class="card-hdr"><div class="card-title">📈 Monthly QA Trend</div></div>
-        <div class="chart-wrap" style="height:300px"><canvas id="monthlyTrendChart"></canvas></div>
+        <div class="chart-wrap" style="height:280px"><canvas id="monthlyTrendChart"></canvas></div>
       </div>
     </div>
 
-    <!-- TAB 4: PARETO -->
+    <!-- ══ TAB 4: ANALYTICS ══ -->
+    <div id="tab-analytics" class="tab-panel">
+      <div class="g2 mb6">
+        <div class="card">
+          <div class="card-hdr"><div class="card-title">📈 QA Score vs Tenure Correlation</div><span style="font-size:11px;color:var(--muted)">Avg score per tenure band</span></div>
+          <div class="chart-wrap" style="height:270px"><canvas id="tenureChart"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-hdr"><div class="card-title">💰 QA Score vs Conversion</div><span style="font-size:11px;color:var(--muted)">Quality → Revenue impact</span></div>
+          <div class="chart-wrap" style="height:270px"><canvas id="conversionChart"></canvas></div>
+        </div>
+      </div>
+
+      <div class="sec-title">👥 Team-Level Comparison</div>
+      <div class="card mb6">
+        <div class="table-wrap"><table>
+          <thead><tr><th>Team</th><th>Agents</th><th>Evals</th><th>Avg NC %</th><th>Avg CR %</th><th style="width:120px">Avg Overall %</th><th>Pass Rate</th><th>Fail Rate</th><th>Critical Fail %</th></tr></thead>
+          <tbody id="teamTableBody"><tr><td colspan="9"><div class="empty-state" style="padding:22px"><p>No data yet</p></div></td></tr></tbody>
+        </table></div>
+      </div>
+
+      <div class="sec-title">🔥 Parameter Failure Heatmap — Agent × Parameter</div>
+      <div class="card mb6">
+        <div style="padding:10px 18px;font-size:11px;color:var(--muted);display:flex;gap:18px;align-items:center;border-bottom:1px solid var(--border);">
+          <span>Fail Rate:</span>
+          <span style="display:flex;align-items:center;gap:5px"><span style="width:12px;height:12px;background:rgba(79,247,160,.35);border-radius:3px;display:inline-block"></span>0%</span>
+          <span style="display:flex;align-items:center;gap:5px"><span style="width:12px;height:12px;background:rgba(247,161,79,.4);border-radius:3px;display:inline-block"></span>1–40%</span>
+          <span style="display:flex;align-items:center;gap:5px"><span style="width:12px;height:12px;background:rgba(247,79,106,.5);border-radius:3px;display:inline-block"></span>41–70%</span>
+          <span style="display:flex;align-items:center;gap:5px"><span style="width:12px;height:12px;background:rgba(247,79,106,.85);border-radius:3px;display:inline-block"></span>71%+</span>
+          <span style="display:flex;align-items:center;gap:5px"><span style="width:12px;height:12px;background:var(--surface2);border-radius:3px;display:inline-block;border:1px solid var(--border)"></span>No Data</span>
+        </div>
+        <div id="heatmapContainer" class="heatmap-wrap"><div class="empty-state" style="padding:30px"><p>No data yet</p></div></div>
+      </div>
+    </div>
+
+    <!-- ══ TAB 5: COACHING ROI ══ -->
+    <div id="tab-coaching" class="tab-panel">
+      <div class="card mb6">
+        <div class="card-hdr"><div class="card-title">📝 Log Coaching Session</div><span style="font-size:11px;color:var(--muted)">Track before/after performance</span></div>
+        <div class="coaching-form">
+          <div><label>Agent Name</label><input id="coachAgent" placeholder="Agent name..."></div>
+          <div><label>Coaching Date</label><input type="date" id="coachDate"></div>
+          <div style="flex:1"><label>Focus Areas / Notes</label><input id="coachNotes" placeholder="e.g. Critical params, empathy, conversion technique..."></div>
+          <button class="btn btn-success" style="margin-top:20px" onclick="saveCoachingSession()">💾 Save Session</button>
+        </div>
+      </div>
+
+      <div class="sec-title">📊 Coaching ROI Results — 30-Day Before vs After</div>
+      <div id="coachingROIList"><div class="empty-state"><div class="ei">🎯</div><h3>No coaching sessions logged</h3><p>Log a coaching session above to track its impact.</p></div></div>
+    </div>
+
+    <!-- ══ TAB 6: PARETO ══ -->
     <div id="tab-pareto" class="tab-panel">
       <div class="g4 mb6">
         <div class="stat-card s-red"><div class="s-label">Total Failures</div><div class="s-val" id="par-total">0</div><div class="s-sub">Across all parameters</div></div>
-        <div class="stat-card s-yellow"><div class="s-label">Top Failure</div><div class="s-val" id="par-top" style="font-size:16px;line-height:1.4">—</div><div class="s-sub">Most common miss</div></div>
+        <div class="stat-card s-yellow"><div class="s-label">Top Failure</div><div class="s-val" id="par-top" style="font-size:15px;line-height:1.4">—</div><div class="s-sub">Most common miss</div></div>
         <div class="stat-card s-purple"><div class="s-label">Critical Failures</div><div class="s-val" id="par-cr">0</div><div class="s-sub">Critical param fails</div></div>
         <div class="stat-card s-blue"><div class="s-label">80% Rule — # Params</div><div class="s-val" id="par-80">—</div><div class="s-sub">Params causing 80% fails</div></div>
       </div>
@@ -358,11 +461,11 @@ tbody td{padding:10px 14px;font-size:13px;color:var(--text);}
             <div class="p-leg-item"><div class="p-leg-dot" style="background:var(--accent2)"></div>Cumulative %</div>
             <div class="p-leg-item"><div class="p-leg-dot" style="background:rgba(255,255,255,.2)"></div>80% Line</div>
           </div>
-          <div class="chart-wrap" style="height:310px"><canvas id="paretoChart"></canvas></div>
+          <div class="chart-wrap" style="height:300px"><canvas id="paretoChart"></canvas></div>
         </div>
         <div class="card">
           <div class="card-hdr"><div class="card-title">NC vs Critical Failure Split</div></div>
-          <div class="chart-wrap" style="display:flex;align-items:center;justify-content:center;min-height:310px"><canvas id="splitChart" width="250" height="250"></canvas></div>
+          <div class="chart-wrap" style="display:flex;align-items:center;justify-content:center;min-height:300px"><canvas id="splitChart" width="240" height="240"></canvas></div>
         </div>
       </div>
       <div class="sec-title">📋 Failure Detail by Parameter</div>
@@ -375,12 +478,11 @@ tbody td{padding:10px 14px;font-size:13px;color:var(--text);}
       <div class="abar"><button class="btn btn-excel btn-sm" onclick="exportParetoExcel()">⬇ Export Pareto Data</button></div>
     </div>
 
-  </div><!-- /content -->
-</div><!-- /mainApp -->
-
+  </div>
+</div>
 <div id="toast"></div>
 
-<!-- ═══ FIREBASE ═══ -->
+<!-- ══ FIREBASE ══ -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
 import { getDatabase, ref, push, get, remove, set } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-database.js";
@@ -400,19 +502,14 @@ const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 const auth = getAuth(app);
 
-window.db = db;
-window.ref = ref;
-window.push = push;
-window.get = get;
-window.remove = remove;
-window.set = set;
-window.auth = auth;
+window.db = db; window.ref = ref; window.push = push;
+window.get = get; window.remove = remove; window.set = set; window.auth = auth;
 
 const USER_PROFILES = {
-  "gaurabhi834@gmail.com":        { name: "Abhishek Gaur",  designation: "Deputy Manager – QA" },
-  "tl.pinki@ocubeservices.com":   { name: "Pinki Kumari",   designation: "Team Leader – Sales" },
-  "tl.shahid@ocubeservices.com":  { name: "Md Shahid",      designation: "Team Leader – Support" },
-  "qa.prince@ocubeservices.com":  { name: "Prince Kumar",   designation: "Quality Analyst" }
+  "gaurabhi834@gmail.com":       { name:"Abhishek Gaur",  designation:"Deputy Manager – QA" },
+  "tl.pinki@ocubeservices.com":  { name:"Pinki Kumari",   designation:"Team Leader – Sales" },
+  "tl.shahid@ocubeservices.com": { name:"Md Shahid",      designation:"Team Leader – Support" },
+  "qa.prince@ocubeservices.com": { name:"Prince Kumar",   designation:"Quality Analyst" }
 };
 
 window.getUserRole = function() {
@@ -425,7 +522,7 @@ window.getUserRole = function() {
   return "agent";
 };
 
-onAuthStateChanged(auth, (user) => {
+onAuthStateChanged(auth, user => {
   if (user) {
     document.getElementById('loginScreen').style.display = 'none';
     document.getElementById('mainApp').style.display = 'block';
@@ -436,15 +533,12 @@ onAuthStateChanged(auth, (user) => {
       document.getElementById("profileName").textContent = "👤 " + profile.name;
       document.getElementById("profileDesignation").textContent = profile.designation;
       document.getElementById("profileEmail").textContent = user.email;
-      const loginTime = new Date().toLocaleTimeString();
-      const accessText = role==="admin"?"🔐 Admin Access":role==="qa"?"🧪 QA Access":role==="tl"?"👔 TL Access":"👤 Agent Access";
-      document.getElementById("profileAccess").innerHTML = accessText + "<br>🕒 Logged in: " + loginTime;
+      const accessText = role==="admin"?"🔐 Admin":role==="qa"?"🧪 QA Analyst":role==="tl"?"👔 Team Leader":"👤 Agent";
+      document.getElementById("profileAccess").innerHTML = accessText + "<br>🕒 " + new Date().toLocaleTimeString();
     }
     if (role === "admin") {
-      const cb = document.getElementById("clearBtn");
-      const cb2 = document.getElementById("clearBtn2");
-      if (cb) cb.style.display = "inline-flex";
-      if (cb2) cb2.style.display = "inline-flex";
+      document.getElementById("clearBtn").style.display = "inline-flex";
+      document.getElementById("clearBtn2").style.display = "inline-flex";
     }
   } else {
     document.getElementById('loginScreen').style.display = 'flex';
@@ -455,50 +549,51 @@ onAuthStateChanged(auth, (user) => {
 window.loginUser = function() {
   const email = document.getElementById("loginEmail").value.trim();
   const password = document.getElementById("loginPassword").value.trim();
-  if (!email || !password) { showToast("Enter email and password", "e"); return; }
+  if (!email || !password) { showToast("Enter email and password","e"); return; }
   signInWithEmailAndPassword(auth, email, password)
-    .then(() => showToast("Login successful", "s"))
-    .catch((error) => { console.error(error); showToast(error.message, "e"); });
+    .then(() => showToast("Login successful","s"))
+    .catch(err => showToast(err.message,"e"));
 };
 
 window.logoutUser = function() {
-  signOut(auth).then(() => showToast("Logged out successfully", "s"));
+  signOut(auth).then(() => showToast("Logged out","s"));
 };
 </script>
 
-<!-- ═══ APP LOGIC ═══ -->
+<!-- ══ APP LOGIC ══ -->
 <script>
 const PM={
-  nc1:{label:'Standard opening & name confirmation',group:'Call Opening/Closing',type:'NC'},
-  nc2:{label:'Summarization',group:'Call Opening/Closing',type:'NC'},
-  nc3:{label:'Further assistance offered',group:'Call Opening/Closing',type:'NC'},
-  nc4:{label:'Prescribed call closing',group:'Call Opening/Closing',type:'NC'},
-  nc5:{label:'Paraphrasing for alignment',group:'Issue Identification',type:'NC'},
-  nc6:{label:'Customer VOC acknowledged',group:'Issue Identification',type:'NC'},
-  nc7:{label:'Relevant probing questions asked',group:'Issue Identification',type:'NC'},
-  nc8:{label:'Active Listening/Reading',group:'Customer Experience',type:'NC'},
-  nc9:{label:'Hold & Dead Air SLA',group:'Customer Experience',type:'NC'},
-  nc10:{label:'Apologies, Empathy & Politeness',group:'Customer Experience',type:'NC'},
-  nc11:{label:'No Overlapping/Interruptions',group:'Customer Experience',type:'NC'},
-  nc12:{label:'Accurate Email to Client',group:'Customer Experience',type:'NC'},
-  cr1:{label:'Professional & polite throughout',group:'Critical',type:'CR'},
-  cr2:{label:'Called within timeframe / TZ',group:'Critical',type:'CR'},
-  cr3:{label:'Complete & accurate information',group:'Critical',type:'CR'},
-  cr4:{label:'Timely queries + right disposition',group:'Critical',type:'CR'},
-  cr5:{label:'Qualifying questions + notes updated',group:'Critical',type:'CR'},
-  cr6:{label:'Opportunity created post-call',group:'Critical',type:'CR'},
-  cr7:{label:'Special requirements noted',group:'Critical',type:'CR'},
-  cr8:{label:'Non-sales queries redirected',group:'Critical',type:'CR'},
-  cr9:{label:'All client questions answered',group:'Critical',type:'CR'},
-  cr10:{label:'Lead converted without pushing',group:'Critical',type:'CR'},
+  nc1:{label:'Standard opening & name confirmation',short:'Opening',group:'Call Opening/Closing',type:'NC'},
+  nc2:{label:'Summarization',short:'Summary',group:'Call Opening/Closing',type:'NC'},
+  nc3:{label:'Further assistance offered',short:'Assistance',group:'Call Opening/Closing',type:'NC'},
+  nc4:{label:'Prescribed call closing',short:'Closing',group:'Call Opening/Closing',type:'NC'},
+  nc5:{label:'Paraphrasing for alignment',short:'Paraphrase',group:'Issue Identification',type:'NC'},
+  nc6:{label:'Customer VOC acknowledged',short:'VOC',group:'Issue Identification',type:'NC'},
+  nc7:{label:'Relevant probing questions asked',short:'Probing',group:'Issue Identification',type:'NC'},
+  nc8:{label:'Active Listening/Reading',short:'Listening',group:'Customer Experience',type:'NC'},
+  nc9:{label:'Hold & Dead Air SLA',short:'Hold SLA',group:'Customer Experience',type:'NC'},
+  nc10:{label:'Apologies, Empathy & Politeness',short:'Empathy',group:'Customer Experience',type:'NC'},
+  nc11:{label:'No Overlapping/Interruptions',short:'No Overlap',group:'Customer Experience',type:'NC'},
+  nc12:{label:'Accurate Email to Client',short:'Email',group:'Customer Experience',type:'NC'},
+  cr1:{label:'Professional & polite throughout',short:'Prof\'l',group:'Critical',type:'CR'},
+  cr2:{label:'Called within timeframe / TZ',short:'Timeframe',group:'Critical',type:'CR'},
+  cr3:{label:'Complete & accurate information',short:'Accuracy',group:'Critical',type:'CR'},
+  cr4:{label:'Timely queries + right disposition',short:'Timely',group:'Critical',type:'CR'},
+  cr5:{label:'Qualifying questions + notes updated',short:'Qual.Qs',group:'Critical',type:'CR'},
+  cr6:{label:'Opportunity created post-call',short:'Opport.',group:'Critical',type:'CR'},
+  cr7:{label:'Special requirements noted',short:'Spec.Req',group:'Critical',type:'CR'},
+  cr8:{label:'Non-sales queries redirected',short:'Redirect',group:'Critical',type:'CR'},
+  cr9:{label:'All client questions answered',short:'Client Qs',group:'Critical',type:'CR'},
+  cr10:{label:'Lead converted without pushing',short:'Convert',group:'Critical',type:'CR'},
 };
 const NCK=['nc1','nc2','nc3','nc4','nc5','nc6','nc7','nc8','nc9','nc10','nc11','nc12'];
 const CRK=['cr1','cr2','cr3','cr4','cr5','cr6','cr7','cr8','cr9','cr10'];
 const AK=[...NCK,...CRK];
 const GROUPS={'Call Opening/Closing':['nc1','nc2','nc3','nc4'],'Issue Identification':['nc5','nc6','nc7'],'Customer Experience':['nc8','nc9','nc10','nc11','nc12'],'Critical Parameters':CRK};
 let CS={};
-let pCI=null,sCI=null;
+let pCI=null,sCI=null,trendCI=null,tenureCI=null,convCI=null;
 
+// ── TABS
 function switchTab(n,btn){
   document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-tab').forEach(b=>b.classList.remove('active'));
@@ -506,9 +601,12 @@ function switchTab(n,btn){
   btn.classList.add('active');
   if(n==='auditlog') renderAuditLog();
   if(n==='performance') renderPerformance();
+  if(n==='analytics') renderAnalytics();
+  if(n==='coaching') renderCoaching();
   if(n==='pareto') renderPareto();
 }
 
+// ── SCORING
 function rate(btn,val,key){
   const rg=btn.closest('.rg');
   rg.querySelectorAll('.br').forEach(b=>b.classList.remove('ay','an','ana'));
@@ -527,7 +625,7 @@ function calcPct(keys){
 function updateDash(){
   const ncP=calcPct(NCK.filter(k=>k in CS));
   const crP=calcPct(CRK.filter(k=>k in CS));
-  let tot=ncP!==null&&crP!==null?Math.round(ncP*.4+crP*.6):ncP!==null?ncP:crP!==null?crP:null;
+  const tot=ncP!==null&&crP!==null?Math.round(ncP*.4+crP*.6):ncP!==null?ncP:crP!==null?crP:null;
   setCard('ncScore','ncBar',ncP,'var(--accent)');
   setCard('crScore','crBar',crP,'var(--critical)');
   setCard('totalScore','totalBar',tot,null);
@@ -568,9 +666,9 @@ function updatePT(ncP,crP){
 function srow(label,p,color,bold=false){
   return `<tr style="background:var(--surface2)"><td style="font-family:var(--font-head);font-weight:${bold?800:700};font-size:${bold?14:12}px">${label}</td><td></td><td></td><td></td><td class="sbc"><div class="sbw"><div class="smb"><div class="smf" style="width:${p||0}%;background:${color}"></div></div><span class="sv" style="color:${color};font-size:${bold?14:12}px">${p!==null?p+'%':'—'}</span></div></td><td>${stag(p)}</td></tr>`;
 }
-
 function stag(p){return p===null?'–':p>=85?'<span class="tag tp">Pass</span>':p>=70?'<span class="tag tr">Review</span>':'<span class="tag tf">Fail</span>';}
 
+// ── SAVE
 async function saveAudit(){
   if(!auth.currentUser){showToast("Please login first","e");return;}
   const agent=document.getElementById('agentName').value.trim();
@@ -581,15 +679,14 @@ async function saveAudit(){
   if(ncP===null&&crP===null){showToast('Score at least one parameter.','e');return;}
   const tot=ncP!==null&&crP!==null?Math.round(ncP*.4+crP*.6):ncP!==null?ncP:crP;
   const audit={
-    timestamp:Date.now(),
-    createdBy:auth.currentUser.email,
-    date:document.getElementById('evalDate').value,
-    agent,reviewer,
+    timestamp:Date.now(),createdBy:auth.currentUser.email,
+    date:document.getElementById('evalDate').value,agent,reviewer,
     callId:document.getElementById('callId').value,
     channel:document.getElementById('channel').value,
     team:document.getElementById('team').value,
     tenure:parseInt(document.getElementById('tenure').value)||0,
     language:document.getElementById('agentLang').value,
+    converted:document.getElementById('converted').value,
     summary:document.getElementById('callSummary').value,
     observations:document.getElementById('observations').value,
     recommendation:document.getElementById('recommendation').value,
@@ -598,8 +695,8 @@ async function saveAudit(){
     coachingRequired:tot<85
   };
   try{
-    const newRef=await push(ref(db,'audits'));
-    await set(newRef,audit);
+    const r=await push(ref(db,'audits'));
+    await set(r,audit);
     showToast('✅ Audit saved for '+agent,'s');
     updateBadge();
     resetForm(true);
@@ -608,12 +705,18 @@ async function saveAudit(){
 
 async function loadAudits(){
   if(!auth.currentUser) return [];
-  const snapshot=await get(ref(db,'audits'));
-  const audits=[];
-  if(snapshot.exists()){
-    Object.entries(snapshot.val()).forEach(([id,data])=>audits.push({id,...data}));
-  }
-  return audits.sort((a,b)=>b.timestamp-a.timestamp);
+  const snap=await get(ref(db,'audits'));
+  const a=[];
+  if(snap.exists()) Object.entries(snap.val()).forEach(([id,d])=>a.push({id,...d}));
+  return a.sort((a,b)=>b.timestamp-a.timestamp);
+}
+
+async function loadCoachingSessions(){
+  if(!auth.currentUser) return [];
+  const snap=await get(ref(db,'coaching'));
+  const s=[];
+  if(snap.exists()) Object.entries(snap.val()).forEach(([id,d])=>s.push({id,...d}));
+  return s.sort((a,b)=>b.timestamp-a.timestamp);
 }
 
 async function updateBadge(){
@@ -621,6 +724,7 @@ async function updateBadge(){
   document.getElementById('auditBadge').textContent=a.length;
 }
 
+// ── AUDIT LOG
 async function renderAuditLog(){
   const tbody=document.getElementById('auditTableBody');
   const audits=await loadAudits();
@@ -628,13 +732,18 @@ async function renderAuditLog(){
   const fa=document.getElementById('filterAgent').value.toLowerCase();
   const fr=document.getElementById('filterResult').value;
   const fc=document.getElementById('filterChannel').value;
+  const fco=document.getElementById('filterCoaching').value;
+  const fcv=document.getElementById('filterConverted').value;
   const f=audits.filter(a=>{
     if(fa&&!a.agent.toLowerCase().includes(fa))return false;
     if(fr&&a.result!==fr)return false;
     if(fc&&a.channel!==fc)return false;
+    if(fco==='yes'&&!a.coachingRequired)return false;
+    if(fco==='no'&&a.coachingRequired)return false;
+    if(fcv&&a.converted!==fcv)return false;
     return true;
   });
-  if(!f.length){tbody.innerHTML=`<tr><td colspan="11"><div class="empty-state"><div class="ei">📭</div><h3>${audits.length?'No matches':'No audits yet'}</h3><p>${audits.length?'Try adjusting filters.':'Save a scorecard to begin.'}</p></div></td></tr>`;return;}
+  if(!f.length){tbody.innerHTML=`<tr><td colspan="13"><div class="empty-state"><div class="ei">📭</div><h3>${audits.length?'No matches':'No audits yet'}</h3><p>${audits.length?'Try adjusting filters.':'Save a scorecard to begin.'}</p></div></td></tr>`;return;}
   tbody.innerHTML=f.map((a,i)=>`
     <tr onclick="td('adr-${i}')" style="cursor:pointer">
       <td><span style="color:var(--muted);font-size:11px">▶</span></td>
@@ -642,18 +751,20 @@ async function renderAuditLog(){
       <td style="font-family:var(--font-head);font-weight:700">${a.agent}</td>
       <td style="color:var(--muted);font-size:12px">${a.reviewer||'—'}</td>
       <td style="color:var(--muted);font-size:11px">${a.callId||'—'}</td>
-      <td><span class="tag" style="background:rgba(79,142,247,.1);color:var(--accent);font-size:9px">${a.channel||'—'}</span></td>
+      <td><span class="tag tnc" style="font-size:9px">${a.channel||'—'}</span></td>
       <td><span style="color:var(--accent);font-family:var(--font-head);font-weight:700">${a.ncScore!==null?a.ncScore+'%':'—'}</span></td>
       <td><span style="color:var(--critical);font-family:var(--font-head);font-weight:700">${a.crScore!==null?a.crScore+'%':'—'}</span></td>
       <td><span style="color:var(--accent2);font-family:var(--font-head);font-weight:700;font-size:14px">${a.totalScore!==null?a.totalScore+'%':'—'}</span></td>
       <td>${stag(a.totalScore)}</td>
+      <td>${a.coachingRequired?'<span class="tag tf">Yes</span>':'<span class="tag tp">No</span>'}</td>
+      <td>${a.converted==='yes'?'<span class="tag tp">Yes</span>':a.converted==='no'?'<span class="tag tf">No</span>':'<span style="color:var(--muted);font-size:11px">N/A</span>'}</td>
       <td>${getUserRole()==="admin"?`<button class="btn btn-danger btn-sm" onclick="delAudit(event,'${a.id}')">🗑</button>`:''}</td>
     </tr>
-    <tr class="adr" id="adr-${i}"><td colspan="11"><div class="dgrid">
+    <tr class="adr" id="adr-${i}"><td colspan="13"><div class="dgrid">
       <div class="di"><label>Team</label><p>${a.team||'—'}</p></div>
       <div class="di"><label>Tenure</label><p>${a.tenure?a.tenure+' months':'—'}</p></div>
       <div class="di"><label>Language</label><p>${a.language||'—'}</p></div>
-      <div class="di"><label>Channel</label><p>${a.channel||'—'}</p></div>
+      <div class="di"><label>Converted</label><p>${a.converted||'—'}</p></div>
       ${a.summary?`<div class="di" style="grid-column:span 4"><label>Summary</label><p style="color:var(--muted)">${esc(a.summary)}</p></div>`:''}
       ${a.observations?`<div class="di" style="grid-column:span 2"><label>Observations</label><p style="color:var(--muted)">${esc(a.observations)}</p></div>`:''}
       ${a.recommendation?`<div class="di" style="grid-column:span 2"><label>Recommendation</label><p style="color:var(--muted)">${esc(a.recommendation)}</p></div>`:''}
@@ -665,36 +776,88 @@ function td(id){const el=document.getElementById(id);if(el)el.classList.toggle('
 
 async function delAudit(e,id){
   e.stopPropagation();
-  if(getUserRole()!=="admin"){showToast("Only Admin can delete records","e");return;}
+  if(getUserRole()!=="admin"){showToast("Only Admin can delete","e");return;}
   if(!confirm('Delete this audit?'))return;
-  try{
-    await remove(ref(db,'audits/'+id));
-    showToast('Deleted','s');
-    renderAuditLog();
-  }catch(er){showToast('Error','e');}
+  try{await remove(ref(db,'audits/'+id));showToast('Deleted','s');renderAuditLog();}
+  catch(er){showToast('Error','e');}
 }
 
 async function clearAllAudits(){
-  if(getUserRole()!=="admin"){showToast("Only Admin can clear all records","e");return;}
+  if(getUserRole()!=="admin"){showToast("Only Admin can clear","e");return;}
   if(!confirm('Delete ALL audits? This cannot be undone.'))return;
-  try{
-    await remove(ref(db,'audits'));
-    showToast('All audits cleared','s');
-    renderAuditLog();
-    updateBadge();
-  }catch(er){showToast('Error','e');}
+  try{await remove(ref(db,'audits'));showToast('All audits cleared','s');renderAuditLog();updateBadge();}
+  catch(er){showToast('Error','e');}
 }
 
+// ── INTELLIGENCE FUNCTIONS
+function calcStdDev(scores){
+  if(scores.length<2)return 0;
+  const mean=scores.reduce((a,b)=>a+b,0)/scores.length;
+  return Math.sqrt(scores.reduce((s,x)=>s+Math.pow(x-mean,2),0)/scores.length);
+}
+
+function stabilityRating(sd){
+  if(sd<5)return{label:'Excellent',color:'var(--success)'};
+  if(sd<10)return{label:'Good',color:'var(--accent)'};
+  if(sd<20)return{label:'Moderate',color:'var(--warning)'};
+  return{label:'Volatile',color:'var(--critical)'};
+}
+
+function calcRiskScore(agentAudits){
+  const v=agentAudits.filter(a=>a.totalScore!==null);
+  if(!v.length)return 0;
+  const failRate=v.filter(a=>a.result==='Fail').length/v.length*100;
+  const reviewRate=v.filter(a=>a.result==='Review').length/v.length*100;
+  const sd=calcStdDev(v.map(a=>a.totalScore));
+  const sorted=[...v].sort((a,b)=>b.timestamp-a.timestamp);
+  const consec=sorted.slice(0,3).filter(a=>a.totalScore<70).length;
+  return Math.min(100,Math.round(failRate*0.35+reviewRate*0.15+Math.min(sd,30)*0.3+consec*15));
+}
+
+function getDipAlerts(audits){
+  const map={};
+  audits.forEach(a=>{if(!map[a.agent])map[a.agent]=[];map[a.agent].push(a);});
+  const alerts=[];
+  Object.entries(map).forEach(([agent,aa])=>{
+    const sorted=[...aa].filter(a=>a.totalScore!==null).sort((a,b)=>b.timestamp-a.timestamp);
+    if(sorted.length>=3&&sorted.slice(0,3).every(a=>a.totalScore<70))
+      alerts.push({agent,type:'3 Consecutive Scores Below 70%',sev:'critical'});
+    const sevenAgo=Date.now()-7*24*60*60*1000;
+    const recentCR=sorted.filter(a=>a.timestamp>sevenAgo&&a.crScore!==null&&a.crScore<70);
+    if(recentCR.length>=2)
+      alerts.push({agent,type:'2+ Critical Fails in 7 Days',sev:'warning'});
+  });
+  return alerts;
+}
+
+function renderDipAlerts(alerts,containerId){
+  const el=document.getElementById(containerId);
+  if(!alerts.length){
+    el.innerHTML=`<div style="background:rgba(79,247,160,.06);border:1px solid rgba(79,247,160,.2);border-radius:10px;padding:12px 18px;color:var(--success);font-size:13px;font-weight:600;">✅ No dip alerts detected — all agents performing within acceptable range.</div>`;
+    return;
+  }
+  el.innerHTML=alerts.map(a=>`
+    <div class="alert-card alert-${a.sev}">
+      <div class="alert-icon">${a.sev==='critical'?'🚨':'⚠️'}</div>
+      <div><div class="alert-agent">${a.agent}</div><div class="alert-type">${a.type}</div></div>
+      <span class="alert-badge-${a.sev==='critical'?'cr':'wa'}">${a.sev==='critical'?'CRITICAL ALERT':'WARNING'}</span>
+    </div>`).join('');
+}
+
+// ── PERFORMANCE TAB
 async function renderPerformance(){
   const audits=await loadAudits();
-  const uAgents=[...new Set(audits.map(a=>a.agent))];
+  const alerts=getDipAlerts(audits);
   document.getElementById('ps-total').textContent=audits.length;
+  document.getElementById('ps-atrisk').textContent=alerts.filter(a=>a.sev==='critical').length;
+  const uAgents=[...new Set(audits.map(a=>a.agent))];
   document.getElementById('ps-agents').textContent=uAgents.length;
   const ws=audits.filter(a=>a.totalScore!==null);
   if(ws.length){
     document.getElementById('ps-avg').textContent=Math.round(ws.reduce((s,a)=>s+a.totalScore,0)/ws.length)+'%';
     document.getElementById('ps-pass').textContent=Math.round(ws.filter(a=>a.result==='Pass').length/ws.length*100)+'%';
   }else{document.getElementById('ps-avg').textContent='—';document.getElementById('ps-pass').textContent='—';}
+  renderDipAlerts(alerts,'dipAlertsPerf');
   const aMap={};
   audits.forEach(a=>{
     if(!aMap[a.agent])aMap[a.agent]={name:a.agent,team:a.team||'—',tenure:a.tenure||0,evals:[],lastDate:a.date};
@@ -705,31 +868,39 @@ async function renderPerformance(){
   const agents=Object.values(aMap).map(ag=>{
     const v=ag.evals.filter(e=>e.totalScore!==null);
     const vn=v.filter(e=>e.ncScore!==null),vc=v.filter(e=>e.crScore!==null);
+    const sd=calcStdDev(v.map(e=>e.totalScore));
+    const risk=calcRiskScore(ag.evals);
     return{...ag,
       avgTot:v.length?Math.round(v.reduce((s,e)=>s+e.totalScore,0)/v.length):null,
       avgNc:vn.length?Math.round(vn.reduce((s,e)=>s+e.ncScore,0)/vn.length):null,
       avgCr:vc.length?Math.round(vc.reduce((s,e)=>s+e.crScore,0)/vc.length):null,
-      passRate:v.length?Math.round(v.filter(e=>e.result==='Pass').length/v.length*100):null
+      passRate:v.length?Math.round(v.filter(e=>e.result==='Pass').length/v.length*100):null,
+      sd,risk,stability:stabilityRating(sd)
     };
   }).sort((a,b)=>(b.avgTot||0)-(a.avgTot||0));
+
   renderAgentCards('topPerformers',agents.slice(0,4),true);
   renderAgentCards('bottomPerformers',agents.slice(-4).reverse(),false);
-  const atb=document.getElementById('agentTableBody');
-  atb.innerHTML=agents.length?agents.map((ag,i)=>`<tr>
-    <td style="color:var(--muted);font-family:var(--font-head)">${i+1}</td>
-    <td style="font-family:var(--font-head);font-weight:700">${ag.name}</td>
-    <td style="color:var(--muted)">${ag.team}</td>
-    <td><span class="ten-badge">${ag.tenure?ag.tenure+'m':'—'}</span></td>
-    <td>${ag.evals.length}</td>
-    <td>${ag.avgNc!==null?`<span style="color:var(--accent);font-family:var(--font-head);font-weight:700">${ag.avgNc}%</span>`:'—'}</td>
-    <td>${ag.avgCr!==null?`<span style="color:var(--critical);font-family:var(--font-head);font-weight:700">${ag.avgCr}%</span>`:'—'}</td>
-    <td class="sbc"><div class="sbw"><div class="smb"><div class="smf" style="width:${ag.avgTot||0}%;background:${ag.avgTot>=85?'var(--success)':ag.avgTot>=70?'var(--warning)':'var(--critical)'}"></div></div><span class="sv" style="color:${ag.avgTot>=85?'var(--success)':ag.avgTot>=70?'var(--warning)':'var(--critical)'}">${ag.avgTot!==null?ag.avgTot+'%':'—'}</span></div></td>
-    <td style="color:var(--muted);font-size:11px">${ag.lastDate||'—'}</td>
-    <td>${stag(ag.avgTot)}</td>
-    <td>${ag.evals.some(e=>e.coachingRequired)?'<span class="tag tf">Yes</span>':'<span class="tag tp">No</span>'}</td>
-  </tr>`).join(''):`<tr><td colspan="11"><div class="empty-state" style="padding:22px"><p>No data yet</p></div></td></tr>`;
-  const bands=[{l:'0–3 months',min:0,max:3},{l:'4–6 months',min:4,max:6},{l:'7–12 months',min:7,max:12},{l:'13–24 months',min:13,max:24},{l:'25+ months',min:25,max:9999}];
-  const ttb=document.getElementById('tenureTableBody');
+
+  document.getElementById('agentTableBody').innerHTML=agents.length?agents.map((ag,i)=>{
+    const rc=ag.risk>=60?'var(--critical)':ag.risk>=30?'var(--warning)':'var(--success)';
+    return`<tr>
+      <td style="color:var(--muted);font-family:var(--font-head)">${i+1}</td>
+      <td style="font-family:var(--font-head);font-weight:700">${ag.name}</td>
+      <td style="color:var(--muted)">${ag.team}</td>
+      <td><span class="ten-badge">${ag.tenure?ag.tenure+'m':'—'}</span></td>
+      <td>${ag.evals.length}</td>
+      <td>${ag.avgNc!==null?`<span style="color:var(--accent);font-family:var(--font-head);font-weight:700">${ag.avgNc}%</span>`:'—'}</td>
+      <td>${ag.avgCr!==null?`<span style="color:var(--critical);font-family:var(--font-head);font-weight:700">${ag.avgCr}%</span>`:'—'}</td>
+      <td class="sbc"><div class="sbw"><div class="smb"><div class="smf" style="width:${ag.avgTot||0}%;background:${ag.avgTot>=85?'var(--success)':ag.avgTot>=70?'var(--warning)':'var(--critical)'}"></div></div><span class="sv" style="color:${ag.avgTot>=85?'var(--success)':ag.avgTot>=70?'var(--warning)':'var(--critical)'}">${ag.avgTot!==null?ag.avgTot+'%':'—'}</span></div></td>
+      <td><span style="color:${ag.stability.color};font-family:var(--font-head);font-weight:700;font-size:11px">${ag.stability.label}</span></td>
+      <td><div class="sbw"><div class="smb"><div class="smf" style="width:${ag.risk}%;background:${rc}"></div></div><span class="sv" style="color:${rc}">${ag.risk}</span></div></td>
+      <td style="color:var(--muted);font-size:11px">${ag.lastDate||'—'}</td>
+      <td>${stag(ag.avgTot)}</td>
+      <td>${ag.evals.some(e=>e.coachingRequired)?'<span class="tag tf">Yes</span>':'<span class="tag tp">No</span>'}</td>
+    </tr>`;}).join(''):`<tr><td colspan="13"><div class="empty-state" style="padding:22px"><p>No data yet</p></div></td></tr>`;
+
+  const bands=[{l:'0–3m',min:0,max:3},{l:'4–6m',min:4,max:6},{l:'7–12m',min:7,max:12},{l:'13–24m',min:13,max:24},{l:'25+m',min:25,max:9999}];
   const brows=bands.map(b=>{
     const ba=agents.filter(ag=>ag.tenure>=b.min&&ag.tenure<=b.max);
     if(!ba.length)return null;
@@ -740,35 +911,14 @@ async function renderPerformance(){
     const avgTot=vt.length?Math.round(vt.reduce((s,ag)=>s+ag.avgTot,0)/vt.length):null;
     const passR=be.length?Math.round(be.filter(e=>e.result==='Pass').length/be.length*100):null;
     const c=avgTot>=85?'var(--success)':avgTot>=70?'var(--warning)':'var(--critical)';
-    return `<tr><td style="font-family:var(--font-head);font-weight:700">${b.l}</td><td>${ba.length}</td><td>${be.length}</td>
+    return`<tr><td style="font-family:var(--font-head);font-weight:700">${b.l}</td><td>${ba.length}</td><td>${be.length}</td>
       <td>${avgNc!==null?`<span style="color:var(--accent)">${avgNc}%</span>`:'—'}</td>
       <td>${avgCr!==null?`<span style="color:var(--critical)">${avgCr}%</span>`:'—'}</td>
       <td class="sbc"><div class="sbw"><div class="smb"><div class="smf" style="width:${avgTot||0}%;background:${c}"></div></div><span class="sv" style="color:${c}">${avgTot!==null?avgTot+'%':'—'}</span></div></td>
       <td>${passR!==null?passR+'%':'—'}</td></tr>`;
   }).filter(Boolean);
-  ttb.innerHTML=brows.length?brows.join(''):`<tr><td colspan="7"><div class="empty-state" style="padding:20px"><p>Add tenure when creating audits to see this breakdown.</p></div></td></tr>`;
+  document.getElementById('tenureTableBody').innerHTML=brows.length?brows.join(''):`<tr><td colspan="7"><div class="empty-state" style="padding:20px"><p>Add tenure data to see this breakdown.</p></div></td></tr>`;
   renderMonthlyTrend(audits);
-}
-
-let monthlyTrendChart=null;
-function renderMonthlyTrend(audits){
-  const canvas=document.getElementById('monthlyTrendChart');
-  if(!canvas)return;
-  const monthMap={};
-  audits.forEach(a=>{
-    if(!a.date||a.totalScore===null)return;
-    const month=a.date.substring(0,7);
-    if(!monthMap[month])monthMap[month]=[];
-    monthMap[month].push(a.totalScore);
-  });
-  const labels=Object.keys(monthMap).sort();
-  const avgScores=labels.map(m=>{const arr=monthMap[m];return Math.round(arr.reduce((s,v)=>s+v,0)/arr.length);});
-  if(monthlyTrendChart)monthlyTrendChart.destroy();
-  monthlyTrendChart=new Chart(canvas.getContext('2d'),{
-    type:'line',
-    data:{labels,datasets:[{label:'Average QA Score',data:avgScores,borderColor:'#4f8ef7',backgroundColor:'rgba(79,142,247,0.1)',fill:true,tension:.3,pointRadius:4}]},
-    options:{responsive:true,maintainAspectRatio:false,scales:{y:{min:0,max:100,ticks:{color:'#6b7a9e'}},x:{ticks:{color:'#6b7a9e'}}},plugins:{legend:{labels:{color:'#e8edf8'}}}}
-  });
 }
 
 function renderAgentCards(cid,agents,isTop){
@@ -777,17 +927,243 @@ function renderAgentCards(cid,agents,isTop){
   el.innerHTML=agents.map((ag,i)=>{
     const c=ag.avgTot>=85?'var(--success)':ag.avgTot>=70?'var(--warning)':'var(--critical)';
     const m=isTop?['🥇','🥈','🥉','🏅'][i]:['⚠️','⚠️','⚠️','⚠️'][i];
-    return `<div class="arc" style="position:relative;border-top:3px solid ${c}">
+    return`<div class="arc" style="border-top:3px solid ${c}">
       <div class="arc-rank">${i+1}</div>
       <div style="font-size:18px;margin-bottom:5px">${m}</div>
       <div class="arc-name">${ag.name}</div>
       <div class="arc-meta">${ag.team} · ${ag.evals.length} eval${ag.evals.length!==1?'s':''} <span class="ten-badge" style="margin-left:3px">${ag.tenure?ag.tenure+'m':'?'}</span></div>
       <div class="arc-score" style="color:${c}">${ag.avgTot!==null?ag.avgTot+'%':'—'}</div>
-      <div style="display:flex;gap:7px;margin-top:5px"><span style="font-size:10px;color:var(--accent)">NC:${ag.avgNc!==null?ag.avgNc+'%':'—'}</span><span style="font-size:10px;color:var(--critical)">CR:${ag.avgCr!==null?ag.avgCr+'%':'—'}</span></div>
+      <div style="display:flex;gap:10px;margin-top:5px">
+        <span style="font-size:10px;color:var(--accent)">NC:${ag.avgNc!==null?ag.avgNc+'%':'—'}</span>
+        <span style="font-size:10px;color:var(--critical)">CR:${ag.avgCr!==null?ag.avgCr+'%':'—'}</span>
+        <span style="font-size:10px;color:${ag.stability.color}">${ag.stability.label}</span>
+      </div>
     </div>`;
   }).join('');
 }
 
+function renderMonthlyTrend(audits){
+  const canvas=document.getElementById('monthlyTrendChart');
+  if(!canvas)return;
+  const mmap={};
+  audits.forEach(a=>{if(!a.date||a.totalScore===null)return;const m=a.date.substring(0,7);if(!mmap[m])mmap[m]=[];mmap[m].push(a.totalScore);});
+  const labels=Object.keys(mmap).sort();
+  const avg=labels.map(m=>{const arr=mmap[m];return Math.round(arr.reduce((s,v)=>s+v,0)/arr.length);});
+  if(trendCI)trendCI.destroy();
+  trendCI=new Chart(canvas.getContext('2d'),{
+    type:'line',
+    data:{labels,datasets:[{label:'Avg QA Score',data:avg,borderColor:'#4f8ef7',backgroundColor:'rgba(79,142,247,0.1)',fill:true,tension:.3,pointRadius:4,pointBackgroundColor:'#4f8ef7'}]},
+    options:{responsive:true,maintainAspectRatio:false,scales:{y:{min:0,max:100,ticks:{color:'#6b7a9e'},grid:{color:'rgba(37,46,69,.5)'}},x:{ticks:{color:'#6b7a9e'},grid:{color:'rgba(37,46,69,.3)'}}},plugins:{legend:{labels:{color:'#e8edf8'}}}}
+  });
+}
+
+// ── ANALYTICS TAB
+async function renderAnalytics(){
+  const audits=await loadAudits();
+  renderTenureChart(audits);
+  renderConversionChart(audits);
+  renderTeamTable(audits);
+  renderHeatmap(audits);
+}
+
+function renderTenureChart(audits){
+  const bands=[{l:'0–3m',min:0,max:3},{l:'4–6m',min:4,max:6},{l:'7–12m',min:7,max:12},{l:'13–24m',min:13,max:24},{l:'25+m',min:25,max:9999}];
+  const labels=[],data=[],bg=[];
+  bands.forEach(b=>{
+    const ba=audits.filter(a=>a.tenure>=b.min&&a.tenure<=b.max&&a.totalScore!==null);
+    if(!ba.length)return;
+    const avg=Math.round(ba.reduce((s,a)=>s+a.totalScore,0)/ba.length);
+    labels.push(b.l);data.push(avg);
+    bg.push(avg>=85?'rgba(79,247,160,.7)':avg>=70?'rgba(247,161,79,.7)':'rgba(247,79,106,.7)');
+  });
+  if(tenureCI)tenureCI.destroy();
+  tenureCI=new Chart(document.getElementById('tenureChart').getContext('2d'),{
+    type:'bar',
+    data:{labels,datasets:[{label:'Avg QA Score',data,backgroundColor:bg,borderColor:bg,borderWidth:0,borderRadius:6}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#e8edf8'}},tooltip:{backgroundColor:'rgba(20,25,40,.95)',titleColor:'#e8edf8',bodyColor:'#6b7a9e'}},scales:{y:{min:0,max:100,ticks:{color:'#6b7a9e',callback:v=>v+'%'},grid:{color:'rgba(37,46,69,.5)'}},x:{ticks:{color:'#6b7a9e'},grid:{display:false}}}}
+  });
+}
+
+function renderConversionChart(audits){
+  const conv=audits.filter(a=>a.converted==='yes'&&a.totalScore!==null);
+  const noconv=audits.filter(a=>a.converted==='no'&&a.totalScore!==null);
+  const avgConv=conv.length?Math.round(conv.reduce((s,a)=>s+a.totalScore,0)/conv.length):0;
+  const avgNoConv=noconv.length?Math.round(noconv.reduce((s,a)=>s+a.totalScore,0)/noconv.length):0;
+  const avgNCConv=conv.length?Math.round(conv.filter(a=>a.ncScore!==null).reduce((s,a)=>s+a.ncScore,0)/conv.filter(a=>a.ncScore!==null).length):0;
+  const avgNCNoConv=noconv.length?Math.round(noconv.filter(a=>a.ncScore!==null).reduce((s,a)=>s+a.ncScore,0)/noconv.filter(a=>a.ncScore!==null).length):0;
+  const avgCRConv=conv.length?Math.round(conv.filter(a=>a.crScore!==null).reduce((s,a)=>s+a.crScore,0)/conv.filter(a=>a.crScore!==null).length):0;
+  const avgCRNoConv=noconv.length?Math.round(noconv.filter(a=>a.crScore!==null).reduce((s,a)=>s+a.crScore,0)/noconv.filter(a=>a.crScore!==null).length):0;
+  if(convCI)convCI.destroy();
+  convCI=new Chart(document.getElementById('conversionChart').getContext('2d'),{
+    type:'bar',
+    data:{
+      labels:['Overall Score','Non-Critical','Critical'],
+      datasets:[
+        {label:`Converted (n=${conv.length})`,data:[avgConv,avgNCConv,avgCRConv],backgroundColor:'rgba(79,247,160,.65)',borderColor:'rgba(79,247,160,1)',borderWidth:1,borderRadius:5},
+        {label:`Not Converted (n=${noconv.length})`,data:[avgNoConv,avgNCNoConv,avgCRNoConv],backgroundColor:'rgba(247,79,106,.55)',borderColor:'rgba(247,79,106,1)',borderWidth:1,borderRadius:5}
+      ]
+    },
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#e8edf8'}},tooltip:{backgroundColor:'rgba(20,25,40,.95)',titleColor:'#e8edf8',bodyColor:'#6b7a9e'}},scales:{y:{min:0,max:100,ticks:{color:'#6b7a9e',callback:v=>v+'%'},grid:{color:'rgba(37,46,69,.5)'}},x:{ticks:{color:'#6b7a9e'},grid:{display:false}}}}
+  });
+}
+
+function renderTeamTable(audits){
+  const teams={};
+  audits.forEach(a=>{
+    const t=a.team||'Unknown';
+    if(!teams[t])teams[t]={name:t,agents:new Set(),evals:[],ncScores:[],crScores:[],totScores:[]};
+    teams[t].agents.add(a.agent);
+    teams[t].evals.push(a);
+    if(a.ncScore!==null)teams[t].ncScores.push(a.ncScore);
+    if(a.crScore!==null)teams[t].crScores.push(a.crScore);
+    if(a.totalScore!==null)teams[t].totScores.push(a.totalScore);
+  });
+  const rows=Object.values(teams).sort((a,b)=>{
+    const avgA=a.totScores.length?a.totScores.reduce((s,v)=>s+v,0)/a.totScores.length:0;
+    const avgB=b.totScores.length?b.totScores.reduce((s,v)=>s+v,0)/b.totScores.length:0;
+    return avgB-avgA;
+  }).map(t=>{
+    const avgNc=t.ncScores.length?Math.round(t.ncScores.reduce((s,v)=>s+v,0)/t.ncScores.length):null;
+    const avgCr=t.crScores.length?Math.round(t.crScores.reduce((s,v)=>s+v,0)/t.crScores.length):null;
+    const avgTot=t.totScores.length?Math.round(t.totScores.reduce((s,v)=>s+v,0)/t.totScores.length):null;
+    const pass=t.evals.filter(e=>e.result==='Pass').length;
+    const fail=t.evals.filter(e=>e.result==='Fail').length;
+    const crFail=t.crScores.filter(s=>s<70).length;
+    const passR=t.totScores.length?Math.round(pass/t.totScores.length*100):null;
+    const failR=t.totScores.length?Math.round(fail/t.totScores.length*100):null;
+    const crFailR=t.crScores.length?Math.round(crFail/t.crScores.length*100):null;
+    const c=avgTot>=85?'var(--success)':avgTot>=70?'var(--warning)':'var(--critical)';
+    return`<tr>
+      <td style="font-family:var(--font-head);font-weight:700">${t.name}</td>
+      <td>${t.agents.size}</td><td>${t.evals.length}</td>
+      <td>${avgNc!==null?`<span style="color:var(--accent);font-weight:700">${avgNc}%</span>`:'—'}</td>
+      <td>${avgCr!==null?`<span style="color:var(--critical);font-weight:700">${avgCr}%</span>`:'—'}</td>
+      <td class="sbc"><div class="sbw"><div class="smb"><div class="smf" style="width:${avgTot||0}%;background:${c}"></div></div><span class="sv" style="color:${c}">${avgTot!==null?avgTot+'%':'—'}</span></div></td>
+      <td>${passR!==null?`<span style="color:var(--success);font-weight:700">${passR}%</span>`:'—'}</td>
+      <td>${failR!==null?`<span style="color:var(--critical);font-weight:700">${failR}%</span>`:'—'}</td>
+      <td>${crFailR!==null?`<span style="color:var(--warning);font-weight:700">${crFailR}%</span>`:'—'}</td>
+    </tr>`;
+  });
+  document.getElementById('teamTableBody').innerHTML=rows.length?rows.join(''):`<tr><td colspan="9"><div class="empty-state" style="padding:22px"><p>No data yet</p></div></td></tr>`;
+}
+
+function heatColor(rate){
+  if(rate===null)return{bg:'var(--surface2)',text:'var(--muted)',label:'—'};
+  if(rate===0)return{bg:'rgba(79,247,160,.3)',text:'var(--success)',label:'0%'};
+  if(rate<=40)return{bg:'rgba(247,161,79,.35)',text:'var(--warning)',label:rate+'%'};
+  if(rate<=70)return{bg:'rgba(247,79,106,.45)',text:'var(--critical)',label:rate+'%'};
+  return{bg:'rgba(247,79,106,.8)',text:'#fff',label:rate+'%'};
+}
+
+function renderHeatmap(audits){
+  const agents=[...new Set(audits.map(a=>a.agent))].sort();
+  if(!agents.length){document.getElementById('heatmapContainer').innerHTML=`<div class="empty-state" style="padding:30px"><p>No data yet</p></div>`;return;}
+  // Build fail map per agent per param
+  const map={};
+  agents.forEach(ag=>{map[ag]={};AK.forEach(k=>{map[ag][k]={y:0,n:0};});});
+  audits.forEach(a=>{
+    if(!map[a.agent])return;
+    AK.forEach(k=>{
+      if(a.scores&&k in a.scores){
+        if(a.scores[k]==='yes')map[a.agent][k].y++;
+        else if(a.scores[k]==='no')map[a.agent][k].n++;
+      }
+    });
+  });
+  const thCols=AK.map(k=>`<th title="${PM[k].label}" style="font-size:9px;padding:4px 3px;color:${PM[k].type==='CR'?'var(--critical)':'var(--accent)'}">${PM[k].short}</th>`).join('');
+  const rows=agents.map(ag=>{
+    const cells=AK.map(k=>{
+      const d=map[ag][k];
+      const tot=d.y+d.n;
+      const rate=tot>0?Math.round(d.n/tot*100):null;
+      const hc=heatColor(rate);
+      return`<td style="background:${hc.bg};color:${hc.text};font-size:9px;font-weight:700">${hc.label}</td>`;
+    }).join('');
+    return`<tr><td class="agent-name">${ag}</td>${cells}</tr>`;
+  }).join('');
+  document.getElementById('heatmapContainer').innerHTML=`
+    <table class="heatmap-table">
+      <thead><tr><th class="agent-col">Agent</th>${thCols}</tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
+
+// ── COACHING ROI TAB
+async function saveCoachingSession(){
+  if(!auth.currentUser){showToast("Please login first","e");return;}
+  const agent=document.getElementById('coachAgent').value.trim();
+  const date=document.getElementById('coachDate').value;
+  if(!agent||!date){showToast('Enter agent name and coaching date','e');return;}
+  const session={
+    agent,date,
+    notes:document.getElementById('coachNotes').value,
+    timestamp:Date.now(),
+    createdBy:auth.currentUser.email
+  };
+  try{
+    const r=await push(ref(db,'coaching'));
+    await set(r,session);
+    showToast('Coaching session saved','s');
+    document.getElementById('coachAgent').value='';
+    document.getElementById('coachDate').value='';
+    document.getElementById('coachNotes').value='';
+    renderCoaching();
+  }catch(e){showToast('Error saving session','e');}
+}
+
+async function renderCoaching(){
+  const [sessions,audits]=await Promise.all([loadCoachingSessions(),loadAudits()]);
+  const el=document.getElementById('coachingROIList');
+  if(!sessions.length){
+    el.innerHTML=`<div class="empty-state"><div class="ei">🎯</div><h3>No coaching sessions logged</h3><p>Log a coaching session above to track its impact.</p></div>`;
+    return;
+  }
+  el.innerHTML=sessions.map(s=>{
+    const coachTs=new Date(s.date).getTime();
+    const thirty=30*24*60*60*1000;
+    const agAudits=audits.filter(a=>a.agent===s.agent&&a.totalScore!==null);
+    const before=agAudits.filter(a=>{const t=new Date(a.date).getTime();return t>=coachTs-thirty&&t<coachTs;});
+    const after=agAudits.filter(a=>{const t=new Date(a.date).getTime();return t>coachTs&&t<=coachTs+thirty;});
+    const avgB=before.length?Math.round(before.reduce((s,a)=>s+a.totalScore,0)/before.length):null;
+    const avgA=after.length?Math.round(after.reduce((s,a)=>s+a.totalScore,0)/after.length):null;
+    const imp=avgB!==null&&avgA!==null?avgA-avgB:null;
+    const impColor=imp===null?'var(--muted)':imp>0?'var(--success)':imp<0?'var(--critical)':'var(--warning)';
+    const impLabel=imp===null?'Insufficient Data':imp>0?`+${imp}% Improvement`:imp<0?`${imp}% Decline`:'No Change';
+    return`<div class="roi-card">
+      <div class="roi-header">
+        <div><div class="roi-agent">🎯 ${s.agent}</div><div class="roi-date">Coaching: ${s.date}${s.notes?` · ${s.notes}`:''}</div></div>
+        <span style="font-family:var(--font-head);font-weight:800;font-size:16px;color:${impColor}">${impLabel}</span>
+      </div>
+      <div class="roi-stats">
+        <div class="roi-stat">
+          <div class="roi-stat-label">Before (30d avg)</div>
+          <div class="roi-stat-val" style="color:${avgB!==null?(avgB>=85?'var(--success)':avgB>=70?'var(--warning)':'var(--critical)'):'var(--muted)'}">${avgB!==null?avgB+'%':'—'}</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:4px">${before.length} eval${before.length!==1?'s':''}</div>
+        </div>
+        <div class="roi-stat">
+          <div class="roi-stat-label">After (30d avg)</div>
+          <div class="roi-stat-val" style="color:${avgA!==null?(avgA>=85?'var(--success)':avgA>=70?'var(--warning)':'var(--critical)'):'var(--muted)'}">${avgA!==null?avgA+'%':'—'}</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:4px">${after.length} eval${after.length!==1?'s':''}</div>
+        </div>
+        <div class="roi-stat">
+          <div class="roi-stat-label">ROI Impact</div>
+          <div class="roi-stat-val" style="color:${impColor}">${imp!==null?(imp>0?'+':'')+imp+'%':'—'}</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:4px">${imp>5?'✅ Effective':imp>0?'↗ Improving':imp<0?'⚠️ Declining':'—'}</div>
+        </div>
+      </div>
+      ${getUserRole()==='admin'?`<div style="text-align:right;margin-top:12px"><button class="btn btn-danger btn-sm" onclick="deleteCoaching('${s.id}')">🗑 Delete</button></div>`:''}
+    </div>`;
+  }).join('');
+}
+
+async function deleteCoaching(id){
+  if(getUserRole()!=="admin"){showToast("Only Admin can delete","e");return;}
+  if(!confirm('Delete this coaching session?'))return;
+  try{await remove(ref(db,'coaching/'+id));showToast('Deleted','s');renderCoaching();}
+  catch(e){showToast('Error','e');}
+}
+
+// ── PARETO
 async function renderPareto(){
   const audits=await loadAudits();
   if(!audits.length){
@@ -797,25 +1173,23 @@ async function renderPareto(){
   }
   const fc={},tr={};
   AK.forEach(k=>{fc[k]=0;tr[k]=0;});
-  audits.forEach(a=>{AK.forEach(k=>{if(k in a.scores){if(a.scores[k]==='yes'||a.scores[k]==='no')tr[k]++;if(a.scores[k]==='no')fc[k]++;}});});
+  audits.forEach(a=>{AK.forEach(k=>{if(a.scores&&k in a.scores){if(a.scores[k]==='yes'||a.scores[k]==='no')tr[k]++;if(a.scores[k]==='no')fc[k]++;}});});
   const sorted=AK.filter(k=>tr[k]>0).sort((a,b)=>fc[b]-fc[a]);
   const totFails=sorted.reduce((s,k)=>s+fc[k],0);
   let cum=0,p80=0;
   const rows=sorted.map((k,i)=>{
-    cum+=fc[k];
-    const cp=totFails>0?Math.round(cum/totFails*100):0;
+    cum+=fc[k];const cp=totFails>0?Math.round(cum/totFails*100):0;
     if(cp<=80)p80=i+1;
     const fr=tr[k]>0?Math.round(fc[k]/tr[k]*100):0;
     return{k,i,fc:fc[k],tr:tr[k],fr,cp};
   });
   document.getElementById('par-total').textContent=totFails;
-  document.getElementById('par-top').textContent=sorted.length?PM[sorted[0]].label.substring(0,24)+'…':'—';
+  document.getElementById('par-top').textContent=sorted.length?PM[sorted[0]].label.substring(0,22)+'…':'—';
   document.getElementById('par-cr').textContent=sorted.filter(k=>PM[k].type==='CR').reduce((s,k)=>s+fc[k],0);
   document.getElementById('par-80').textContent=p80||'—';
   document.getElementById('paretoTableBody').innerHTML=rows.map(r=>{
-    const pm=PM[r.k];
-    const c=r.fr>=50?'var(--critical)':r.fr>=25?'var(--warning)':'var(--success)';
-    return `<tr>
+    const pm=PM[r.k];const c=r.fr>=50?'var(--critical)':r.fr>=25?'var(--warning)':'var(--success)';
+    return`<tr>
       <td style="font-family:var(--font-head);font-weight:700;color:var(--muted)">${r.i+1}</td>
       <td>${pm.label}</td>
       <td><span class="tag ${pm.type==='CR'?'tcr':'tnc'}">${pm.type}</span></td>
@@ -826,7 +1200,7 @@ async function renderPareto(){
       <td>${r.cp<=80?'<span class="tag tf" style="font-size:9px">Top 80%</span>':'<span style="color:var(--muted);font-size:11px">—</span>'}</td>
     </tr>`;
   }).join('');
-  const labels=sorted.map(k=>PM[k].label.length>18?PM[k].label.substring(0,18)+'…':PM[k].label);
+  const labels=sorted.map(k=>PM[k].label.length>16?PM[k].label.substring(0,16)+'…':PM[k].label);
   const counts=sorted.map(k=>fc[k]);
   const cumPcts=[];let c2=0;
   sorted.forEach(k=>{c2+=fc[k];cumPcts.push(totFails>0?Math.round(c2/totFails*100):0);});
@@ -835,7 +1209,7 @@ async function renderPareto(){
   pCI=new Chart(document.getElementById('paretoChart').getContext('2d'),{
     type:'bar',
     data:{labels,datasets:[
-      {label:'Failure Count',data:counts,backgroundColor:bColors,borderColor:bColors,borderWidth:0,yAxisID:'y',order:2},
+      {label:'Failures',data:counts,backgroundColor:bColors,yAxisID:'y',order:2,borderRadius:4},
       {label:'Cumulative %',data:cumPcts,type:'line',borderColor:'rgba(247,193,79,.9)',backgroundColor:'rgba(247,193,79,.05)',borderWidth:2.5,pointRadius:3,pointBackgroundColor:'rgba(247,193,79,1)',fill:false,yAxisID:'y1',tension:.3,order:1},
       {label:'80% Line',data:Array(sorted.length).fill(80),type:'line',borderColor:'rgba(255,255,255,.2)',borderWidth:1.5,borderDash:[5,4],pointRadius:0,fill:false,yAxisID:'y1',order:0}
     ]},
@@ -844,7 +1218,7 @@ async function renderPareto(){
       scales:{
         x:{ticks:{color:'#6b7a9e',font:{size:9},maxRotation:50},grid:{color:'rgba(37,46,69,.5)'}},
         y:{position:'left',ticks:{color:'#6b7a9e',font:{size:10}},grid:{color:'rgba(37,46,69,.5)'},title:{display:true,text:'Failures',color:'#6b7a9e',font:{size:10}}},
-        y1:{position:'right',min:0,max:100,ticks:{color:'rgba(247,193,79,.8)',font:{size:10},callback:v=>v+'%'},grid:{display:false},title:{display:true,text:'Cumulative %',color:'rgba(247,193,79,.8)',font:{size:10}}}
+        y1:{position:'right',min:0,max:100,ticks:{color:'rgba(247,193,79,.8)',font:{size:10},callback:v=>v+'%'},grid:{display:false}}
       }
     }
   });
@@ -857,29 +1231,29 @@ async function renderPareto(){
   });
 }
 
+// ── EXPORTS
 async function exportAllExcel(){
-  const audits=await loadAudits();
-  if(!audits.length){showToast('No data to export','e');return;}
+  const a=await loadAudits();
+  if(!a.length){showToast('No data to export','e');return;}
   const wb=XLSX.utils.book_new();
-  addAuditSheet(wb,audits);addAgentSheet(wb,audits);addParetoSheet(wb,audits);
-  XLSX.writeFile(wb,'QA_Dashboard_Export_'+new Date().toISOString().slice(0,10)+'.xlsx');
-  showToast('Excel exported successfully!','s');
+  addAuditSheet(wb,a);addAgentSheet(wb,a);addParetoSheet(wb,a);
+  XLSX.writeFile(wb,'QA_Intelligence_Export_'+new Date().toISOString().slice(0,10)+'.xlsx');
+  showToast('Excel exported!','s');
 }
 async function exportAuditExcel(){const a=await loadAudits();if(!a.length){showToast('No data','e');return;}const wb=XLSX.utils.book_new();addAuditSheet(wb,a);XLSX.writeFile(wb,'QA_Audit_Log.xlsx');showToast('Exported!','s');}
 async function exportPerfExcel(){const a=await loadAudits();if(!a.length){showToast('No data','e');return;}const wb=XLSX.utils.book_new();addAgentSheet(wb,a);XLSX.writeFile(wb,'QA_Agent_Performance.xlsx');showToast('Exported!','s');}
 async function exportParetoExcel(){const a=await loadAudits();if(!a.length){showToast('No data','e');return;}const wb=XLSX.utils.book_new();addParetoSheet(wb,a);XLSX.writeFile(wb,'QA_Pareto_Analysis.xlsx');showToast('Exported!','s');}
 
 function addAuditSheet(wb,audits){
-  const rows=[['Date','Agent','Reviewer','Call ID','Channel','Team','Tenure (months)','Language','NC Score%','Critical Score%','Overall Score%','Result','Summary','Observations','Recommendation',...AK.map(k=>PM[k].label)]];
-  audits.forEach(a=>rows.push([a.date,a.agent,a.reviewer,a.callId,a.channel,a.team,a.tenure,a.language,a.ncScore,a.crScore,a.totalScore,a.result,a.summary,a.observations,a.recommendation,...AK.map(k=>a.scores[k]||'')]));
+  const rows=[['Date','Agent','Reviewer','Call ID','Channel','Team','Tenure','Language','Converted','NC%','CR%','Overall%','Result','Coaching Req','Summary','Observations','Recommendation',...AK.map(k=>PM[k].label)]];
+  audits.forEach(a=>rows.push([a.date,a.agent,a.reviewer,a.callId,a.channel,a.team,a.tenure,a.language,a.converted,a.ncScore,a.crScore,a.totalScore,a.result,a.coachingRequired?'Yes':'No',a.summary,a.observations,a.recommendation,...AK.map(k=>a.scores&&a.scores[k]?a.scores[k]:'')]));
   const ws=XLSX.utils.aoa_to_sheet(rows);
-  ws['!cols']=[{wch:12},{wch:20},{wch:18},{wch:14},{wch:14},{wch:12},{wch:8},{wch:10},{wch:8},{wch:10},{wch:10},{wch:7},{wch:40},{wch:40},{wch:40},...AK.map(()=>({wch:10}))];
   XLSX.utils.book_append_sheet(wb,ws,'Audit Log');
 }
 function addAgentSheet(wb,audits){
   const aMap={};
   audits.forEach(a=>{if(!aMap[a.agent])aMap[a.agent]={name:a.agent,team:a.team||'',tenure:a.tenure||0,evals:[]};aMap[a.agent].evals.push(a);if(a.tenure)aMap[a.agent].tenure=a.tenure;});
-  const rows=[['Agent','Team','Tenure (months)','Total Evals','Avg NC%','Avg Critical%','Avg Overall%','Pass Count','Fail Count','Review Count','Pass Rate%','Last Eval Date']];
+  const rows=[['Agent','Team','Tenure','Evals','Avg NC%','Avg CR%','Avg Overall%','Pass','Fail','Review','Pass Rate%','Stability','Risk Score','Last Eval']];
   Object.values(aMap).forEach(ag=>{
     const v=ag.evals.filter(e=>e.totalScore!==null);
     const avgTot=v.length?Math.round(v.reduce((s,e)=>s+e.totalScore,0)/v.length):null;
@@ -887,36 +1261,36 @@ function addAgentSheet(wb,audits){
     const avgNc=vn.length?Math.round(vn.reduce((s,e)=>s+e.ncScore,0)/vn.length):null;
     const avgCr=vc.length?Math.round(vc.reduce((s,e)=>s+e.crScore,0)/vc.length):null;
     const pass=v.filter(e=>e.result==='Pass').length,fail=v.filter(e=>e.result==='Fail').length,rev=v.filter(e=>e.result==='Review').length;
-    const last=ag.evals.map(e=>e.date).sort().pop()||'';
-    rows.push([ag.name,ag.team,ag.tenure,ag.evals.length,avgNc,avgCr,avgTot,pass,fail,rev,v.length?Math.round(pass/v.length*100):'',last]);
+    const sd=calcStdDev(v.map(e=>e.totalScore));
+    const risk=calcRiskScore(ag.evals);
+    rows.push([ag.name,ag.team,ag.tenure,ag.evals.length,avgNc,avgCr,avgTot,pass,fail,rev,v.length?Math.round(pass/v.length*100):'',stabilityRating(sd).label,risk,ag.evals.map(e=>e.date).sort().pop()||'']);
   });
   const ws=XLSX.utils.aoa_to_sheet(rows);
-  ws['!cols']=[{wch:20},{wch:14},{wch:8},{wch:8},{wch:8},{wch:10},{wch:10},{wch:8},{wch:8},{wch:8},{wch:10},{wch:14}];
   XLSX.utils.book_append_sheet(wb,ws,'Agent Performance');
 }
 function addParetoSheet(wb,audits){
   const fc={},tr={};AK.forEach(k=>{fc[k]=0;tr[k]=0;});
-  audits.forEach(a=>{AK.forEach(k=>{if(k in a.scores){if(a.scores[k]==='yes'||a.scores[k]==='no')tr[k]++;if(a.scores[k]==='no')fc[k]++;}});});
+  audits.forEach(a=>{AK.forEach(k=>{if(a.scores&&k in a.scores){if(a.scores[k]==='yes'||a.scores[k]==='no')tr[k]++;if(a.scores[k]==='no')fc[k]++;}});});
   const sorted=AK.filter(k=>tr[k]>0).sort((a,b)=>fc[b]-fc[a]);
   const totFails=sorted.reduce((s,k)=>s+fc[k],0);
   let cum=0;
-  const rows=[['Rank','Parameter','Group','Type','Fail Count','Total Rated','Fail Rate%','Cumulative%','In 80% Pareto']];
+  const rows=[['Rank','Parameter','Type','Fails','Total Rated','Fail Rate%','Cumulative%','In 80% Pareto']];
   sorted.forEach((k,i)=>{
     cum+=fc[k];const cp=totFails>0?Math.round(cum/totFails*100):0;
     const pm=PM[k];
-    rows.push([i+1,pm.label,pm.group,pm.type,fc[k],tr[k],tr[k]>0?Math.round(fc[k]/tr[k]*100):0,cp,cp<=80?'Yes':'No']);
+    rows.push([i+1,pm.label,pm.type,fc[k],tr[k],tr[k]>0?Math.round(fc[k]/tr[k]*100):0,cp,cp<=80?'Yes':'No']);
   });
   const ws=XLSX.utils.aoa_to_sheet(rows);
-  ws['!cols']=[{wch:6},{wch:44},{wch:22},{wch:8},{wch:10},{wch:10},{wch:10},{wch:12},{wch:14}];
   XLSX.utils.book_append_sheet(wb,ws,'Pareto Analysis');
 }
 
+// ── UTILS
 function resetForm(skipConfirm=false){
-  if(!skipConfirm){if(!confirm('Reset form?'))return;}
+  if(!skipConfirm&&!confirm('Reset form?'))return;
   CS={};
   document.querySelectorAll('.br').forEach(b=>b.classList.remove('ay','an','ana'));
   ['agentName','reviewerName','callId','team','agentLang','callSummary','observations','recommendation'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('channel').value='';
+  ['channel','converted'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('tenure').value='';
   document.getElementById('evalDate').valueAsDate=new Date();
   updateDash();
@@ -927,9 +1301,9 @@ function showToast(msg,type){
   t.textContent=msg;t.className='show '+(type==='s'?'ts':'te');
   setTimeout(()=>t.classList.remove('show'),3000);
 }
-
 function esc(s){return s?.replace(/</g,'&lt;').replace(/>/g,'&gt;')||'';}
 
+// INIT
 document.getElementById('evalDate').valueAsDate=new Date();
 updateDash();
 </script>
