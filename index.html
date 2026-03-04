@@ -3,1017 +3,219 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>QA Intelligence Dashboard</title>
-<link href="https://fonts.googleapis.com/css2?family=Epilogue:wght@400;600;700;800;900&family=Onest:wght@300;400;500;600&display=swap" rel="stylesheet">
+<title>QA Quality Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
-:root {
-  --bg: #060a12;
-  --surface: #0c1220;
-  --surface2: #111826;
-  --surface3: #17202e;
-  --border: #1c2640;
-  --border-bright: #263354;
-  --accent: #3d7ef5;
-  --accent-dim: rgba(61,126,245,0.12);
-  --accent-glow: rgba(61,126,245,0.25);
-  --accent2: #f0a830;
-  --accent2-dim: rgba(240,168,48,0.12);
-  --critical: #f04060;
-  --critical-dim: rgba(240,64,96,0.12);
-  --success: #22d38a;
-  --success-dim: rgba(34,211,138,0.12);
-  --warning: #f08040;
-  --warning-dim: rgba(240,128,64,0.1);
-  --purple: #8b6cf5;
-  --purple-dim: rgba(139,108,245,0.12);
-  --text: #e4ecf8;
-  --text-dim: #8a9bb8;
-  --muted: #4a5878;
-  --font-head: 'Epilogue', sans-serif;
-  --font-body: 'Onest', sans-serif;
-  --r-sm: 8px;
-  --r-md: 12px;
-  --r-lg: 16px;
-  --shadow-sm: 0 2px 12px rgba(0,0,0,0.3);
-  --shadow-md: 0 4px 24px rgba(0,0,0,0.4);
-  --shadow-lg: 0 8px 40px rgba(0,0,0,0.5);
-}
-
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-body {
-  background: var(--bg);
-  color: var(--text);
-  font-family: var(--font-body);
-  min-height: 100vh;
-  font-size: 13.5px;
-  line-height: 1.5;
-}
-
-/* Subtle dot grid background */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background-image: radial-gradient(circle, rgba(61,126,245,0.06) 1px, transparent 1px);
-  background-size: 28px 28px;
-  pointer-events: none;
-  z-index: 0;
-}
-
-body::after {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background:
-    radial-gradient(ellipse 60% 50% at 15% 10%, rgba(61,126,245,0.08) 0%, transparent 70%),
-    radial-gradient(ellipse 50% 40% at 85% 85%, rgba(139,108,245,0.06) 0%, transparent 60%);
-  pointer-events: none;
-  z-index: 0;
-}
-
-/* ─── SCROLLBAR ─── */
-::-webkit-scrollbar { width: 4px; height: 4px; }
-::-webkit-scrollbar-track { background: var(--bg); }
-::-webkit-scrollbar-thumb { background: var(--border-bright); border-radius: 4px; }
-::-webkit-scrollbar-thumb:hover { background: var(--muted); }
-
-/* ─── LAYOUT ─── */
-.container { width: 100%; max-width: 1440px; margin: 0 auto; padding: 0 28px; position: relative; z-index: 1; }
-
-/* ─── TOP BAR ─── */
-.top-bar {
-  width: 100%;
-  background: rgba(6,10,18,0.92);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-bottom: 1px solid var(--border);
-  position: sticky;
-  top: 0;
-  z-index: 100;
-}
-
-.top-bar::after {
-  content: '';
-  position: absolute;
-  bottom: -1px;
-  left: 0; right: 0;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(61,126,245,0.4) 30%, rgba(139,108,245,0.3) 70%, transparent);
-}
-
-.header-inner { display: flex; align-items: center; width: 100%; gap: 0; }
-
-.logo {
-  font-family: var(--font-head);
-  font-weight: 900;
-  font-size: 17px;
-  padding: 0 24px 0 0;
-  margin-right: 8px;
-  white-space: nowrap;
-  flex: 0 0 auto;
-  letter-spacing: -0.5px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  height: 58px;
-}
-
-.logo .logo-mark { display: flex; align-items: center; gap: 2px; }
-.logo .logo-mark .dot { color: var(--accent); font-size: 22px; line-height: 1; margin-top: -2px; }
-.logo small { font-size: 8.5px; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; font-weight: 500; margin-top: 1px; font-family: var(--font-body); }
-
-.nav-tabs { flex: 1; display: flex; justify-content: center; align-items: stretch; gap: 0; height: 58px; }
-
-.nav-tab {
-  padding: 0 16px;
-  font-family: var(--font-head);
-  font-size: 11.5px;
-  font-weight: 700;
-  color: var(--muted);
-  cursor: pointer;
-  border-bottom: 2px solid transparent;
-  border-top: none; border-left: none; border-right: none;
-  background: none;
-  white-space: nowrap;
-  transition: color .2s, border-color .2s, background .2s;
-  letter-spacing: 0.2px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  position: relative;
-}
-
-.nav-tab:hover { color: var(--text-dim); background: rgba(255,255,255,0.02); }
-.nav-tab.active { color: var(--accent); border-bottom-color: var(--accent); background: rgba(61,126,245,0.04); }
-
-.tab-badge {
-  background: var(--surface3);
-  color: var(--muted);
-  font-size: 9px;
-  font-weight: 700;
-  padding: 1px 6px;
-  border-radius: 20px;
-  border: 1px solid var(--border);
-}
-.nav-tab.active .tab-badge { background: var(--accent-dim); color: var(--accent); border-color: rgba(61,126,245,0.3); }
-
-.top-bar-right { display: flex; align-items: center; gap: 8px; flex: 0 0 auto; padding-left: 16px; }
-
-/* ─── CONTENT ─── */
-.content { padding: 24px 0 60px; position: relative; z-index: 1; }
-.tab-panel { display: none; animation: fadeUp .3s cubic-bezier(.4,0,.2,1); }
-.tab-panel.active { display: block; }
-@keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
-
-.sec-title {
-  font-family: var(--font-head);
-  font-size: 10px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 2px;
-  color: var(--muted);
-  margin-bottom: 14px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.sec-title::after { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, var(--border), transparent); }
-
-/* ─── CARDS ─── */
-.card {
-  background: linear-gradient(145deg, var(--surface), var(--surface2));
-  border: 1px solid var(--border);
-  border-radius: var(--r-lg);
-  overflow: hidden;
-  position: relative;
-}
-
-.card-hdr {
-  padding: 14px 20px;
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: rgba(255,255,255,0.015);
-}
-
-.card-title {
-  font-family: var(--font-head);
-  font-size: 12px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.8px;
-  color: var(--text);
-}
-
-/* ─── GRID HELPERS ─── */
-.g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
-.g3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 18px; }
-.g4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; }
-.g5 { display: grid; grid-template-columns: repeat(5,1fr); gap: 16px; }
-.mb4 { margin-bottom: 18px; }
-.mb6 { margin-bottom: 26px; }
-
-/* ─── STAT CARDS ─── */
-.stat-card {
-  border-radius: var(--r-lg);
-  padding: 20px;
-  position: relative;
-  overflow: hidden;
-  transition: transform .2s, box-shadow .25s;
-  border: 1px solid var(--border);
-}
-.stat-card:hover { transform: translateY(-3px); }
-.stat-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; }
-.stat-card::after { content: ''; position: absolute; inset: 0; border-radius: inherit; opacity: 0; transition: opacity .25s; pointer-events: none; }
-.stat-card:hover::after { opacity: 1; }
-
-.s-blue  { background: linear-gradient(135deg, rgba(61,126,245,0.07) 0%, var(--surface2) 60%); }
-.s-blue::before { background: linear-gradient(90deg, var(--accent), rgba(61,126,245,0.3)); }
-.s-blue:hover { box-shadow: 0 0 0 1px rgba(61,126,245,0.2), 0 8px 32px rgba(61,126,245,0.15); }
-
-.s-red   { background: linear-gradient(135deg, rgba(240,64,96,0.07) 0%, var(--surface2) 60%); }
-.s-red::before { background: linear-gradient(90deg, var(--critical), rgba(240,64,96,0.3)); }
-.s-red:hover { box-shadow: 0 0 0 1px rgba(240,64,96,0.2), 0 8px 32px rgba(240,64,96,0.12); }
-
-.s-green { background: linear-gradient(135deg, rgba(34,211,138,0.07) 0%, var(--surface2) 60%); }
-.s-green::before { background: linear-gradient(90deg, var(--success), rgba(34,211,138,0.3)); }
-.s-green:hover { box-shadow: 0 0 0 1px rgba(34,211,138,0.2), 0 8px 32px rgba(34,211,138,0.12); }
-
-.s-yellow { background: linear-gradient(135deg, rgba(240,168,48,0.07) 0%, var(--surface2) 60%); }
-.s-yellow::before { background: linear-gradient(90deg, var(--accent2), rgba(240,168,48,0.3)); }
-.s-yellow:hover { box-shadow: 0 0 0 1px rgba(240,168,48,0.2), 0 8px 32px rgba(240,168,48,0.12); }
-
-.s-purple { background: linear-gradient(135deg, rgba(139,108,245,0.07) 0%, var(--surface2) 60%); }
-.s-purple::before { background: linear-gradient(90deg, var(--purple), rgba(139,108,245,0.3)); }
-.s-purple:hover { box-shadow: 0 0 0 1px rgba(139,108,245,0.2), 0 8px 32px rgba(139,108,245,0.12); }
-
-.s-orange { background: linear-gradient(135deg, rgba(240,128,64,0.07) 0%, var(--surface2) 60%); }
-.s-orange::before { background: linear-gradient(90deg, var(--warning), rgba(240,128,64,0.3)); }
-
-.s-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--muted); margin-bottom: 10px; font-weight: 600; font-family: var(--font-head); }
-.s-val { font-family: var(--font-head); font-size: 34px; font-weight: 800; line-height: 1; letter-spacing: -1px; }
-.s-sub { font-size: 11px; color: var(--muted); margin-top: 6px; font-weight: 400; }
-
-/* ─── META GRID (Scorecard form) ─── */
-.meta-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px,1fr)); gap: 12px; margin-bottom: 22px; }
-
-.meta-card {
-  background: linear-gradient(145deg, var(--surface), var(--surface2));
-  border: 1px solid var(--border);
-  border-radius: var(--r-md);
-  padding: 13px 15px;
-  transition: border-color .2s;
-}
-.meta-card:focus-within { border-color: rgba(61,126,245,0.5); }
-
-.meta-card label {
-  display: block;
-  font-size: 9.5px;
-  text-transform: uppercase;
-  letter-spacing: 1.5px;
-  color: var(--muted);
-  margin-bottom: 7px;
-  font-weight: 600;
-  font-family: var(--font-head);
-}
-
-.meta-card input, .meta-card select {
-  width: 100%;
-  background: transparent;
-  border: none;
-  border-bottom: 1px solid var(--border);
-  color: var(--text);
-  font-family: var(--font-body);
-  font-size: 13.5px;
-  padding: 4px 0;
-  outline: none;
-  transition: border-color .2s;
-  font-weight: 500;
-}
-.meta-card input:focus, .meta-card select:focus { border-bottom-color: var(--accent); }
-.meta-card select option { background: var(--surface2); }
-
-/* ─── SCORE DASHBOARD ─── */
-.score-dash { display: grid; grid-template-columns: 220px 1fr 1fr 1fr; gap: 16px; margin-bottom: 22px; }
-
-.sc-card {
-  border: 1px solid var(--border);
-  border-radius: var(--r-lg);
-  padding: 20px;
-  position: relative;
-  overflow: hidden;
-  transition: transform .2s, box-shadow .25s;
-}
-.sc-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
-.sc-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; }
-
-.sct { background: linear-gradient(145deg, rgba(61,126,245,0.05), var(--surface2)); }
-.sct::before { background: linear-gradient(90deg, var(--accent), var(--accent2), var(--purple)); }
-
-.scnc { background: linear-gradient(145deg, rgba(61,126,245,0.06), var(--surface2)); }
-.scnc::before { background: var(--accent); }
-.scnc:hover { box-shadow: 0 0 0 1px rgba(61,126,245,0.2), 0 8px 32px rgba(61,126,245,0.12); }
-
-.sccr { background: linear-gradient(145deg, rgba(240,64,96,0.06), var(--surface2)); }
-.sccr::before { background: var(--critical); }
-.sccr:hover { box-shadow: 0 0 0 1px rgba(240,64,96,0.2), 0 8px 32px rgba(240,64,96,0.12); }
-
-.scres { background: linear-gradient(145deg, rgba(34,211,138,0.06), var(--surface2)); }
-.scres::before { background: var(--success); }
-.scres:hover { box-shadow: 0 0 0 1px rgba(34,211,138,0.2), 0 8px 32px rgba(34,211,138,0.12); }
-
-.sc-card .sc-label {
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 1.5px;
-  color: var(--muted);
-  margin-bottom: 8px;
-  font-weight: 600;
-  font-family: var(--font-head);
-  text-align: center;
-}
-
-.sc-card .sc-val {
-  font-family: var(--font-head);
-  font-size: 38px;
-  font-weight: 800;
-  line-height: 1;
-  margin-bottom: 5px;
-  letter-spacing: -1.5px;
-}
-.scnc .sc-val { color: var(--accent); }
-.sccr .sc-val { color: var(--critical); }
-.scres .sc-val { color: var(--success); }
-.sc-card .sc-sub { font-size: 11px; color: var(--muted); font-weight: 400; }
-
-.pbar { height: 3px; background: var(--border); border-radius: 4px; margin-top: 14px; overflow: hidden; }
-.pfill { height: 100%; border-radius: 4px; transition: width .7s cubic-bezier(.4,0,.2,1); }
-.scnc .pfill { background: linear-gradient(90deg, var(--accent), rgba(61,126,245,0.5)); }
-.sccr .pfill { background: linear-gradient(90deg, var(--critical), rgba(240,64,96,0.5)); }
-.scres .pfill { background: linear-gradient(90deg, var(--success), rgba(34,211,138,0.5)); }
-
-/* ─── GAUGE ─── */
-.gauge-card { display: flex; flex-direction: column; align-items: center; justify-content: center; }
-.gauge-wrap { position: relative; width: 160px; height: 90px; margin: 0 auto; }
-.gauge-wrap canvas { position: absolute; top: 0; left: 0; }
-.gauge-center { position: absolute; bottom: 0; width: 100%; text-align: center; }
-.gauge-score { font-family: var(--font-head); font-size: 30px; font-weight: 800; line-height: 1; letter-spacing: -1px; }
-.gauge-result { font-family: var(--font-head); font-size: 10px; font-weight: 700; letter-spacing: 2px; margin-top: 2px; text-transform: uppercase; }
-
-/* ─── PARAMETER SECTIONS ─── */
-.sections-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
-
-.sec-card {
-  background: linear-gradient(145deg, var(--surface), var(--surface2));
-  border: 1px solid var(--border);
-  border-radius: var(--r-lg);
-  overflow: hidden;
-}
-
-.sec-hdr {
-  display: flex;
-  align-items: center;
-  padding: 14px 20px;
-  border-bottom: 1px solid var(--border);
-  background: rgba(255,255,255,0.015);
-}
-
-.sec-hdr-title { font-family: var(--font-head); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; }
-
-.sbadge {
-  font-size: 9px;
-  font-weight: 700;
-  padding: 3px 9px;
-  border-radius: 20px;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  margin-left: auto;
-  font-family: var(--font-head);
-}
-.nc-badge { background: var(--accent-dim); color: var(--accent); border: 1px solid rgba(61,126,245,0.2); }
-.cr-badge { background: var(--critical-dim); color: var(--critical); border: 1px solid rgba(240,64,96,0.2); }
-
-.param-row {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  align-items: center;
-  padding: 10px 20px;
-  border-bottom: 1px solid var(--border);
-  gap: 12px;
-  transition: background .15s;
-}
-.param-row:last-child { border-bottom: none; }
-.param-row:hover { background: rgba(255,255,255,0.025); }
-
-.pgh { background: rgba(61,126,245,0.04); padding: 7px 20px; border-bottom: 1px solid var(--border); }
-.pgl { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: var(--accent); font-family: var(--font-head); }
-
-.pl { font-size: 12.5px; color: var(--text-dim); line-height: 1.45; font-weight: 400; }
-
-/* ─── RATING BUTTONS ─── */
-.rg { display: flex; gap: 5px; align-items: center; }
-
-.br {
-  height: 28px;
-  padding: 0 11px;
-  border-radius: 6px;
-  border: 1px solid var(--border);
-  background: var(--surface3);
-  color: var(--muted);
-  cursor: pointer;
-  font-size: 11px;
-  font-weight: 700;
-  font-family: var(--font-head);
-  transition: all .15s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  letter-spacing: 0.3px;
-}
-.br:hover { border-color: rgba(61,126,245,0.4); color: var(--text); background: rgba(61,126,245,0.06); }
-.br.ay { background: var(--success-dim); border-color: rgba(34,211,138,0.4); color: var(--success); box-shadow: 0 0 8px rgba(34,211,138,0.15); }
-.br.an { background: var(--critical-dim); border-color: rgba(240,64,96,0.4); color: var(--critical); box-shadow: 0 0 8px rgba(240,64,96,0.15); }
-.br.ana { background: rgba(74,88,120,0.15); border-color: rgba(74,88,120,0.35); color: var(--text-dim); }
-
-/* ─── TEXT AREAS ─── */
-.bg2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 18px; }
-
-.tc {
-  background: linear-gradient(145deg, var(--surface), var(--surface2));
-  border: 1px solid var(--border);
-  border-radius: var(--r-lg);
-  overflow: hidden;
-  transition: border-color .2s;
-}
-.tc:focus-within { border-color: rgba(61,126,245,0.35); }
-
-.tc-hdr {
-  padding: 11px 18px;
-  border-bottom: 1px solid var(--border);
-  font-family: var(--font-head);
-  font-size: 10.5px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  color: var(--text-dim);
-  background: rgba(255,255,255,0.015);
-}
-
-.tc textarea {
-  width: 100%;
-  background: transparent;
-  border: none;
-  color: var(--text);
-  font-family: var(--font-body);
-  font-size: 13px;
-  padding: 13px 18px;
-  resize: vertical;
-  min-height: 90px;
-  outline: none;
-  line-height: 1.65;
-}
-.tc textarea::placeholder { color: var(--muted); }
-
-.fc {
-  background: linear-gradient(145deg, var(--surface), var(--surface2));
-  border: 1px solid var(--border);
-  border-radius: var(--r-lg);
-  overflow: hidden;
-  margin-bottom: 18px;
-  transition: border-color .2s;
-}
-.fc:focus-within { border-color: rgba(61,126,245,0.35); }
-
-.fc-hdr {
-  padding: 11px 18px;
-  border-bottom: 1px solid var(--border);
-  font-family: var(--font-head);
-  font-size: 10.5px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  color: var(--text-dim);
-  background: rgba(255,255,255,0.015);
-}
-
-.fc textarea {
-  width: 100%;
-  background: transparent;
-  border: none;
-  color: var(--text);
-  font-family: var(--font-body);
-  font-size: 13px;
-  padding: 13px 18px;
-  resize: vertical;
-  min-height: 75px;
-  outline: none;
-  line-height: 1.65;
-}
-.fc textarea::placeholder { color: var(--muted); }
-
-/* ─── TABLES ─── */
-.table-wrap { overflow-x: auto; }
-table { width: 100%; border-collapse: collapse; }
-
-thead th {
-  padding: 11px 16px;
-  text-align: left;
-  font-size: 9.5px;
-  text-transform: uppercase;
-  letter-spacing: 1.5px;
-  color: var(--muted);
-  font-weight: 700;
-  border-bottom: 1px solid var(--border);
-  background: rgba(255,255,255,0.02);
-  white-space: nowrap;
-  font-family: var(--font-head);
-}
-
-tbody tr { border-bottom: 1px solid rgba(28,38,64,0.7); transition: background .15s; }
-tbody tr:last-child { border-bottom: none; }
-tbody tr:hover { background: rgba(61,126,245,0.03); }
-tbody td { padding: 11px 16px; font-size: 13px; color: var(--text); }
-
-/* Score bars in tables */
-.sbc { min-width: 120px; }
-.sbw { display: flex; align-items: center; gap: 8px; }
-.smb { flex: 1; height: 4px; background: var(--border); border-radius: 4px; overflow: hidden; }
-.smf { height: 100%; border-radius: 4px; transition: width .6s cubic-bezier(.4,0,.2,1); }
-.sv { font-family: var(--font-head); font-size: 12px; font-weight: 700; min-width: 36px; text-align: right; }
-
-/* ─── TAGS ─── */
-.tag {
-  padding: 3px 10px;
-  border-radius: 20px;
-  font-size: 10px;
-  font-weight: 700;
-  font-family: var(--font-head);
-  display: inline-block;
-  letter-spacing: 0.5px;
-}
-.tp { background: var(--success-dim); color: var(--success); border: 1px solid rgba(34,211,138,0.2); }
-.tf { background: var(--critical-dim); color: var(--critical); border: 1px solid rgba(240,64,96,0.2); }
-.tr { background: var(--warning-dim); color: var(--warning); border: 1px solid rgba(240,128,64,0.2); }
-.tnc { background: var(--accent-dim); color: var(--accent); border: 1px solid rgba(61,126,245,0.2); }
-.tcr { background: var(--critical-dim); color: var(--critical); border: 1px solid rgba(240,64,96,0.2); }
-
-/* ─── BUTTONS ─── */
-.btn {
-  padding: 0 18px;
-  height: 38px;
-  border-radius: var(--r-sm);
-  font-family: var(--font-head);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-  cursor: pointer;
-  border: none;
-  transition: all .2s;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.btn-outline { background: transparent; border: 1px solid var(--border-bright); color: var(--text-dim); }
-.btn-outline:hover { border-color: rgba(61,126,245,0.4); color: var(--accent); background: var(--accent-dim); }
-
-.btn-success { background: var(--success-dim); border: 1px solid rgba(34,211,138,0.3); color: var(--success); }
-.btn-success:hover { background: rgba(34,211,138,0.2); box-shadow: 0 0 16px rgba(34,211,138,0.15); }
-
-.btn-excel { background: rgba(34,197,94,0.08); border: 1px solid rgba(34,197,94,0.25); color: #22c55e; }
-.btn-excel:hover { background: rgba(34,197,94,0.15); }
-
-.btn-danger { background: var(--critical-dim); border: 1px solid rgba(240,64,96,0.25); color: var(--critical); }
-.btn-danger:hover { background: rgba(240,64,96,0.2); box-shadow: 0 0 16px rgba(240,64,96,0.1); }
-
-.btn-primary { background: var(--accent); color: #fff; border: 1px solid transparent; box-shadow: 0 0 20px rgba(61,126,245,0.3); }
-.btn-primary:hover { background: #5590f7; box-shadow: 0 0 28px rgba(61,126,245,0.4); }
-
-.btn-sm { padding: 0 12px; height: 32px; font-size: 10.5px; }
-
-.abar { display: flex; gap: 8px; justify-content: flex-end; padding-top: 8px; flex-wrap: wrap; }
-
-/* ─── PERFORMANCE TABLE CARD ─── */
-.pt-card {
-  background: linear-gradient(145deg, var(--surface), var(--surface2));
-  border: 1px solid var(--border);
-  border-radius: var(--r-lg);
-  overflow: hidden;
-  margin-bottom: 20px;
-}
-.pt-hdr {
-  padding: 14px 20px;
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: rgba(255,255,255,0.015);
-}
-
-/* ─── FILTER BAR ─── */
-.filter-bar { display: flex; gap: 8px; margin-bottom: 18px; flex-wrap: wrap; align-items: center; }
-.filter-bar input, .filter-bar select {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--r-sm);
-  color: var(--text);
-  font-family: var(--font-body);
-  font-size: 12.5px;
-  padding: 7px 12px;
-  outline: none;
-  transition: border-color .2s;
-}
-.filter-bar input:focus, .filter-bar select:focus { border-color: rgba(61,126,245,0.4); }
-.filter-bar select option { background: var(--surface2); }
-
-/* ─── CHART WRAP ─── */
-.chart-wrap { padding: 20px; }
-.p-legend { display: flex; gap: 16px; padding: 0 20px 14px; flex-wrap: wrap; }
-.p-leg-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text-dim); }
-.p-leg-dot { width: 8px; height: 8px; border-radius: 3px; }
-
-/* ─── EMPTY STATE ─── */
-.empty-state { text-align: center; padding: 44px 20px; color: var(--muted); }
-.empty-state .ei { font-size: 38px; margin-bottom: 12px; opacity: 0.6; }
-.empty-state h3 { font-family: var(--font-head); font-size: 15px; color: var(--text-dim); margin-bottom: 6px; }
-.empty-state p { font-size: 12px; }
-
-/* ─── TENURE BADGE ─── */
-.ten-badge {
-  font-size: 10px;
-  padding: 2px 8px;
-  border-radius: 20px;
-  background: var(--purple-dim);
-  color: var(--purple);
-  font-weight: 700;
-  border: 1px solid rgba(139,108,245,0.2);
-  font-family: var(--font-head);
-}
-
-/* ─── LEADERBOARD ─── */
-.lb-item {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 14px 20px;
-  border-bottom: 1px solid var(--border);
-  transition: background .15s;
-  position: relative;
-  overflow: hidden;
-}
-.lb-item::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; }
-.lb-1::before { background: linear-gradient(180deg, #ffd700, #f59e0b); }
-.lb-2::before { background: linear-gradient(180deg, #e2e8f0, #94a3b8); }
-.lb-3::before { background: linear-gradient(180deg, #cd7f32, #92400e); }
-.lb-item:hover { background: rgba(61,126,245,0.03); }
-.lb-item:last-child { border-bottom: none; }
-
-.lb-rank {
-  font-family: var(--font-head);
-  font-size: 20px;
-  font-weight: 900;
-  width: 38px;
-  text-align: center;
-  flex: 0 0 auto;
-  letter-spacing: -1px;
-}
-.lb-medal { font-size: 18px; width: 26px; text-align: center; flex: 0 0 auto; }
-.lb-info { flex: 1; min-width: 0; }
-.lb-name { font-family: var(--font-head); font-weight: 700; font-size: 13.5px; letter-spacing: -0.2px; }
-.lb-meta { font-size: 11px; color: var(--muted); margin-top: 3px; display: flex; align-items: center; gap: 6px; }
-.lb-bar { flex: 2; max-width: 220px; }
-.lb-bar-track { height: 5px; background: var(--border); border-radius: 4px; overflow: hidden; }
-.lb-bar-fill { height: 100%; border-radius: 4px; transition: width 1.2s cubic-bezier(.4,0,.2,1); }
-.lb-score { font-family: var(--font-head); font-weight: 800; font-size: 20px; min-width: 56px; text-align: right; letter-spacing: -0.5px; }
-.lb-trend { font-size: 11px; font-weight: 700; min-width: 40px; text-align: right; font-family: var(--font-head); }
-.lb-streak {
-  font-size: 10px;
-  padding: 3px 9px;
-  border-radius: 20px;
-  background: var(--success-dim);
-  color: var(--success);
-  font-weight: 700;
-  border: 1px solid rgba(34,211,138,0.2);
-  white-space: nowrap;
-  font-family: var(--font-head);
-}
-
-/* ─── CALENDAR HEATMAP ─── */
-.cal-wrap { padding: 18px 20px; overflow-x: auto; }
-.cal-grid { display: flex; gap: 3px; }
-.cal-week { display: flex; flex-direction: column; gap: 3px; }
-.cal-day { width: 12px; height: 12px; border-radius: 2px; cursor: pointer; transition: transform .1s; }
-.cal-day:hover { transform: scale(1.5); }
-.cal-months { display: flex; margin-bottom: 6px; padding-left: 28px; }
-.cal-month-label { font-size: 9px; color: var(--muted); font-family: var(--font-head); }
-.cal-days-label { display: flex; flex-direction: column; gap: 3px; margin-right: 5px; }
-.cal-day-label { font-size: 9px; color: var(--muted); height: 12px; display: flex; align-items: center; font-family: var(--font-head); }
-.cal-legend { display: flex; align-items: center; gap: 5px; margin-top: 12px; font-size: 10px; color: var(--muted); }
-.cal-legend-cell { width: 12px; height: 12px; border-radius: 2px; }
-
-/* ─── HEATMAP ─── */
-.heatmap-wrap { overflow-x: auto; padding: 16px; }
-.heatmap-table { border-collapse: collapse; font-size: 11px; }
-.heatmap-table th { padding: 7px 8px; text-align: center; font-size: 9px; text-transform: uppercase; letter-spacing: 0.8px; color: var(--muted); font-weight: 700; white-space: nowrap; font-family: var(--font-head); }
-.heatmap-table th.agent-col { text-align: left; min-width: 130px; position: sticky; left: 0; background: var(--surface2); z-index: 1; }
-.heatmap-table td { padding: 5px 6px; text-align: center; font-size: 10px; font-weight: 700; font-family: var(--font-head); border: 1px solid rgba(28,38,64,0.5); min-width: 46px; border-radius: 3px; }
-.heatmap-table td.agent-name { text-align: left; font-size: 11.5px; padding: 7px 12px; position: sticky; left: 0; background: var(--surface); z-index: 1; font-family: var(--font-head); font-weight: 700; white-space: nowrap; border-radius: 0; }
-
-/* ─── AGENT COMPARISON ─── */
-.cmp-card { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 20px; }
-.cmp-stat { text-align: center; padding: 12px; background: var(--surface); border-radius: var(--r-sm); border: 1px solid var(--border); }
-.cmp-stat-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 6px; font-family: var(--font-head); font-weight: 700; }
-.cmp-stat-val { font-family: var(--font-head); font-size: 26px; font-weight: 800; letter-spacing: -0.5px; }
-
-/* ─── ALERT CARDS ─── */
-.alert-card { border-radius: var(--r-md); padding: 13px 18px; display: flex; align-items: center; gap: 14px; margin-bottom: 10px; border: 1px solid; }
-.alert-critical { background: rgba(240,64,96,0.06); border-color: rgba(240,64,96,0.25); }
-.alert-warning { background: rgba(240,128,64,0.06); border-color: rgba(240,128,64,0.25); }
-.alert-icon { font-size: 18px; flex: 0 0 auto; }
-.alert-agent { font-family: var(--font-head); font-weight: 700; font-size: 13.5px; }
-.alert-type { font-size: 11px; color: var(--muted); margin-top: 2px; }
-
-/* ─── COACHING ─── */
-.coaching-form { padding: 20px; display: flex; gap: 14px; flex-wrap: wrap; align-items: flex-end; }
-.coaching-form > div { display: flex; flex-direction: column; gap: 6px; }
-.coaching-form label { font-size: 9.5px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--muted); font-weight: 700; font-family: var(--font-head); }
-.coaching-form input, .coaching-form select {
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  border-radius: var(--r-sm);
-  color: var(--text);
-  font-family: var(--font-body);
-  font-size: 13px;
-  padding: 8px 12px;
-  outline: none;
-  min-width: 180px;
-  transition: border-color .2s;
-}
-.coaching-form input:focus { border-color: rgba(61,126,245,0.4); }
-
-.roi-card {
-  background: linear-gradient(145deg, var(--surface), var(--surface2));
-  border: 1px solid var(--border);
-  border-radius: var(--r-lg);
-  padding: 20px;
-  margin-bottom: 16px;
-}
-.roi-stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
-.roi-stat { text-align: center; padding: 14px; background: var(--surface3); border-radius: var(--r-sm); border: 1px solid var(--border); }
-.roi-stat-label { font-size: 9.5px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--muted); margin-bottom: 8px; font-weight: 700; font-family: var(--font-head); }
-.roi-stat-val { font-family: var(--font-head); font-size: 28px; font-weight: 800; letter-spacing: -1px; }
-
-/* ─── ARC CARD (Top/Bottom agents) ─── */
-.arc {
-  background: linear-gradient(145deg, var(--surface), var(--surface2));
-  border: 1px solid var(--border);
-  border-radius: var(--r-lg);
-  padding: 18px;
-  position: relative;
-  transition: transform .2s, box-shadow .2s;
-}
-.arc:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
-.arc-rank { position: absolute; top: 14px; right: 14px; font-family: var(--font-head); font-size: 24px; font-weight: 900; opacity: 0.06; }
-.arc-name { font-family: var(--font-head); font-weight: 700; font-size: 14px; margin-bottom: 3px; letter-spacing: -0.2px; }
-.arc-meta { font-size: 11px; color: var(--muted); margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
-.arc-score { font-family: var(--font-head); font-size: 32px; font-weight: 800; line-height: 1; margin-bottom: 6px; letter-spacing: -1px; }
-
-/* ─── DRAWER ─── */
-.adr { display: none; background: rgba(17,24,38,0.8); }
-.adr td { padding: 14px 16px; }
-.adr.open { display: table-row; }
-.dgrid { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; }
-.di label { font-size: 9.5px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--muted); font-weight: 700; font-family: var(--font-head); }
-.di p { font-size: 12.5px; margin-top: 3px; }
-
-/* ─── PROFILE BADGE ─── */
-#userProfile {
-  display: flex;
-  flex-direction: column;
-  padding: 7px 14px;
-  background: var(--surface2);
-  border: 1px solid var(--border-bright);
-  border-radius: var(--r-sm);
-  font-size: 11px;
-  text-align: right;
-}
-#profileName { font-size: 13px; font-weight: 600; color: var(--text); }
-#profileDesignation { color: var(--muted); font-size: 11px; }
-#profileAccess { margin-top: 3px; color: var(--accent); font-size: 10.5px; line-height: 1.4; }
-#profileEmail { font-size: 10px; color: var(--muted); }
-
-/* ─── LOGIN SCREEN ─── */
-#loginScreen {
-  position: fixed;
-  inset: 0;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 9999;
-  overflow: hidden;
-  background: var(--bg);
-}
-
-/* Animated orbs behind the login card */
-#loginScreen::before {
-  content: '';
-  position: absolute;
-  width: 700px; height: 700px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(61,126,245,0.12) 0%, transparent 70%);
-  top: -200px; left: -150px;
-  animation: orb1 14s ease-in-out infinite alternate;
-}
-#loginScreen::after {
-  content: '';
-  position: absolute;
-  width: 500px; height: 500px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(139,108,245,0.1) 0%, transparent 70%);
-  bottom: -100px; right: -100px;
-  animation: orb2 18s ease-in-out infinite alternate;
-}
-@keyframes orb1 { from { transform: translate(0,0) scale(1); } to { transform: translate(80px, 60px) scale(1.15); } }
-@keyframes orb2 { from { transform: translate(0,0) scale(1); } to { transform: translate(-60px, -40px) scale(1.2); } }
-
-.login-card {
-  position: relative;
-  z-index: 1;
-  width: 380px;
-  background: rgba(13,19,32,0.8);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border: 1px solid var(--border-bright);
-  border-radius: 20px;
-  padding: 44px 40px 40px;
-  box-shadow: 0 0 0 1px rgba(61,126,245,0.06), 0 40px 80px rgba(0,0,0,0.6);
-  animation: loginReveal .5s cubic-bezier(.4,0,.2,1);
-}
-@keyframes loginReveal { from { opacity: 0; transform: translateY(20px) scale(0.98); } to { opacity: 1; transform: none; } }
-
-.login-logo {
-  font-family: var(--font-head);
-  font-size: 32px;
-  font-weight: 900;
-  letter-spacing: -1.5px;
-  text-align: center;
-  margin-bottom: 4px;
-}
-.login-logo .dot { color: var(--accent); }
-
-.login-sub {
-  text-align: center;
-  font-size: 12px;
-  color: var(--muted);
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  font-family: var(--font-head);
-  font-weight: 600;
-  margin-bottom: 36px;
-}
-
-.login-divider {
-  height: 1px;
-  background: linear-gradient(90deg, transparent, var(--border-bright), transparent);
-  margin-bottom: 32px;
-}
-
-.login-field { margin-bottom: 16px; }
-.login-field label {
-  display: block;
-  font-size: 9.5px;
-  text-transform: uppercase;
-  letter-spacing: 1.5px;
-  color: var(--muted);
-  font-weight: 700;
-  font-family: var(--font-head);
-  margin-bottom: 8px;
-}
-.login-field input {
-  width: 100%;
-  background: var(--surface3);
-  border: 1px solid var(--border);
-  border-radius: var(--r-sm);
-  color: var(--text);
-  font-family: var(--font-body);
-  font-size: 14px;
-  padding: 12px 16px;
-  outline: none;
-  transition: border-color .2s, box-shadow .2s;
-  font-weight: 400;
-}
-.login-field input:focus {
-  border-color: rgba(61,126,245,0.5);
-  box-shadow: 0 0 0 3px rgba(61,126,245,0.08);
-}
-
-.login-btn {
-  width: 100%;
-  background: var(--accent);
-  color: #fff;
-  border: none;
-  border-radius: var(--r-sm);
-  padding: 14px;
-  font-family: var(--font-head);
-  font-size: 13px;
-  font-weight: 800;
-  cursor: pointer;
-  letter-spacing: 0.5px;
-  margin-top: 8px;
-  transition: background .2s, box-shadow .2s, transform .15s;
-  box-shadow: 0 4px 20px rgba(61,126,245,0.35);
-}
-.login-btn:hover { background: #5590f7; box-shadow: 0 4px 28px rgba(61,126,245,0.5); transform: translateY(-1px); }
-.login-btn:active { transform: none; }
-
-/* ─── TOAST ─── */
-#toast {
-  position: fixed;
-  bottom: 24px;
-  right: 24px;
-  background: var(--surface2);
-  border: 1px solid var(--border-bright);
-  border-radius: var(--r-md);
-  padding: 12px 20px;
-  font-size: 13px;
-  font-weight: 500;
-  z-index: 9999;
-  transform: translateY(80px);
-  opacity: 0;
-  transition: all .3s cubic-bezier(.4,0,.2,1);
-  max-width: 300px;
-  box-shadow: var(--shadow-lg);
-  backdrop-filter: blur(12px);
-}
-#toast.show { transform: none; opacity: 1; }
-#toast.ts { border-color: rgba(34,211,138,0.4); color: var(--success); }
-#toast.te { border-color: rgba(240,64,96,0.4); color: var(--critical); }
-
-/* ─── RESPONSIVE ─── */
-@media (max-width: 900px) {
-  .score-dash { grid-template-columns: 1fr 1fr; }
-  .g4, .g5 { grid-template-columns: 1fr 1fr; }
-  .sections-grid, .bg2, .g2, .g3 { grid-template-columns: 1fr; }
-}
+:root{--bg:#0b0f1a;--surface:#141928;--surface2:#1c2438;--border:#252e45;--accent:#4f8ef7;--accent2:#f7c14f;--critical:#f74f6a;--success:#4ff7a0;--warning:#f7a14f;--purple:#a78bfa;--text:#e8edf8;--muted:#6b7a9e;--font-head:'Syne',sans-serif;--font-body:'DM Sans',sans-serif;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:var(--font-body);min-height:100vh;}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 20% 20%,rgba(79,142,247,.07) 0%,transparent 50%),radial-gradient(ellipse at 80% 80%,rgba(247,193,79,.05) 0%,transparent 50%);pointer-events:none;z-index:0;}
+.container{width:100%;max-width:1380px;margin:0 auto;padding:0 24px;}
+.top-bar{width:100%;background:var(--surface);border-bottom:1px solid var(--border);}
+.header-inner{display:flex;align-items:center;width:100%;}
+.logo{font-family:var(--font-head);font-weight:800;font-size:16px;letter-spacing:-.3px;padding:18px 0;margin-right:28px;white-space:nowrap;color:var(--text);flex:0 0 auto;}
+.logo span{color:var(--accent);}
+.nav-tabs{flex:1;display:flex;justify-content:center;align-items:center;gap:20px;}
+.nav-tab{padding:18px 16px;font-family:var(--font-head);font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .2s;background:none;border-top:none;border-left:none;border-right:none;white-space:nowrap;}
+.nav-tab:hover{color:var(--text);}
+.nav-tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+.tab-badge{background:var(--surface2);color:var(--muted);font-size:10px;padding:1px 6px;border-radius:10px;margin-left:5px;}
+.nav-tab.active .tab-badge{background:rgba(79,142,247,.15);color:var(--accent);}
+.top-bar-right{display:flex;align-items:center;gap:10px;flex:0 0 auto;}
+.content{padding:22px 0;}
+.tab-panel{display:none;animation:fadeIn .2s;}
+.tab-panel.active{display:block;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.sec-title{font-family:var(--font-head);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);margin-bottom:12px;}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+.card-hdr{padding:13px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.card-title{font-family:var(--font-head);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
+.mb4{margin-bottom:16px;}
+.mb6{margin-bottom:22px;}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px;position:relative;overflow:hidden;transition:transform .2s;}
+.stat-card:hover{transform:translateY(-2px);}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
+.s-blue::before{background:var(--accent);}
+.s-red::before{background:var(--critical);}
+.s-green::before{background:var(--success);}
+.s-yellow::before{background:var(--accent2);}
+.s-purple::before{background:var(--purple);}
+.s-label{font-size:10px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);margin-bottom:8px;}
+.s-val{font-family:var(--font-head);font-size:32px;font-weight:800;line-height:1;}
+.s-sub{font-size:11px;color:var(--muted);margin-top:4px;}
+.meta-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px;margin-bottom:20px;}
+.meta-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;}
+.meta-card label{display:block;font-size:10px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);margin-bottom:5px;}
+.meta-card input,.meta-card select{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:var(--font-body);font-size:13px;padding:5px 9px;outline:none;transition:border-color .2s;}
+.meta-card input:focus,.meta-card select:focus{border-color:var(--accent);}
+.score-dash{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px;}
+.sc-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px;position:relative;overflow:hidden;transition:transform .2s;}
+.sc-card:hover{transform:translateY(-2px);}
+.sc-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
+.sct::before{background:linear-gradient(90deg,var(--accent),var(--accent2));}
+.scnc::before{background:var(--accent);}
+.sccr::before{background:var(--critical);}
+.scres::before{background:var(--success);}
+.sc-card .sc-label{font-size:10px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);margin-bottom:8px;}
+.sc-card .sc-val{font-family:var(--font-head);font-size:36px;font-weight:800;line-height:1;margin-bottom:4px;}
+.sct .sc-val{color:var(--accent2);}
+.scnc .sc-val{color:var(--accent);}
+.sccr .sc-val{color:var(--critical);}
+.scres .sc-val{color:var(--success);}
+.sc-card .sc-sub{font-size:11px;color:var(--muted);}
+.pbar{height:4px;background:var(--border);border-radius:4px;margin-top:10px;overflow:hidden;}
+.pfill{height:100%;border-radius:4px;transition:width .6s;}
+.sct .pfill{background:linear-gradient(90deg,var(--accent),var(--accent2));}
+.scnc .pfill{background:var(--accent);}
+.sccr .pfill{background:var(--critical);}
+.scres .pfill{background:var(--success);}
+.sections-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px;}
+.sec-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+.sec-hdr{display:flex;align-items:center;padding:13px 18px;border-bottom:1px solid var(--border);}
+.sec-hdr-title{font-family:var(--font-head);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;}
+.sbadge{font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;text-transform:uppercase;letter-spacing:.8px;margin-left:auto;}
+.nc-badge{background:rgba(79,142,247,.15);color:var(--accent);}
+.cr-badge{background:rgba(247,79,106,.15);color:var(--critical);}
+.param-row{display:grid;grid-template-columns:1fr auto;align-items:center;padding:10px 18px;border-bottom:1px solid var(--border);gap:10px;transition:background .15s;}
+.param-row:hover{background:rgba(255,255,255,.02);}
+.param-row:last-child{border-bottom:none;}
+.pgh{background:rgba(79,142,247,.05);padding:7px 18px;border-bottom:1px solid var(--border);}
+.pgl{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--accent);}
+.pl{font-size:12px;color:var(--text);line-height:1.4;}
+.rg{display:flex;gap:5px;align-items:center;}
+.br{width:30px;height:30px;border-radius:6px;border:1px solid var(--border);background:var(--surface2);color:var(--muted);cursor:pointer;font-size:12px;font-weight:600;font-family:var(--font-head);transition:all .15s;display:flex;align-items:center;justify-content:center;}
+.br:hover{border-color:var(--accent);color:var(--accent);}
+.br.ay{background:rgba(79,247,160,.15);border-color:var(--success);color:var(--success);}
+.br.an{background:rgba(247,79,106,.15);border-color:var(--critical);color:var(--critical);}
+.br.ana{background:rgba(107,122,158,.15);border-color:var(--muted);color:var(--muted);}
+.bg2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
+.tc{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+.tc-hdr{padding:12px 18px;border-bottom:1px solid var(--border);font-family:var(--font-head);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);}
+.tc textarea{width:100%;background:transparent;border:none;color:var(--text);font-family:var(--font-body);font-size:13px;padding:12px 18px;resize:vertical;min-height:90px;outline:none;line-height:1.6;}
+.tc textarea::placeholder{color:var(--muted);}
+.fc{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:16px;}
+.fc-hdr{padding:12px 18px;border-bottom:1px solid var(--border);font-family:var(--font-head);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);}
+.fc textarea{width:100%;background:transparent;border:none;color:var(--text);font-family:var(--font-body);font-size:13px;padding:12px 18px;resize:vertical;min-height:75px;outline:none;line-height:1.6;}
+.fc textarea::placeholder{color:var(--muted);}
+.table-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;}
+thead th{padding:10px 14px;text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);font-weight:600;border-bottom:1px solid var(--border);background:var(--surface2);white-space:nowrap;}
+tbody tr{border-bottom:1px solid var(--border);transition:background .15s;}
+tbody tr:last-child{border-bottom:none;}
+tbody tr:hover{background:rgba(255,255,255,.025);}
+tbody td{padding:10px 14px;font-size:13px;color:var(--text);}
+.sbc{min-width:110px;}
+.sbw{display:flex;align-items:center;gap:7px;}
+.smb{flex:1;height:5px;background:var(--border);border-radius:3px;overflow:hidden;}
+.smf{height:100%;border-radius:3px;transition:width .6s;}
+.sv{font-family:var(--font-head);font-size:12px;font-weight:700;min-width:34px;text-align:right;}
+.tag{padding:2px 9px;border-radius:20px;font-size:10px;font-weight:700;font-family:var(--font-head);display:inline-block;}
+.tp{background:rgba(79,247,160,.15);color:var(--success);}
+.tf{background:rgba(247,79,106,.15);color:var(--critical);}
+.tr{background:rgba(247,161,79,.15);color:var(--warning);}
+.tnc{background:rgba(79,142,247,.12);color:var(--accent);}
+.tcr{background:rgba(247,79,106,.12);color:var(--critical);}
+.btn{padding:10px 18px;height:40px;border-radius:8px;font-family:var(--font-head);font-size:11px;font-weight:700;letter-spacing:.5px;cursor:pointer;border:none;transition:all .2s;display:inline-flex;align-items:center;gap:5px;}
+.btn-outline{background:transparent;border:1px solid var(--border);color:var(--muted);}
+.btn-outline:hover{border-color:var(--accent);color:var(--accent);}
+.btn-primary{background:var(--accent);color:white;}
+.btn-primary:hover{background:#6ba2f9;transform:translateY(-1px);}
+.btn-success{background:rgba(79,247,160,.15);border:1px solid rgba(79,247,160,.3);color:var(--success);}
+.btn-success:hover{background:rgba(79,247,160,.25);}
+.btn-excel{background:rgba(79,197,79,.12);border:1px solid rgba(79,197,79,.3);color:#4fc74f;}
+.btn-excel:hover{background:rgba(79,197,79,.22);}
+.btn-danger{background:rgba(247,79,106,.1);border:1px solid rgba(247,79,106,.25);color:var(--critical);}
+.btn-danger:hover{background:rgba(247,79,106,.2);}
+.btn-sm{padding:5px 12px;height:32px;font-size:10px;}
+.abar{display:flex;gap:8px;justify-content:flex-end;padding-top:6px;flex-wrap:wrap;}
+.pt-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:18px;}
+.pt-hdr{padding:13px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.filter-bar{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center;}
+.filter-bar input,.filter-bar select{background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:var(--font-body);font-size:12px;padding:7px 10px;outline:none;}
+.filter-bar input:focus,.filter-bar select:focus{border-color:var(--accent);}
+.arc{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;}
+.arc-rank{position:absolute;top:12px;right:12px;font-family:var(--font-head);font-size:24px;font-weight:800;opacity:.07;}
+.arc-name{font-family:var(--font-head);font-weight:700;font-size:14px;margin-bottom:3px;}
+.arc-meta{font-size:11px;color:var(--muted);margin-bottom:10px;}
+.arc-score{font-family:var(--font-head);font-size:32px;font-weight:800;line-height:1;margin-bottom:4px;}
+.ten-badge{font-size:10px;padding:2px 8px;border-radius:20px;background:rgba(167,139,250,.12);color:var(--purple);font-weight:600;}
+.chart-wrap{padding:18px;}
+.p-legend{display:flex;gap:16px;padding:0 18px 14px;flex-wrap:wrap;}
+.p-leg-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted);}
+.p-leg-dot{width:9px;height:9px;border-radius:2px;}
+.empty-state{text-align:center;padding:50px 20px;color:var(--muted);}
+.empty-state .ei{font-size:42px;margin-bottom:10px;}
+.empty-state h3{font-family:var(--font-head);font-size:15px;color:var(--text);margin-bottom:5px;}
+#toast{position:fixed;bottom:22px;right:22px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:11px 18px;font-size:13px;font-weight:500;z-index:9999;transform:translateY(80px);opacity:0;transition:all .3s;max-width:280px;}
+#toast.show{transform:none;opacity:1;}
+#toast.ts{border-color:rgba(79,247,160,.4);color:var(--success);}
+#toast.te{border-color:rgba(247,79,106,.4);color:var(--critical);}
+.adr{display:none;background:var(--surface2);}
+.adr td{padding:12px 14px;}
+.adr.open{display:table-row;}
+.dgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+.di label{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);}
+.di p{font-size:12px;margin-top:2px;}
+/* Login */
+#loginScreen{position:fixed;inset:0;background:#0b0f1a;display:flex;justify-content:center;align-items:center;z-index:9999;flex-direction:column;gap:12px;}
+#loginScreen h2{font-family:var(--font-head);font-size:22px;color:var(--text);margin-bottom:6px;}
+#loginScreen input{background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:var(--font-body);font-size:13px;padding:10px 14px;outline:none;width:280px;}
+#loginScreen input:focus{border-color:var(--accent);}
+#loginScreen button{background:var(--accent);color:white;border:none;border-radius:8px;padding:10px 28px;font-family:var(--font-head);font-size:13px;font-weight:700;cursor:pointer;width:280px;margin-top:4px;}
+#loginScreen button:hover{background:#6ba2f9;}
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+::-webkit-scrollbar-thumb:hover{background:var(--muted);}
+@media(max-width:900px){.score-dash,.g4{grid-template-columns:1fr 1fr;}.sections-grid,.bg2,.g2,.g3{grid-template-columns:1fr;}}
 </style>
 </head>
 <body>
 
-<!-- ── LOGIN ── -->
+<!-- ═══ LOGIN SCREEN ═══ -->
 <div id="loginScreen">
-  <div class="login-card">
-    <div class="login-logo">QA<span class="dot">.</span>Hub</div>
-    <div class="login-sub">Performance Intelligence System</div>
-    <div class="login-divider"></div>
-    <div class="login-field">
-      <label>Email Address</label>
-      <input type="email" id="loginEmail" placeholder="you@company.com">
-    </div>
-    <div class="login-field">
-      <label>Password</label>
-      <input type="password" id="loginPassword" placeholder="••••••••">
-    </div>
-    <button class="login-btn" onclick="loginUser()">Sign In →</button>
-  </div>
+  <h2>QA<span style="color:var(--accent)">.</span>Hub Login</h2>
+  <input type="email" id="loginEmail" placeholder="Email address">
+  <input type="password" id="loginPassword" placeholder="Password">
+  <button onclick="loginUser()">Login</button>
 </div>
 
-<!-- ── MAIN APP ── -->
+<!-- ═══ MAIN APP ═══ -->
 <div id="mainApp" style="display:none;">
+
+  <!-- ═══ TOP BAR (FIXED) ═══ -->
   <div class="top-bar">
     <div class="container header-inner">
-      <div class="logo">
-        <div class="logo-mark">QA<span class="dot">.</span>Hub</div>
-        <small>Intelligence</small>
-      </div>
+      <div class="logo">QA<span>.</span>Hub</div>
       <div class="nav-tabs">
-        <button class="nav-tab active" onclick="switchTab('scorecard',this)">📋 Scorecard</button>
-        <button class="nav-tab" onclick="switchTab('auditlog',this)">📁 Audit Log <span class="tab-badge" id="auditBadge">0</span></button>
-        <button class="nav-tab" onclick="switchTab('performance',this)">📊 Performance</button>
-        <button class="nav-tab" onclick="switchTab('analytics',this)">🧠 Analytics</button>
-        <button class="nav-tab" onclick="switchTab('coaching',this)">🎯 Coaching ROI</button>
-        <button class="nav-tab" onclick="switchTab('pareto',this)">📉 Pareto</button>
+        <button class="nav-tab active" onclick="switchTab('scorecard',this)">Scorecard</button>
+        <button class="nav-tab" onclick="switchTab('auditlog',this)">Audit Log <span class="tab-badge" id="auditBadge">0</span></button>
+        <button class="nav-tab" onclick="switchTab('performance',this)">Agent Performance</button>
+        <button class="nav-tab" onclick="switchTab('pareto',this)">Pareto Analysis</button>
       </div>
       <div class="top-bar-right">
-        <div id="userProfile">
-          <div id="profileName"></div>
-          <div id="profileDesignation"></div>
-          <div id="profileAccess"></div>
-          <div id="profileEmail"></div>
+        <div id="userProfile" style="display:flex;flex-direction:column;padding:6px 12px;background:rgba(79,142,247,0.08);border:1px solid #252e45;border-radius:8px;font-size:11px;text-align:right;">
+          <div id="profileName" style="font-size:13px;font-weight:600;color:#e8edf8;"></div>
+          <div id="profileDesignation" style="color:#6b7a9e;"></div>
+          <div id="profileAccess" style="margin-top:3px;color:#4f8ef7;font-size:11px;line-height:1.4;"></div>
+          <div id="profileEmail" style="font-size:10px;color:#6b7a9e;"></div>
         </div>
-        <button class="btn btn-excel btn-sm" onclick="exportAllExcel()">⬇ Export</button>
-        <button id="clearBtn" class="btn btn-danger btn-sm" onclick="clearAllAudits()" style="display:none;">🗑 Clear</button>
-        <button class="btn btn-outline btn-sm" onclick="logoutUser()">🚪 Logout</button>
+        <button class="btn btn-excel" onclick="exportAllExcel()">⬇ Export All</button>
+        <button id="clearBtn" class="btn btn-danger btn-sm" onclick="clearAllAudits()" style="display:none;">🗑 Clear All</button>
+        <button class="btn btn-outline" onclick="logoutUser()">🚪 Logout</button>
       </div>
     </div>
   </div>
 
+  <!-- ═══ CONTENT ═══ -->
   <div class="content container">
 
-    <!-- ══ TAB 1: SCORECARD ══ -->
+    <!-- TAB 1: SCORECARD -->
     <div id="tab-scorecard" class="tab-panel active">
       <div class="meta-grid">
         <div class="meta-card"><label>Agent Name</label><input type="text" id="agentName" placeholder="Enter agent name"></div>
@@ -1024,72 +226,46 @@ tbody td { padding: 11px 16px; font-size: 13px; color: var(--text); }
         <div class="meta-card"><label>Team / Queue</label><input type="text" id="team" placeholder="e.g. Sales"></div>
         <div class="meta-card"><label>Tenure (months)</label><input type="number" id="tenure" placeholder="e.g. 6" min="0"></div>
         <div class="meta-card"><label>Language</label><input type="text" id="agentLang" placeholder="e.g. English"></div>
-        <div class="meta-card"><label>Lead Converted?</label><select id="converted"><option value="">Select</option><option value="yes">Yes ✓</option><option value="no">No ✗</option><option value="na">N/A</option></select></div>
       </div>
 
       <div class="score-dash">
-        <div class="sc-card sct gauge-card">
-          <div class="sc-label">Overall Score</div>
-          <div class="gauge-wrap">
-            <canvas id="gaugeChart" width="160" height="90"></canvas>
-            <div class="gauge-center">
-              <div class="gauge-score" id="totalScore" style="color:var(--accent2)">—</div>
-              <div class="gauge-result" id="resultVal" style="color:var(--muted)">—</div>
-            </div>
-          </div>
-          <div class="sc-sub" id="resultSub" style="text-align:center;margin-top:6px">Awaiting scores</div>
-        </div>
-        <div class="sc-card scnc">
-          <div class="sc-label">Non-Critical</div>
-          <div class="sc-val" id="ncScore">—</div>
-          <div class="sc-sub">weighted 40%</div>
-          <div class="pbar"><div class="pfill" id="ncBar" style="width:0%"></div></div>
-        </div>
-        <div class="sc-card sccr">
-          <div class="sc-label">Critical</div>
-          <div class="sc-val" id="crScore">—</div>
-          <div class="sc-sub">weighted 60%</div>
-          <div class="pbar"><div class="pfill" id="crBar" style="width:0%"></div></div>
-        </div>
-        <div class="sc-card scres">
-          <div class="sc-label">Final Result</div>
-          <div id="finalResultDisplay" style="font-family:var(--font-head);font-size:32px;font-weight:800;line-height:1;margin-bottom:5px;color:var(--success);letter-spacing:-1px;">—</div>
-          <div class="sc-sub" id="finalResultSub">Based on 85% threshold</div>
-          <div class="pbar"><div class="pfill" id="resultBar" style="width:0%"></div></div>
-        </div>
+        <div class="sc-card sct"><div class="sc-label">Overall Score</div><div class="sc-val" id="totalScore">—</div><div class="sc-sub">out of 100%</div><div class="pbar"><div class="pfill" id="totalBar" style="width:0%"></div></div></div>
+        <div class="sc-card scnc"><div class="sc-label">Non-Critical</div><div class="sc-val" id="ncScore">—</div><div class="sc-sub">weighted 40%</div><div class="pbar"><div class="pfill" id="ncBar" style="width:0%"></div></div></div>
+        <div class="sc-card sccr"><div class="sc-label">Critical</div><div class="sc-val" id="crScore">—</div><div class="sc-sub">weighted 60%</div><div class="pbar"><div class="pfill" id="crBar" style="width:0%"></div></div></div>
+        <div class="sc-card scres"><div class="sc-label">Final Result</div><div class="sc-val" id="resultVal">—</div><div class="sc-sub" id="resultSub">Awaiting scores</div><div class="pbar"><div class="pfill" id="resultBar" style="width:0%"></div></div></div>
       </div>
 
       <div class="sections-grid">
         <div class="sec-card">
           <div class="sec-hdr"><div class="sec-hdr-title">Non-Critical Parameters</div><span class="sbadge nc-badge">Non-Critical</span></div>
           <div class="pgh"><div class="pgl">Call Opening / Closing</div></div>
-          <div class="param-row"><div class="pl">Standard opening & customer name confirmation</div><div class="rg"><button class="br" onclick="rate(this,'yes','nc1')">Y</button><button class="br" onclick="rate(this,'no','nc1')">N</button><button class="br" onclick="rate(this,'na','nc1')">N/A</button></div></div>
-          <div class="param-row"><div class="pl">Summarization</div><div class="rg"><button class="br" onclick="rate(this,'yes','nc2')">Y</button><button class="br" onclick="rate(this,'no','nc2')">N</button><button class="br" onclick="rate(this,'na','nc2')">N/A</button></div></div>
-          <div class="param-row"><div class="pl">Further assistance offered</div><div class="rg"><button class="br" onclick="rate(this,'yes','nc3')">Y</button><button class="br" onclick="rate(this,'no','nc3')">N</button><button class="br" onclick="rate(this,'na','nc3')">N/A</button></div></div>
-          <div class="param-row"><div class="pl">Prescribed call closing</div><div class="rg"><button class="br" onclick="rate(this,'yes','nc4')">Y</button><button class="br" onclick="rate(this,'no','nc4')">N</button><button class="br" onclick="rate(this,'na','nc4')">N/A</button></div></div>
+          <div class="param-row" data-key="nc1"><div class="pl">Standard opening & customer name confirmation</div><div class="rg"><button class="br" onclick="rate(this,'yes','nc1')">Y</button><button class="br" onclick="rate(this,'no','nc1')">N</button><button class="br" onclick="rate(this,'na','nc1')">N/A</button></div></div>
+          <div class="param-row" data-key="nc2"><div class="pl">Summarization</div><div class="rg"><button class="br" onclick="rate(this,'yes','nc2')">Y</button><button class="br" onclick="rate(this,'no','nc2')">N</button><button class="br" onclick="rate(this,'na','nc2')">N/A</button></div></div>
+          <div class="param-row" data-key="nc3"><div class="pl">Further assistance offered</div><div class="rg"><button class="br" onclick="rate(this,'yes','nc3')">Y</button><button class="br" onclick="rate(this,'no','nc3')">N</button><button class="br" onclick="rate(this,'na','nc3')">N/A</button></div></div>
+          <div class="param-row" data-key="nc4"><div class="pl">Prescribed call closing</div><div class="rg"><button class="br" onclick="rate(this,'yes','nc4')">Y</button><button class="br" onclick="rate(this,'no','nc4')">N</button><button class="br" onclick="rate(this,'na','nc4')">N/A</button></div></div>
           <div class="pgh"><div class="pgl">Issue Identification</div></div>
-          <div class="param-row"><div class="pl">Paraphrasing to ensure agent/customer alignment</div><div class="rg"><button class="br" onclick="rate(this,'yes','nc5')">Y</button><button class="br" onclick="rate(this,'no','nc5')">N</button><button class="br" onclick="rate(this,'na','nc5')">N/A</button></div></div>
-          <div class="param-row"><div class="pl">Customer VOC understood and acknowledged</div><div class="rg"><button class="br" onclick="rate(this,'yes','nc6')">Y</button><button class="br" onclick="rate(this,'no','nc6')">N</button><button class="br" onclick="rate(this,'na','nc6')">N/A</button></div></div>
-          <div class="param-row"><div class="pl">Relevant probing questions were asked</div><div class="rg"><button class="br" onclick="rate(this,'yes','nc7')">Y</button><button class="br" onclick="rate(this,'no','nc7')">N</button><button class="br" onclick="rate(this,'na','nc7')">N/A</button></div></div>
+          <div class="param-row" data-key="nc5"><div class="pl">Paraphrasing to ensure agent/customer alignment</div><div class="rg"><button class="br" onclick="rate(this,'yes','nc5')">Y</button><button class="br" onclick="rate(this,'no','nc5')">N</button><button class="br" onclick="rate(this,'na','nc5')">N/A</button></div></div>
+          <div class="param-row" data-key="nc6"><div class="pl">Customer VOC understood and acknowledged</div><div class="rg"><button class="br" onclick="rate(this,'yes','nc6')">Y</button><button class="br" onclick="rate(this,'no','nc6')">N</button><button class="br" onclick="rate(this,'na','nc6')">N/A</button></div></div>
+          <div class="param-row" data-key="nc7"><div class="pl">Relevant probing questions were asked</div><div class="rg"><button class="br" onclick="rate(this,'yes','nc7')">Y</button><button class="br" onclick="rate(this,'no','nc7')">N</button><button class="br" onclick="rate(this,'na','nc7')">N/A</button></div></div>
           <div class="pgh"><div class="pgl">Customer Experience</div></div>
-          <div class="param-row"><div class="pl">Active Listening / Reading Demonstration</div><div class="rg"><button class="br" onclick="rate(this,'yes','nc8')">Y</button><button class="br" onclick="rate(this,'no','nc8')">N</button><button class="br" onclick="rate(this,'na','nc8')">N/A</button></div></div>
-          <div class="param-row"><div class="pl">Hold and Dead Air SLA Followed</div><div class="rg"><button class="br" onclick="rate(this,'yes','nc9')">Y</button><button class="br" onclick="rate(this,'no','nc9')">N</button><button class="br" onclick="rate(this,'na','nc9')">N/A</button></div></div>
-          <div class="param-row"><div class="pl">Apologies, Empathy, and Politeness Demonstrated</div><div class="rg"><button class="br" onclick="rate(this,'yes','nc10')">Y</button><button class="br" onclick="rate(this,'no','nc10')">N</button><button class="br" onclick="rate(this,'na','nc10')">N/A</button></div></div>
-          <div class="param-row"><div class="pl">Conversation without Overlapping and Interruptions</div><div class="rg"><button class="br" onclick="rate(this,'yes','nc11')">Y</button><button class="br" onclick="rate(this,'no','nc11')">N</button><button class="br" onclick="rate(this,'na','nc11')">N/A</button></div></div>
-          <div class="param-row"><div class="pl">Accurate Email Sent to Client</div><div class="rg"><button class="br" onclick="rate(this,'yes','nc12')">Y</button><button class="br" onclick="rate(this,'no','nc12')">N</button><button class="br" onclick="rate(this,'na','nc12')">N/A</button></div></div>
+          <div class="param-row" data-key="nc8"><div class="pl">Active Listening / Reading Demonstration</div><div class="rg"><button class="br" onclick="rate(this,'yes','nc8')">Y</button><button class="br" onclick="rate(this,'no','nc8')">N</button><button class="br" onclick="rate(this,'na','nc8')">N/A</button></div></div>
+          <div class="param-row" data-key="nc9"><div class="pl">Hold and Dead Air SLA Followed</div><div class="rg"><button class="br" onclick="rate(this,'yes','nc9')">Y</button><button class="br" onclick="rate(this,'no','nc9')">N</button><button class="br" onclick="rate(this,'na','nc9')">N/A</button></div></div>
+          <div class="param-row" data-key="nc10"><div class="pl">Apologies, Empathy, and Politeness Demonstrated</div><div class="rg"><button class="br" onclick="rate(this,'yes','nc10')">Y</button><button class="br" onclick="rate(this,'no','nc10')">N</button><button class="br" onclick="rate(this,'na','nc10')">N/A</button></div></div>
+          <div class="param-row" data-key="nc11"><div class="pl">Conversation without Overlapping and Interruptions</div><div class="rg"><button class="br" onclick="rate(this,'yes','nc11')">Y</button><button class="br" onclick="rate(this,'no','nc11')">N</button><button class="br" onclick="rate(this,'na','nc11')">N/A</button></div></div>
+          <div class="param-row" data-key="nc12"><div class="pl">Accurate Email Sent to Client</div><div class="rg"><button class="br" onclick="rate(this,'yes','nc12')">Y</button><button class="br" onclick="rate(this,'no','nc12')">N</button><button class="br" onclick="rate(this,'na','nc12')">N/A</button></div></div>
         </div>
         <div class="sec-card">
           <div class="sec-hdr"><div class="sec-hdr-title">Critical Parameters</div><span class="sbadge cr-badge">Critical</span></div>
-          <div class="param-row"><div class="pl">Agent remained professional, polite, and pleasant throughout</div><div class="rg"><button class="br" onclick="rate(this,'yes','cr1')">Y</button><button class="br" onclick="rate(this,'no','cr1')">N</button><button class="br" onclick="rate(this,'na','cr1')">N/A</button></div></div>
-          <div class="param-row"><div class="pl">Called client within timeframe & accommodated callback per global TZ</div><div class="rg"><button class="br" onclick="rate(this,'yes','cr2')">Y</button><button class="br" onclick="rate(this,'no','cr2')">N</button><button class="br" onclick="rate(this,'na','cr2')">N/A</button></div></div>
-          <div class="param-row"><div class="pl">Provided complete and accurate information on call/chat</div><div class="rg"><button class="br" onclick="rate(this,'yes','cr3')">Y</button><button class="br" onclick="rate(this,'no','cr3')">N</button><button class="br" onclick="rate(this,'na','cr3')">N/A</button></div></div>
-          <div class="param-row"><div class="pl">Answered queries timely and effectively; chose right disposition</div><div class="rg"><button class="br" onclick="rate(this,'yes','cr4')">Y</button><button class="br" onclick="rate(this,'no','cr4')">N</button><button class="br" onclick="rate(this,'na','cr4')">N/A</button></div></div>
-          <div class="param-row"><div class="pl">Asked qualifying questions and updated notes per standard procedure</div><div class="rg"><button class="br" onclick="rate(this,'yes','cr5')">Y</button><button class="br" onclick="rate(this,'no','cr5')">N</button><button class="br" onclick="rate(this,'na','cr5')">N/A</button></div></div>
-          <div class="param-row"><div class="pl">Successfully created an opportunity after the conversation</div><div class="rg"><button class="br" onclick="rate(this,'yes','cr6')">Y</button><button class="br" onclick="rate(this,'no','cr6')">N</button><button class="br" onclick="rate(this,'na','cr6')">N/A</button></div></div>
-          <div class="param-row"><div class="pl">Updated special requirements in notes for other teams</div><div class="rg"><button class="br" onclick="rate(this,'yes','cr7')">Y</button><button class="br" onclick="rate(this,'no','cr7')">N</button><button class="br" onclick="rate(this,'na','cr7')">N/A</button></div></div>
-          <div class="param-row"><div class="pl">Directed non-sales queries to relevant team for quick resolution</div><div class="rg"><button class="br" onclick="rate(this,'yes','cr8')">Y</button><button class="br" onclick="rate(this,'no','cr8')">N</button><button class="br" onclick="rate(this,'na','cr8')">N/A</button></div></div>
-          <div class="param-row"><div class="pl">All client questions answered accurately (installment plan, social media price)</div><div class="rg"><button class="br" onclick="rate(this,'yes','cr9')">Y</button><button class="br" onclick="rate(this,'no','cr9')">N</button><button class="br" onclick="rate(this,'na','cr9')">N/A</button></div></div>
-          <div class="param-row"><div class="pl">Converted lead without pushing client (language barrier, busy, etc.)</div><div class="rg"><button class="br" onclick="rate(this,'yes','cr10')">Y</button><button class="br" onclick="rate(this,'no','cr10')">N</button><button class="br" onclick="rate(this,'na','cr10')">N/A</button></div></div>
+          <div class="param-row" data-key="cr1"><div class="pl">Agent remained professional, polite, and pleasant throughout</div><div class="rg"><button class="br" onclick="rate(this,'yes','cr1')">Y</button><button class="br" onclick="rate(this,'no','cr1')">N</button><button class="br" onclick="rate(this,'na','cr1')">N/A</button></div></div>
+          <div class="param-row" data-key="cr2"><div class="pl">Called client within timeframe & accommodated callback per global TZ</div><div class="rg"><button class="br" onclick="rate(this,'yes','cr2')">Y</button><button class="br" onclick="rate(this,'no','cr2')">N</button><button class="br" onclick="rate(this,'na','cr2')">N/A</button></div></div>
+          <div class="param-row" data-key="cr3"><div class="pl">Provided complete and accurate information on call/chat</div><div class="rg"><button class="br" onclick="rate(this,'yes','cr3')">Y</button><button class="br" onclick="rate(this,'no','cr3')">N</button><button class="br" onclick="rate(this,'na','cr3')">N/A</button></div></div>
+          <div class="param-row" data-key="cr4"><div class="pl">Answered queries timely and effectively; chose right disposition</div><div class="rg"><button class="br" onclick="rate(this,'yes','cr4')">Y</button><button class="br" onclick="rate(this,'no','cr4')">N</button><button class="br" onclick="rate(this,'na','cr4')">N/A</button></div></div>
+          <div class="param-row" data-key="cr5"><div class="pl">Asked qualifying questions and updated notes per standard procedure</div><div class="rg"><button class="br" onclick="rate(this,'yes','cr5')">Y</button><button class="br" onclick="rate(this,'no','cr5')">N</button><button class="br" onclick="rate(this,'na','cr5')">N/A</button></div></div>
+          <div class="param-row" data-key="cr6"><div class="pl">Successfully created an opportunity after the conversation</div><div class="rg"><button class="br" onclick="rate(this,'yes','cr6')">Y</button><button class="br" onclick="rate(this,'no','cr6')">N</button><button class="br" onclick="rate(this,'na','cr6')">N/A</button></div></div>
+          <div class="param-row" data-key="cr7"><div class="pl">Updated special requirements in notes for other teams</div><div class="rg"><button class="br" onclick="rate(this,'yes','cr7')">Y</button><button class="br" onclick="rate(this,'no','cr7')">N</button><button class="br" onclick="rate(this,'na','cr7')">N/A</button></div></div>
+          <div class="param-row" data-key="cr8"><div class="pl">Directed non-sales queries to relevant team for quick resolution</div><div class="rg"><button class="br" onclick="rate(this,'yes','cr8')">Y</button><button class="br" onclick="rate(this,'no','cr8')">N</button><button class="br" onclick="rate(this,'na','cr8')">N/A</button></div></div>
+          <div class="param-row" data-key="cr9"><div class="pl">All client questions answered accurately (installment plan, social media price)</div><div class="rg"><button class="br" onclick="rate(this,'yes','cr9')">Y</button><button class="br" onclick="rate(this,'no','cr9')">N</button><button class="br" onclick="rate(this,'na','cr9')">N/A</button></div></div>
+          <div class="param-row" data-key="cr10"><div class="pl">Converted lead without pushing client (language barrier, busy, etc.)</div><div class="rg"><button class="br" onclick="rate(this,'yes','cr10')">Y</button><button class="br" onclick="rate(this,'no','cr10')">N</button><button class="br" onclick="rate(this,'na','cr10')">N/A</button></div></div>
         </div>
       </div>
 
@@ -1098,201 +274,105 @@ tbody td { padding: 11px 16px; font-size: 13px; color: var(--text); }
         <div class="tc"><div class="tc-hdr">🔍 Observations</div><textarea id="observations" placeholder="Note specific behaviors, tone issues, missed opportunities..."></textarea></div>
         <div class="tc"><div class="tc-hdr">💡 Recommendation</div><textarea id="recommendation" placeholder="Coaching points, training suggestions, or commendations..."></textarea></div>
       </div>
+
       <div class="pt-card mb6">
         <div class="pt-hdr"><div class="card-title">Performance Breakdown</div><span style="font-size:11px;color:var(--muted)">Live score per group</span></div>
-        <div class="table-wrap"><table><thead><tr><th>Parameter Group</th><th>Type</th><th>Scored</th><th>Applicable</th><th style="width:150px">Score %</th><th>Status</th></tr></thead><tbody id="perfTableBody"><tr><td colspan="6" style="color:var(--muted);text-align:center;padding:22px">Start scoring above.</td></tr></tbody></table></div>
+        <div class="table-wrap"><table><thead><tr><th>Parameter Group</th><th>Type</th><th>Scored</th><th>Applicable</th><th style="width:150px">Score %</th><th>Status</th></tr></thead><tbody id="perfTableBody"><tr><td colspan="6" style="color:var(--muted);text-align:center;padding:18px">Start scoring above to see breakdown.</td></tr></tbody></table></div>
       </div>
+
       <div class="abar">
         <button class="btn btn-danger btn-sm" onclick="resetForm()">↺ Reset</button>
-        <button class="btn btn-outline btn-sm" onclick="window.print()">🖨 Print</button>
+        <button class="btn btn-outline" onclick="window.print()">🖨 Print</button>
         <button class="btn btn-success" onclick="saveAudit()">💾 Save Audit</button>
       </div>
     </div>
 
-    <!-- ══ TAB 2: AUDIT LOG ══ -->
+    <!-- TAB 2: AUDIT LOG -->
     <div id="tab-auditlog" class="tab-panel">
       <div class="filter-bar">
         <input type="text" id="filterAgent" placeholder="Search agent..." oninput="renderAuditLog()">
         <select id="filterResult" onchange="renderAuditLog()"><option value="">All Results</option><option>Pass</option><option>Review</option><option>Fail</option></select>
         <select id="filterChannel" onchange="renderAuditLog()"><option value="">All Channels</option><option>Inbound Call</option><option>Outbound Call</option><option>Live Chat</option><option>Email</option></select>
-        <select id="filterCoaching" onchange="renderAuditLog()"><option value="">All</option><option value="yes">Coaching Required</option><option value="no">No Coaching Needed</option></select>
-        <select id="filterConverted" onchange="renderAuditLog()"><option value="">All Conversions</option><option value="yes">Converted</option><option value="no">Not Converted</option></select>
         <div style="margin-left:auto;display:flex;gap:7px">
-          <button class="btn btn-excel btn-sm" onclick="exportAuditExcel()">⬇ Export</button>
+          <button class="btn btn-excel btn-sm" onclick="exportAuditExcel()">⬇ Export Log</button>
           <button id="clearBtn2" class="btn btn-danger btn-sm" onclick="clearAllAudits()" style="display:none;">🗑 Clear All</button>
         </div>
       </div>
       <div class="card">
         <div class="table-wrap">
           <table>
-            <thead><tr><th></th><th>Date</th><th>Agent</th><th>Reviewer</th><th>Call ID</th><th>Channel</th><th>NC %</th><th>CR %</th><th>Overall %</th><th>Result</th><th>Coaching</th><th>Converted</th><th>Action</th></tr></thead>
-            <tbody id="auditTableBody"><tr><td colspan="13"><div class="empty-state"><div class="ei">📭</div><h3>No audits yet</h3><p>Complete and save a scorecard to see it here.</p></div></td></tr></tbody>
+            <thead><tr><th></th><th>Date</th><th>Agent</th><th>Reviewer</th><th>Call ID</th><th>Channel</th><th>NC %</th><th>Critical %</th><th>Overall %</th><th>Result</th><th>Action</th></tr></thead>
+            <tbody id="auditTableBody"><tr><td colspan="11"><div class="empty-state"><div class="ei">📭</div><h3>No audits yet</h3><p>Complete and save a scorecard to see it here.</p></div></td></tr></tbody>
           </table>
         </div>
       </div>
     </div>
 
-    <!-- ══ TAB 3: PERFORMANCE ══ -->
+    <!-- TAB 3: AGENT PERFORMANCE -->
     <div id="tab-performance" class="tab-panel">
-      <div class="g5 mb6">
+      <div class="g4 mb6">
         <div class="stat-card s-blue"><div class="s-label">Total Evaluations</div><div class="s-val" id="ps-total">0</div><div class="s-sub">All agents</div></div>
         <div class="stat-card s-green"><div class="s-label">Avg Overall Score</div><div class="s-val" id="ps-avg">—</div><div class="s-sub">Across all audits</div></div>
         <div class="stat-card s-yellow"><div class="s-label">Pass Rate</div><div class="s-val" id="ps-pass">—</div><div class="s-sub">≥85% threshold</div></div>
-        <div class="stat-card s-red"><div class="s-label">At-Risk Agents</div><div class="s-val" id="ps-atrisk">0</div><div class="s-sub">Dip detected</div></div>
-        <div class="stat-card s-purple"><div class="s-label">Agents Evaluated</div><div class="s-val" id="ps-agents">0</div><div class="s-sub">Unique agents</div></div>
+        <div class="stat-card s-red"><div class="s-label">Agents Evaluated</div><div class="s-val" id="ps-agents">0</div><div class="s-sub">Unique agents</div></div>
       </div>
-
-      <div class="sec-title">🚨 QA Dip Detection Alerts</div>
-      <div id="dipAlertsPerf" class="mb6"></div>
-
-      <div class="sec-title">🏆 Live Leaderboard</div>
-      <div class="card mb6" id="leaderboardCard">
-        <div class="empty-state" style="padding:30px"><p>No data yet</p></div>
-      </div>
-
       <div class="g2 mb6">
-        <div><div class="sec-title">🥇 Top Performers</div><div id="topPerformers" class="g2"></div></div>
-        <div><div class="sec-title">⚠️ Needs Coaching</div><div id="bottomPerformers" class="g2"></div></div>
+        <div><div class="sec-title">🏆 Top Performers</div><div id="topPerformers" class="g2"><div class="empty-state" style="padding:28px"><p>No data yet</p></div></div></div>
+        <div><div class="sec-title">⚠️ Needs Coaching</div><div id="bottomPerformers" class="g2"><div class="empty-state" style="padding:28px"><p>No data yet</p></div></div></div>
       </div>
-
-      <div class="g2 mb6">
-        <div class="card">
-          <div class="card-hdr"><div class="card-title">📊 Audit Volume Trend</div><span style="font-size:11px;color:var(--muted)">Pass / Review / Fail per month</span></div>
-          <div class="chart-wrap" style="height:260px"><canvas id="volumeChart"></canvas></div>
-        </div>
-        <div class="card">
-          <div class="card-hdr"><div class="card-title">📅 Activity Calendar</div><span style="font-size:11px;color:var(--muted)">Last 26 weeks · Avg QA score</span></div>
-          <div id="calendarContainer"></div>
-        </div>
-      </div>
-
       <div class="sec-title">📅 Performance by Tenure Band</div>
       <div class="card mb6">
         <div class="table-wrap"><table>
-          <thead><tr><th>Tenure Band</th><th>Agents</th><th>Evals</th><th>Avg NC %</th><th>Avg CR %</th><th style="width:130px">Avg Overall %</th><th>Pass Rate</th></tr></thead>
+          <thead><tr><th>Tenure Band</th><th>Agents</th><th>Evaluations</th><th>Avg NC %</th><th>Avg Critical %</th><th style="width:130px">Avg Overall %</th><th>Pass Rate</th></tr></thead>
           <tbody id="tenureTableBody"><tr><td colspan="7"><div class="empty-state" style="padding:22px"><p>No data yet</p></div></td></tr></tbody>
         </table></div>
       </div>
-
       <div class="sec-title">👥 All Agents Breakdown</div>
       <div class="card mb6">
         <div class="table-wrap"><table>
-          <thead><tr><th>#</th><th>Agent</th><th>Team</th><th>Tenure</th><th>Evals</th><th>Avg NC%</th><th>Avg CR%</th><th style="width:110px">Avg Overall%</th><th>Stability</th><th style="width:90px">Risk</th><th>Last Eval</th><th>Status</th><th>Coaching</th></tr></thead>
-          <tbody id="agentTableBody"><tr><td colspan="13"><div class="empty-state" style="padding:22px"><p>No data yet</p></div></td></tr></tbody>
+          <thead><tr><th>#</th><th>Agent</th><th>Team</th><th>Tenure</th><th>Evals</th><th>Avg NC %</th><th>Avg Critical %</th><th style="width:120px">Avg Overall %</th><th>Last Eval</th><th>Status</th><th>Coaching Needed</th></tr></thead>
+          <tbody id="agentTableBody"><tr><td colspan="11"><div class="empty-state" style="padding:22px"><p>No data yet</p></div></td></tr></tbody>
         </table></div>
       </div>
-      <div class="abar"><button class="btn btn-excel btn-sm" onclick="exportPerfExcel()">⬇ Export Performance</button></div>
-
+      <div class="abar"><button class="btn btn-excel btn-sm" onclick="exportPerfExcel()">⬇ Export Agent Performance</button></div>
       <div class="card mb6">
         <div class="card-hdr"><div class="card-title">📈 Monthly QA Trend</div></div>
-        <div class="chart-wrap" style="height:260px"><canvas id="monthlyTrendChart"></canvas></div>
+        <div class="chart-wrap" style="height:300px"><canvas id="monthlyTrendChart"></canvas></div>
       </div>
     </div>
 
-    <!-- ══ TAB 4: ANALYTICS ══ -->
-    <div id="tab-analytics" class="tab-panel">
-      <div class="g2 mb6">
-        <div class="card">
-          <div class="card-hdr"><div class="card-title">📊 Score Distribution</div><span style="font-size:11px;color:var(--muted)">How scores cluster</span></div>
-          <div class="chart-wrap" style="height:260px"><canvas id="distChart"></canvas></div>
-        </div>
-        <div class="card">
-          <div class="card-hdr">
-            <div class="card-title">🕸 Radar — Agent Profile</div>
-            <select id="radarAgentSelect" style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:var(--font-body);font-size:12px;padding:5px 10px;outline:none;" onchange="onRadarAgentChange()"><option value="">Select agent...</option></select>
-          </div>
-          <div class="chart-wrap" style="height:260px"><canvas id="radarChart"></canvas></div>
-        </div>
-      </div>
-
-      <div class="sec-title">⚖️ Agent Comparison Tool</div>
-      <div class="card mb6">
-        <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;gap:14px;align-items:center;flex-wrap:wrap;background:rgba(255,255,255,0.015);">
-          <select id="cmpAgent1" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-family:var(--font-body);font-size:13px;padding:8px 12px;outline:none;min-width:180px;" onchange="renderComparison()"><option value="">Select Agent 1...</option></select>
-          <span style="font-family:var(--font-head);font-size:13px;font-weight:800;color:var(--muted)">VS</span>
-          <select id="cmpAgent2" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-family:var(--font-body);font-size:13px;padding:8px 12px;outline:none;min-width:180px;" onchange="renderComparison()"><option value="">Select Agent 2...</option></select>
-          <span style="font-size:11px;color:var(--muted)">Select two agents to compare side-by-side</span>
-        </div>
-        <div id="comparisonResult" style="padding:20px"><div style="text-align:center;color:var(--muted);padding:24px;font-size:13px;">Choose two agents above to see detailed comparison.</div></div>
-      </div>
-
-      <div class="g2 mb6">
-        <div class="card">
-          <div class="card-hdr"><div class="card-title">📈 Score vs Tenure Correlation</div></div>
-          <div class="chart-wrap" style="height:260px"><canvas id="tenureChart"></canvas></div>
-        </div>
-        <div class="card">
-          <div class="card-hdr"><div class="card-title">💰 Score vs Conversion</div></div>
-          <div class="chart-wrap" style="height:260px"><canvas id="conversionChart"></canvas></div>
-        </div>
-      </div>
-
-      <div class="sec-title">👥 Team-Level Comparison</div>
-      <div class="card mb6">
-        <div class="table-wrap"><table>
-          <thead><tr><th>Team</th><th>Agents</th><th>Evals</th><th>Avg NC%</th><th>Avg CR%</th><th style="width:120px">Avg Overall%</th><th>Pass Rate</th><th>Fail Rate</th><th>CR Fail%</th></tr></thead>
-          <tbody id="teamTableBody"><tr><td colspan="9"><div class="empty-state" style="padding:22px"><p>No data yet</p></div></td></tr></tbody>
-        </table></div>
-      </div>
-
-      <div class="sec-title">🔥 Parameter Failure Heatmap</div>
-      <div class="card mb6">
-        <div style="padding:10px 20px;font-size:11px;color:var(--muted);display:flex;gap:16px;align-items:center;border-bottom:1px solid var(--border);flex-wrap:wrap;background:rgba(255,255,255,0.015);">
-          <span style="font-weight:600;font-family:var(--font-head);letter-spacing:0.5px">Fail Rate:</span>
-          <span style="display:flex;align-items:center;gap:5px"><span style="width:12px;height:12px;background:rgba(34,211,138,.3);border-radius:3px;display:inline-block"></span>0%</span>
-          <span style="display:flex;align-items:center;gap:5px"><span style="width:12px;height:12px;background:rgba(240,128,64,.4);border-radius:3px;display:inline-block"></span>1–40%</span>
-          <span style="display:flex;align-items:center;gap:5px"><span style="width:12px;height:12px;background:rgba(240,64,96,.5);border-radius:3px;display:inline-block"></span>41–70%</span>
-          <span style="display:flex;align-items:center;gap:5px"><span style="width:12px;height:12px;background:rgba(240,64,96,.85);border-radius:3px;display:inline-block"></span>71%+</span>
-        </div>
-        <div id="heatmapContainer" class="heatmap-wrap"><div class="empty-state" style="padding:30px"><p>No data yet</p></div></div>
-      </div>
-    </div>
-
-    <!-- ══ TAB 5: COACHING ROI ══ -->
-    <div id="tab-coaching" class="tab-panel">
-      <div class="card mb6">
-        <div class="card-hdr"><div class="card-title">📝 Log Coaching Session</div></div>
-        <div class="coaching-form">
-          <div><label>Agent Name</label><input id="coachAgent" placeholder="Agent name..."></div>
-          <div><label>Coaching Date</label><input type="date" id="coachDate"></div>
-          <div style="flex:1"><label>Focus Areas / Notes</label><input id="coachNotes" placeholder="e.g. Critical params, empathy..."></div>
-          <button class="btn btn-success" style="margin-top:22px" onclick="saveCoachingSession()">💾 Save Session</button>
-        </div>
-      </div>
-      <div class="sec-title">📊 Coaching ROI — 30-Day Before vs After</div>
-      <div id="coachingROIList"><div class="empty-state"><div class="ei">🎯</div><h3>No coaching sessions logged</h3><p>Log a session above to track impact.</p></div></div>
-    </div>
-
-    <!-- ══ TAB 6: PARETO ══ -->
+    <!-- TAB 4: PARETO -->
     <div id="tab-pareto" class="tab-panel">
       <div class="g4 mb6">
         <div class="stat-card s-red"><div class="s-label">Total Failures</div><div class="s-val" id="par-total">0</div><div class="s-sub">Across all parameters</div></div>
-        <div class="stat-card s-yellow"><div class="s-label">Top Failure</div><div class="s-val" id="par-top" style="font-size:14px;line-height:1.5">—</div><div class="s-sub">Most common miss</div></div>
+        <div class="stat-card s-yellow"><div class="s-label">Top Failure</div><div class="s-val" id="par-top" style="font-size:16px;line-height:1.4">—</div><div class="s-sub">Most common miss</div></div>
         <div class="stat-card s-purple"><div class="s-label">Critical Failures</div><div class="s-val" id="par-cr">0</div><div class="s-sub">Critical param fails</div></div>
-        <div class="stat-card s-blue"><div class="s-label">80% Rule # Params</div><div class="s-val" id="par-80">—</div><div class="s-sub">Causing 80% of fails</div></div>
+        <div class="stat-card s-blue"><div class="s-label">80% Rule — # Params</div><div class="s-val" id="par-80">—</div><div class="s-sub">Params causing 80% fails</div></div>
       </div>
       <div class="g2 mb6">
         <div class="card">
-          <div class="card-hdr"><div class="card-title">Pareto Chart</div></div>
+          <div class="card-hdr"><div class="card-title">Pareto Chart — Failures by Parameter</div></div>
           <div class="p-legend">
-            <div class="p-leg-item"><div class="p-leg-dot" style="background:var(--critical)"></div>Critical</div>
+            <div class="p-leg-item"><div class="p-leg-dot" style="background:var(--critical)"></div>Critical Fail</div>
             <div class="p-leg-item"><div class="p-leg-dot" style="background:var(--accent)"></div>NC Fail</div>
             <div class="p-leg-item"><div class="p-leg-dot" style="background:var(--accent2)"></div>Cumulative %</div>
+            <div class="p-leg-item"><div class="p-leg-dot" style="background:rgba(255,255,255,.2)"></div>80% Line</div>
           </div>
-          <div class="chart-wrap" style="height:290px"><canvas id="paretoChart"></canvas></div>
+          <div class="chart-wrap" style="height:310px"><canvas id="paretoChart"></canvas></div>
         </div>
         <div class="card">
-          <div class="card-hdr"><div class="card-title">NC vs Critical Split</div></div>
-          <div class="chart-wrap" style="display:flex;align-items:center;justify-content:center;min-height:290px"><canvas id="splitChart" width="230" height="230"></canvas></div>
+          <div class="card-hdr"><div class="card-title">NC vs Critical Failure Split</div></div>
+          <div class="chart-wrap" style="display:flex;align-items:center;justify-content:center;min-height:310px"><canvas id="splitChart" width="250" height="250"></canvas></div>
         </div>
       </div>
+      <div class="sec-title">📋 Failure Detail by Parameter</div>
       <div class="card mb6">
         <div class="table-wrap"><table>
-          <thead><tr><th>Rank</th><th>Parameter</th><th>Type</th><th>Fails</th><th>Total Rated</th><th style="width:110px">Fail Rate%</th><th>Cumulative%</th><th>80% Rule</th></tr></thead>
-          <tbody id="paretoTableBody"><tr><td colspan="8"><div class="empty-state" style="padding:22px"><p>No data yet.</p></div></td></tr></tbody>
+          <thead><tr><th>Rank</th><th>Parameter</th><th>Type</th><th>Fails</th><th>Total Rated</th><th style="width:110px">Fail Rate %</th><th>Cumulative %</th><th>80% Rule</th></tr></thead>
+          <tbody id="paretoTableBody"><tr><td colspan="8"><div class="empty-state" style="padding:22px"><p>Save evaluations to populate this analysis.</p></div></td></tr></tbody>
         </table></div>
       </div>
-      <div class="abar"><button class="btn btn-excel btn-sm" onclick="exportParetoExcel()">⬇ Export Pareto</button></div>
+      <div class="abar"><button class="btn btn-excel btn-sm" onclick="exportParetoExcel()">⬇ Export Pareto Data</button></div>
     </div>
 
   </div><!-- /content -->
@@ -1300,54 +380,124 @@ tbody td { padding: 11px 16px; font-size: 13px; color: var(--text); }
 
 <div id="toast"></div>
 
-<!-- FIREBASE -->
+<!-- ═══ FIREBASE ═══ -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
 import { getDatabase, ref, push, get, remove, set } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-database.js";
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
-const fc={apiKey:"AIzaSyCifkNrq_PA8FtW7devgVsaNGXW-Tce0n8",authDomain:"qa-dashboard-system.firebaseapp.com",databaseURL:"https://qa-dashboard-system-default-rtdb.asia-southeast1.firebasedatabase.app",projectId:"qa-dashboard-system",storageBucket:"qa-dashboard-system.appspot.com",messagingSenderId:"373240224146",appId:"1:373240224146:web:80576d03fea68b3583894b"};
-const app=initializeApp(fc),db=getDatabase(app),auth=getAuth(app);
-window.db=db;window.ref=ref;window.push=push;window.get=get;window.remove=remove;window.set=set;window.auth=auth;
-const UP={"gaurabhi834@gmail.com":{name:"Abhishek Gaur",designation:"Deputy Manager – QA"},"tl.pinki@ocubeservices.com":{name:"Pinki Kumari",designation:"Team Leader – Sales"},"tl.shahid@ocubeservices.com":{name:"Md Shahid",designation:"Team Leader – Support"},"qa.prince@ocubeservices.com":{name:"Prince Kumar",designation:"Quality Analyst"}};
-window.getUserRole=function(){const u=auth.currentUser;if(!u)return null;const e=u.email;if(e==="gaurabhi834@gmail.com")return"admin";if(e==="qa.prince@ocubeservices.com")return"qa";if(e==="tl.pinki@ocubeservices.com"||e==="tl.shahid@ocubeservices.com")return"tl";return"agent";};
-onAuthStateChanged(auth,u=>{
-  if(u){
-    document.getElementById('loginScreen').style.display='none';
-    document.getElementById('mainApp').style.display='block';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCifkNrq_PA8FtW7devgVsaNGXW-Tce0n8",
+  authDomain: "qa-dashboard-system.firebaseapp.com",
+  databaseURL: "https://qa-dashboard-system-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "qa-dashboard-system",
+  storageBucket: "qa-dashboard-system.appspot.com",
+  messagingSenderId: "373240224146",
+  appId: "1:373240224146:web:80576d03fea68b3583894b"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+const auth = getAuth(app);
+
+window.db = db;
+window.ref = ref;
+window.push = push;
+window.get = get;
+window.remove = remove;
+window.set = set;
+window.auth = auth;
+
+const USER_PROFILES = {
+  "gaurabhi834@gmail.com":        { name: "Abhishek Gaur",  designation: "Deputy Manager – QA" },
+  "tl.pinki@ocubeservices.com":   { name: "Pinki Kumari",   designation: "Team Leader – Sales" },
+  "tl.shahid@ocubeservices.com":  { name: "Md Shahid",      designation: "Team Leader – Support" },
+  "qa.prince@ocubeservices.com":  { name: "Prince Kumar",   designation: "Quality Analyst" }
+};
+
+window.getUserRole = function() {
+  const user = auth.currentUser;
+  if (!user) return null;
+  const e = user.email;
+  if (e === "gaurabhi834@gmail.com") return "admin";
+  if (e === "qa.prince@ocubeservices.com") return "qa";
+  if (e === "tl.pinki@ocubeservices.com" || e === "tl.shahid@ocubeservices.com") return "tl";
+  return "agent";
+};
+
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('mainApp').style.display = 'block';
     updateBadge();
-    const role=getUserRole(),p=UP[u.email];
-    if(p){document.getElementById("profileName").textContent="👤 "+p.name;document.getElementById("profileDesignation").textContent=p.designation;document.getElementById("profileEmail").textContent=u.email;const at=role==="admin"?"🔐 Admin":role==="qa"?"🧪 QA Analyst":role==="tl"?"👔 Team Leader":"👤 Agent";document.getElementById("profileAccess").innerHTML=at+"<br>🕒 "+new Date().toLocaleTimeString();}
-    if(role==="admin"){document.getElementById("clearBtn").style.display="inline-flex";document.getElementById("clearBtn2").style.display="inline-flex";}
-  }else{document.getElementById('loginScreen').style.display='flex';document.getElementById('mainApp').style.display='none';}
+    const role = getUserRole();
+    const profile = USER_PROFILES[user.email];
+    if (profile) {
+      document.getElementById("profileName").textContent = "👤 " + profile.name;
+      document.getElementById("profileDesignation").textContent = profile.designation;
+      document.getElementById("profileEmail").textContent = user.email;
+      const loginTime = new Date().toLocaleTimeString();
+      const accessText = role==="admin"?"🔐 Admin Access":role==="qa"?"🧪 QA Access":role==="tl"?"👔 TL Access":"👤 Agent Access";
+      document.getElementById("profileAccess").innerHTML = accessText + "<br>🕒 Logged in: " + loginTime;
+    }
+    if (role === "admin") {
+      const cb = document.getElementById("clearBtn");
+      const cb2 = document.getElementById("clearBtn2");
+      if (cb) cb.style.display = "inline-flex";
+      if (cb2) cb2.style.display = "inline-flex";
+    }
+  } else {
+    document.getElementById('loginScreen').style.display = 'flex';
+    document.getElementById('mainApp').style.display = 'none';
+  }
 });
-window.loginUser=function(){const e=document.getElementById("loginEmail").value.trim(),p=document.getElementById("loginPassword").value.trim();if(!e||!p){showToast("Enter email and password","e");return;}signInWithEmailAndPassword(auth,e,p).then(()=>showToast("Login successful","s")).catch(er=>showToast(er.message,"e"));};
-window.logoutUser=function(){signOut(auth).then(()=>showToast("Logged out","s"));};
+
+window.loginUser = function() {
+  const email = document.getElementById("loginEmail").value.trim();
+  const password = document.getElementById("loginPassword").value.trim();
+  if (!email || !password) { showToast("Enter email and password", "e"); return; }
+  signInWithEmailAndPassword(auth, email, password)
+    .then(() => showToast("Login successful", "s"))
+    .catch((error) => { console.error(error); showToast(error.message, "e"); });
+};
+
+window.logoutUser = function() {
+  signOut(auth).then(() => showToast("Logged out successfully", "s"));
+};
 </script>
 
-<!-- APP LOGIC (unchanged) -->
+<!-- ═══ APP LOGIC ═══ -->
 <script>
-const PM={nc1:{label:'Standard opening & name confirmation',short:'Opening',group:'Call Opening/Closing',type:'NC'},nc2:{label:'Summarization',short:'Summary',group:'Call Opening/Closing',type:'NC'},nc3:{label:'Further assistance offered',short:'Assistance',group:'Call Opening/Closing',type:'NC'},nc4:{label:'Prescribed call closing',short:'Closing',group:'Call Opening/Closing',type:'NC'},nc5:{label:'Paraphrasing for alignment',short:'Paraphrase',group:'Issue Identification',type:'NC'},nc6:{label:'Customer VOC acknowledged',short:'VOC',group:'Issue Identification',type:'NC'},nc7:{label:'Relevant probing questions asked',short:'Probing',group:'Issue Identification',type:'NC'},nc8:{label:'Active Listening/Reading',short:'Listening',group:'Customer Experience',type:'NC'},nc9:{label:'Hold & Dead Air SLA',short:'Hold SLA',group:'Customer Experience',type:'NC'},nc10:{label:'Apologies, Empathy & Politeness',short:'Empathy',group:'Customer Experience',type:'NC'},nc11:{label:'No Overlapping/Interruptions',short:'No Overlap',group:'Customer Experience',type:'NC'},nc12:{label:'Accurate Email to Client',short:'Email',group:'Customer Experience',type:'NC'},cr1:{label:'Professional & polite throughout',short:'Prof\'l',group:'Critical',type:'CR'},cr2:{label:'Called within timeframe / TZ',short:'Timeframe',group:'Critical',type:'CR'},cr3:{label:'Complete & accurate information',short:'Accuracy',group:'Critical',type:'CR'},cr4:{label:'Timely queries + right disposition',short:'Timely',group:'Critical',type:'CR'},cr5:{label:'Qualifying questions + notes updated',short:'Qual.Qs',group:'Critical',type:'CR'},cr6:{label:'Opportunity created post-call',short:'Opport.',group:'Critical',type:'CR'},cr7:{label:'Special requirements noted',short:'Spec.Req',group:'Critical',type:'CR'},cr8:{label:'Non-sales queries redirected',short:'Redirect',group:'Critical',type:'CR'},cr9:{label:'All client questions answered',short:'Client Qs',group:'Critical',type:'CR'},cr10:{label:'Lead converted without pushing',short:'Convert',group:'Critical',type:'CR'}};
+const PM={
+  nc1:{label:'Standard opening & name confirmation',group:'Call Opening/Closing',type:'NC'},
+  nc2:{label:'Summarization',group:'Call Opening/Closing',type:'NC'},
+  nc3:{label:'Further assistance offered',group:'Call Opening/Closing',type:'NC'},
+  nc4:{label:'Prescribed call closing',group:'Call Opening/Closing',type:'NC'},
+  nc5:{label:'Paraphrasing for alignment',group:'Issue Identification',type:'NC'},
+  nc6:{label:'Customer VOC acknowledged',group:'Issue Identification',type:'NC'},
+  nc7:{label:'Relevant probing questions asked',group:'Issue Identification',type:'NC'},
+  nc8:{label:'Active Listening/Reading',group:'Customer Experience',type:'NC'},
+  nc9:{label:'Hold & Dead Air SLA',group:'Customer Experience',type:'NC'},
+  nc10:{label:'Apologies, Empathy & Politeness',group:'Customer Experience',type:'NC'},
+  nc11:{label:'No Overlapping/Interruptions',group:'Customer Experience',type:'NC'},
+  nc12:{label:'Accurate Email to Client',group:'Customer Experience',type:'NC'},
+  cr1:{label:'Professional & polite throughout',group:'Critical',type:'CR'},
+  cr2:{label:'Called within timeframe / TZ',group:'Critical',type:'CR'},
+  cr3:{label:'Complete & accurate information',group:'Critical',type:'CR'},
+  cr4:{label:'Timely queries + right disposition',group:'Critical',type:'CR'},
+  cr5:{label:'Qualifying questions + notes updated',group:'Critical',type:'CR'},
+  cr6:{label:'Opportunity created post-call',group:'Critical',type:'CR'},
+  cr7:{label:'Special requirements noted',group:'Critical',type:'CR'},
+  cr8:{label:'Non-sales queries redirected',group:'Critical',type:'CR'},
+  cr9:{label:'All client questions answered',group:'Critical',type:'CR'},
+  cr10:{label:'Lead converted without pushing',group:'Critical',type:'CR'},
+};
 const NCK=['nc1','nc2','nc3','nc4','nc5','nc6','nc7','nc8','nc9','nc10','nc11','nc12'];
 const CRK=['cr1','cr2','cr3','cr4','cr5','cr6','cr7','cr8','cr9','cr10'];
 const AK=[...NCK,...CRK];
 const GROUPS={'Call Opening/Closing':['nc1','nc2','nc3','nc4'],'Issue Identification':['nc5','nc6','nc7'],'Customer Experience':['nc8','nc9','nc10','nc11','nc12'],'Critical Parameters':CRK};
-let CS={},gaugeCI=null,pCI=null,sCI=null,trendCI=null,tenureCI=null,convCI=null,volCI=null,distCI=null,radarCI=null;
-let _allAudits=[];
-
-function animateVal(el,target,suffix='',dur=1000){
-  if(target===null||isNaN(target)){el.textContent='—';return;}
-  const s=performance.now();
-  const run=now=>{const p=Math.min((now-s)/dur,1),e=1-Math.pow(1-p,3);el.textContent=Math.round(e*target)+suffix;if(p<1)requestAnimationFrame(run);};
-  requestAnimationFrame(run);
-}
-
-function updateGauge(score){
-  const canvas=document.getElementById('gaugeChart');if(!canvas)return;
-  const val=score!==null?score:0;
-  const color=val>=85?'#22d38a':val>=70?'#f08040':'#f04060';
-  if(gaugeCI){gaugeCI.data.datasets[0].data=[val,100-val];gaugeCI.data.datasets[0].backgroundColor[0]=color;gaugeCI.update('active');return;}
-  gaugeCI=new Chart(canvas.getContext('2d'),{type:'doughnut',data:{datasets:[{data:[val,100-val],backgroundColor:[color,'rgba(28,38,64,0.5)'],borderWidth:0,circumference:180,rotation:270}]},options:{responsive:false,maintainAspectRatio:false,cutout:'74%',plugins:{legend:{display:false},tooltip:{enabled:false}},animation:{duration:600}}});
-}
+let CS={};
+let pCI=null,sCI=null;
 
 function switchTab(n,btn){
   document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
@@ -1356,409 +506,431 @@ function switchTab(n,btn){
   btn.classList.add('active');
   if(n==='auditlog') renderAuditLog();
   if(n==='performance') renderPerformance();
-  if(n==='analytics') renderAnalytics();
-  if(n==='coaching') renderCoaching();
   if(n==='pareto') renderPareto();
 }
 
 function rate(btn,val,key){
   const rg=btn.closest('.rg');
   rg.querySelectorAll('.br').forEach(b=>b.classList.remove('ay','an','ana'));
-  if(CS[key]===val)delete CS[key];
+  if(CS[key]===val){delete CS[key];}
   else{CS[key]=val;btn.classList.add(val==='yes'?'ay':val==='no'?'an':'ana');}
   updateDash();
 }
-function calcPct(keys){const r=keys.filter(k=>k in CS);let y=0,a=0;r.forEach(k=>{if(CS[k]==='yes'){y++;a++;}else if(CS[k]==='no'){a++;}});return a>0?Math.round(y/a*100):null;}
+
+function calcPct(keys){
+  const rated=keys.filter(k=>k in CS);
+  let y=0,a=0;
+  rated.forEach(k=>{if(CS[k]==='yes'){y++;a++;}else if(CS[k]==='no'){a++;}});
+  return a>0?Math.round(y/a*100):null;
+}
+
 function updateDash(){
-  const ncP=calcPct(NCK.filter(k=>k in CS)),crP=calcPct(CRK.filter(k=>k in CS));
-  const tot=ncP!==null&&crP!==null?Math.round(ncP*.4+crP*.6):ncP!==null?ncP:crP!==null?crP:null;
-  document.getElementById('ncScore').textContent=ncP!==null?ncP+'%':'—';
-  document.getElementById('crScore').textContent=crP!==null?crP+'%':'—';
-  document.getElementById('ncBar').style.width=(ncP||0)+'%';
-  document.getElementById('crBar').style.width=(crP||0)+'%';
-  document.getElementById('totalScore').textContent=tot!==null?tot+'%':'—';
-  document.getElementById('totalScore').style.color=tot===null?'var(--accent2)':tot>=85?'var(--success)':tot>=70?'var(--warning)':'var(--critical)';
-  updateGauge(tot);
-  const rv=document.getElementById('resultVal'),frd=document.getElementById('finalResultDisplay'),rs=document.getElementById('resultSub'),fsub=document.getElementById('finalResultSub'),rb=document.getElementById('resultBar');
-  if(tot!==null){const res=tot>=85?'PASS':tot>=70?'REVIEW':'FAIL';const c=res==='PASS'?'var(--success)':res==='REVIEW'?'var(--warning)':'var(--critical)';rv.textContent=res;rv.style.color=c;frd.textContent=res;frd.style.color=c;rs.textContent=tot+'% overall';fsub.textContent=tot+'% overall';rb.style.width=tot+'%';rb.style.background=c;}
-  else{rv.textContent='—';frd.textContent='—';frd.style.color='var(--success)';rs.textContent='Awaiting scores';fsub.textContent='Based on 85% threshold';rb.style.width='0%';}
+  const ncP=calcPct(NCK.filter(k=>k in CS));
+  const crP=calcPct(CRK.filter(k=>k in CS));
+  let tot=ncP!==null&&crP!==null?Math.round(ncP*.4+crP*.6):ncP!==null?ncP:crP!==null?crP:null;
+  setCard('ncScore','ncBar',ncP,'var(--accent)');
+  setCard('crScore','crBar',crP,'var(--critical)');
+  setCard('totalScore','totalBar',tot,null);
+  const rv=document.getElementById('resultVal'),rs=document.getElementById('resultSub'),rb=document.getElementById('resultBar');
+  if(tot!==null){
+    const res=tot>=85?'PASS':tot>=70?'REVIEW':'FAIL';
+    rv.textContent=res;rv.style.fontSize='26px';
+    rv.style.color=res==='PASS'?'var(--success)':res==='REVIEW'?'var(--warning)':'var(--critical)';
+    rs.textContent=tot+'% overall';rb.style.width=tot+'%';
+    rb.style.background=res==='PASS'?'var(--success)':res==='REVIEW'?'var(--warning)':'var(--critical)';
+  }else{rv.textContent='—';rv.style.color='var(--success)';rs.textContent='Awaiting scores';rb.style.width='0%';}
   updatePT(ncP,crP);
 }
+
+function setCard(vi,bi,p,c){
+  document.getElementById(vi).textContent=p!==null?p+'%':'—';
+  const b=document.getElementById(bi);b.style.width=(p||0)+'%';
+  if(c)b.style.background=c;
+}
+
 function updatePT(ncP,crP){
   const tot=ncP!==null&&crP!==null?Math.round(ncP*.4+crP*.6):null;
   const rows=[];
   Object.entries(GROUPS).forEach(([name,keys])=>{
     const type=keys[0].startsWith('cr')?'Critical':'Non-Critical';
-    const rated=keys.filter(k=>k in CS);let y=0,a=0;
-    rated.forEach(k=>{if(CS[k]==='yes'){y++;a++;}else if(CS[k]==='no'){a++;}});
-    const p=a>0?Math.round(y/a*100):null,c=p===null?'var(--muted)':p>=85?'var(--success)':p>=70?'var(--warning)':'var(--critical)';
-    rows.push(`<tr><td><strong>${name}</strong></td><td><span class="tag ${type==='Critical'?'tcr':'tnc'}">${type}</span></td><td style="font-family:var(--font-head);font-weight:700">${y}/${a}</td><td style="color:var(--muted)">${rated.length}</td><td class="sbc"><div class="sbw"><div class="smb"><div class="smf" style="width:${p||0}%;background:${c}"></div></div><span class="sv" style="color:${c}">${p!==null?p+'%':'—'}</span></div></td><td>${stag(p)}</td></tr>`);
+    const rated=keys.filter(k=>k in CS);
+    let y=0,a=0;rated.forEach(k=>{if(CS[k]==='yes'){y++;a++;}else if(CS[k]==='no'){a++;}});
+    const p=a>0?Math.round(y/a*100):null;
+    const c=p===null?'var(--muted)':p>=85?'var(--success)':p>=70?'var(--warning)':'var(--critical)';
+    rows.push(`<tr><td><strong>${name}</strong></td><td><span class="tag ${type==='Critical'?'tcr':'tnc'}">${type}</span></td><td style="font-family:var(--font-head);font-weight:700">${y}/${a}</td><td style="color:var(--muted)">${rated.length} rated</td><td class="sbc"><div class="sbw"><div class="smb"><div class="smf" style="width:${p||0}%;background:${c}"></div></div><span class="sv" style="color:${c}">${p!==null?p+'%':'—'}</span></div></td><td>${stag(p)}</td></tr>`);
   });
-  rows.push(srow('NC TOTAL (40%)',ncP,'var(--accent)'));
+  rows.push(srow('NON-CRITICAL TOTAL (40%)',ncP,'var(--accent)'));
   rows.push(srow('CRITICAL TOTAL (60%)',crP,'var(--critical)'));
   rows.push(srow('OVERALL SCORE',tot,'var(--accent2)',true));
   document.getElementById('perfTableBody').innerHTML=rows.join('');
 }
-function srow(label,p,color,bold=false){return`<tr style="background:rgba(255,255,255,0.02)"><td style="font-family:var(--font-head);font-weight:${bold?800:700};font-size:${bold?14:12}px">${label}</td><td></td><td></td><td></td><td class="sbc"><div class="sbw"><div class="smb"><div class="smf" style="width:${p||0}%;background:${color}"></div></div><span class="sv" style="color:${color};font-size:${bold?14:12}px">${p!==null?p+'%':'—'}</span></div></td><td>${stag(p)}</td></tr>`;}
+
+function srow(label,p,color,bold=false){
+  return `<tr style="background:var(--surface2)"><td style="font-family:var(--font-head);font-weight:${bold?800:700};font-size:${bold?14:12}px">${label}</td><td></td><td></td><td></td><td class="sbc"><div class="sbw"><div class="smb"><div class="smf" style="width:${p||0}%;background:${color}"></div></div><span class="sv" style="color:${color};font-size:${bold?14:12}px">${p!==null?p+'%':'—'}</span></div></td><td>${stag(p)}</td></tr>`;
+}
+
 function stag(p){return p===null?'–':p>=85?'<span class="tag tp">Pass</span>':p>=70?'<span class="tag tr">Review</span>':'<span class="tag tf">Fail</span>';}
 
 async function saveAudit(){
   if(!auth.currentUser){showToast("Please login first","e");return;}
-  const agent=document.getElementById('agentName').value.trim(),reviewer=document.getElementById('reviewerName').value.trim();
+  const agent=document.getElementById('agentName').value.trim();
+  const reviewer=document.getElementById('reviewerName').value.trim();
   if(!agent||!reviewer){showToast('Enter Agent and Reviewer names.','e');return;}
-  const ncP=calcPct(NCK.filter(k=>k in CS)),crP=calcPct(CRK.filter(k=>k in CS));
+  const ncP=calcPct(NCK.filter(k=>k in CS));
+  const crP=calcPct(CRK.filter(k=>k in CS));
   if(ncP===null&&crP===null){showToast('Score at least one parameter.','e');return;}
   const tot=ncP!==null&&crP!==null?Math.round(ncP*.4+crP*.6):ncP!==null?ncP:crP;
-  const audit={timestamp:Date.now(),createdBy:auth.currentUser.email,date:document.getElementById('evalDate').value,agent,reviewer,callId:document.getElementById('callId').value,channel:document.getElementById('channel').value,team:document.getElementById('team').value,tenure:parseInt(document.getElementById('tenure').value)||0,language:document.getElementById('agentLang').value,converted:document.getElementById('converted').value,summary:document.getElementById('callSummary').value,observations:document.getElementById('observations').value,recommendation:document.getElementById('recommendation').value,scores:{...CS},ncScore:ncP,crScore:crP,totalScore:tot,result:tot>=85?'Pass':tot>=70?'Review':'Fail',coachingRequired:tot<85};
-  try{const r=await push(ref(db,'audits'));await set(r,audit);showToast('✅ Audit saved for '+agent,'s');updateBadge();resetForm(true);}
-  catch(e){showToast('Storage error','e');}
+  const audit={
+    timestamp:Date.now(),
+    createdBy:auth.currentUser.email,
+    date:document.getElementById('evalDate').value,
+    agent,reviewer,
+    callId:document.getElementById('callId').value,
+    channel:document.getElementById('channel').value,
+    team:document.getElementById('team').value,
+    tenure:parseInt(document.getElementById('tenure').value)||0,
+    language:document.getElementById('agentLang').value,
+    summary:document.getElementById('callSummary').value,
+    observations:document.getElementById('observations').value,
+    recommendation:document.getElementById('recommendation').value,
+    scores:{...CS},ncScore:ncP,crScore:crP,totalScore:tot,
+    result:tot>=85?'Pass':tot>=70?'Review':'Fail',
+    coachingRequired:tot<85
+  };
+  try{
+    const newRef=await push(ref(db,'audits'));
+    await set(newRef,audit);
+    showToast('✅ Audit saved for '+agent,'s');
+    updateBadge();
+    resetForm(true);
+  }catch(e){showToast('Storage error','e');}
 }
 
 async function loadAudits(){
-  if(!auth.currentUser)return[];
-  const snap=await get(ref(db,'audits'));const a=[];
-  if(snap.exists())Object.entries(snap.val()).forEach(([id,d])=>a.push({id,...d}));
-  _allAudits=a.sort((a,b)=>b.timestamp-a.timestamp);
-  return _allAudits;
+  if(!auth.currentUser) return [];
+  const snapshot=await get(ref(db,'audits'));
+  const audits=[];
+  if(snapshot.exists()){
+    Object.entries(snapshot.val()).forEach(([id,data])=>audits.push({id,...data}));
+  }
+  return audits.sort((a,b)=>b.timestamp-a.timestamp);
 }
-async function loadCoachingSessions(){
-  if(!auth.currentUser)return[];
-  const snap=await get(ref(db,'coaching'));const s=[];
-  if(snap.exists())Object.entries(snap.val()).forEach(([id,d])=>s.push({id,...d}));
-  return s.sort((a,b)=>b.timestamp-a.timestamp);
+
+async function updateBadge(){
+  const a=await loadAudits();
+  document.getElementById('auditBadge').textContent=a.length;
 }
-async function updateBadge(){const a=await loadAudits();document.getElementById('auditBadge').textContent=a.length;}
 
 async function renderAuditLog(){
   const tbody=document.getElementById('auditTableBody');
   const audits=await loadAudits();
   document.getElementById('auditBadge').textContent=audits.length;
-  const fa=document.getElementById('filterAgent').value.toLowerCase(),fr=document.getElementById('filterResult').value,fc=document.getElementById('filterChannel').value,fco=document.getElementById('filterCoaching').value,fcv=document.getElementById('filterConverted').value;
+  const fa=document.getElementById('filterAgent').value.toLowerCase();
+  const fr=document.getElementById('filterResult').value;
+  const fc=document.getElementById('filterChannel').value;
   const f=audits.filter(a=>{
     if(fa&&!a.agent.toLowerCase().includes(fa))return false;
-    if(fr&&a.result!==fr)return false;if(fc&&a.channel!==fc)return false;
-    if(fco==='yes'&&!a.coachingRequired)return false;if(fco==='no'&&a.coachingRequired)return false;
-    if(fcv&&a.converted!==fcv)return false;return true;
+    if(fr&&a.result!==fr)return false;
+    if(fc&&a.channel!==fc)return false;
+    return true;
   });
-  if(!f.length){tbody.innerHTML=`<tr><td colspan="13"><div class="empty-state"><div class="ei">📭</div><h3>${audits.length?'No matches':'No audits yet'}</h3><p>${audits.length?'Try adjusting filters.':'Save a scorecard to begin.'}</p></div></td></tr>`;return;}
+  if(!f.length){tbody.innerHTML=`<tr><td colspan="11"><div class="empty-state"><div class="ei">📭</div><h3>${audits.length?'No matches':'No audits yet'}</h3><p>${audits.length?'Try adjusting filters.':'Save a scorecard to begin.'}</p></div></td></tr>`;return;}
   tbody.innerHTML=f.map((a,i)=>`
     <tr onclick="td('adr-${i}')" style="cursor:pointer">
       <td><span style="color:var(--muted);font-size:11px">▶</span></td>
-      <td style="white-space:nowrap;color:var(--text-dim)">${a.date||'—'}</td>
+      <td style="white-space:nowrap">${a.date||'—'}</td>
       <td style="font-family:var(--font-head);font-weight:700">${a.agent}</td>
       <td style="color:var(--muted);font-size:12px">${a.reviewer||'—'}</td>
       <td style="color:var(--muted);font-size:11px">${a.callId||'—'}</td>
-      <td><span class="tag tnc" style="font-size:9px">${a.channel||'—'}</span></td>
+      <td><span class="tag" style="background:rgba(79,142,247,.1);color:var(--accent);font-size:9px">${a.channel||'—'}</span></td>
       <td><span style="color:var(--accent);font-family:var(--font-head);font-weight:700">${a.ncScore!==null?a.ncScore+'%':'—'}</span></td>
       <td><span style="color:var(--critical);font-family:var(--font-head);font-weight:700">${a.crScore!==null?a.crScore+'%':'—'}</span></td>
-      <td><span style="color:var(--accent2);font-family:var(--font-head);font-weight:800;font-size:14px;letter-spacing:-0.5px">${a.totalScore!==null?a.totalScore+'%':'—'}</span></td>
+      <td><span style="color:var(--accent2);font-family:var(--font-head);font-weight:700;font-size:14px">${a.totalScore!==null?a.totalScore+'%':'—'}</span></td>
       <td>${stag(a.totalScore)}</td>
-      <td>${a.coachingRequired?'<span class="tag tf">Yes</span>':'<span class="tag tp">No</span>'}</td>
-      <td>${a.converted==='yes'?'<span class="tag tp">Yes</span>':a.converted==='no'?'<span class="tag tf">No</span>':'<span style="color:var(--muted);font-size:11px">N/A</span>'}</td>
       <td>${getUserRole()==="admin"?`<button class="btn btn-danger btn-sm" onclick="delAudit(event,'${a.id}')">🗑</button>`:''}</td>
     </tr>
-    <tr class="adr" id="adr-${i}"><td colspan="13"><div class="dgrid">
+    <tr class="adr" id="adr-${i}"><td colspan="11"><div class="dgrid">
       <div class="di"><label>Team</label><p>${a.team||'—'}</p></div>
       <div class="di"><label>Tenure</label><p>${a.tenure?a.tenure+' months':'—'}</p></div>
       <div class="di"><label>Language</label><p>${a.language||'—'}</p></div>
-      <div class="di"><label>Converted</label><p>${a.converted||'—'}</p></div>
-      ${a.summary?`<div class="di" style="grid-column:span 4"><label>Summary</label><p style="color:var(--text-dim)">${esc(a.summary)}</p></div>`:''}
-      ${a.observations?`<div class="di" style="grid-column:span 2"><label>Observations</label><p style="color:var(--text-dim)">${esc(a.observations)}</p></div>`:''}
-      ${a.recommendation?`<div class="di" style="grid-column:span 2"><label>Recommendation</label><p style="color:var(--text-dim)">${esc(a.recommendation)}</p></div>`:''}
-    </div></td></tr>`).join('');
+      <div class="di"><label>Channel</label><p>${a.channel||'—'}</p></div>
+      ${a.summary?`<div class="di" style="grid-column:span 4"><label>Summary</label><p style="color:var(--muted)">${esc(a.summary)}</p></div>`:''}
+      ${a.observations?`<div class="di" style="grid-column:span 2"><label>Observations</label><p style="color:var(--muted)">${esc(a.observations)}</p></div>`:''}
+      ${a.recommendation?`<div class="di" style="grid-column:span 2"><label>Recommendation</label><p style="color:var(--muted)">${esc(a.recommendation)}</p></div>`:''}
+    </div></td></tr>
+  `).join('');
 }
+
 function td(id){const el=document.getElementById(id);if(el)el.classList.toggle('open');}
-async function delAudit(e,id){e.stopPropagation();if(getUserRole()!=="admin"){showToast("Admin only","e");return;}if(!confirm('Delete?'))return;try{await remove(ref(db,'audits/'+id));showToast('Deleted','s');renderAuditLog();}catch(er){showToast('Error','e');}}
-async function clearAllAudits(){if(getUserRole()!=="admin"){showToast("Admin only","e");return;}if(!confirm('Delete ALL audits?'))return;try{await remove(ref(db,'audits'));showToast('All cleared','s');renderAuditLog();updateBadge();}catch(er){showToast('Error','e');}}
 
-function calcStdDev(sc){if(sc.length<2)return 0;const m=sc.reduce((a,b)=>a+b,0)/sc.length;return Math.sqrt(sc.reduce((s,x)=>s+Math.pow(x-m,2),0)/sc.length);}
-function stabilityRating(sd){if(sd<5)return{label:'Excellent',color:'var(--success)'};if(sd<10)return{label:'Good',color:'var(--accent)'};if(sd<20)return{label:'Moderate',color:'var(--warning)'};return{label:'Volatile',color:'var(--critical)'};}
-function calcRiskScore(aa){const v=aa.filter(a=>a.totalScore!==null);if(!v.length)return 0;const fr=v.filter(a=>a.result==='Fail').length/v.length*100,rr=v.filter(a=>a.result==='Review').length/v.length*100,sd=calcStdDev(v.map(a=>a.totalScore)),c=[...v].sort((a,b)=>b.timestamp-a.timestamp).slice(0,3).filter(a=>a.totalScore<70).length;return Math.min(100,Math.round(fr*.35+rr*.15+Math.min(sd,30)*.3+c*15));}
-function getDipAlerts(audits){const map={};audits.forEach(a=>{if(!map[a.agent])map[a.agent]=[];map[a.agent].push(a);});const al=[];Object.entries(map).forEach(([agent,aa])=>{const s=[...aa].filter(a=>a.totalScore!==null).sort((a,b)=>b.timestamp-a.timestamp);if(s.length>=3&&s.slice(0,3).every(a=>a.totalScore<70))al.push({agent,type:'3 Consecutive Scores Below 70%',sev:'critical'});const ago=Date.now()-7*24*60*60*1000,rc=s.filter(a=>a.timestamp>ago&&a.crScore!==null&&a.crScore<70);if(rc.length>=2)al.push({agent,type:'2+ Critical Fails in 7 Days',sev:'warning'});});return al;}
-function renderDipAlerts(alerts,id){const el=document.getElementById(id);if(!alerts.length){el.innerHTML=`<div style="background:rgba(34,211,138,.05);border:1px solid rgba(34,211,138,.18);border-radius:var(--r-md);padding:12px 18px;color:var(--success);font-size:13px;font-weight:600;margin-bottom:20px">✅ No dip alerts — all agents within acceptable range.</div>`;return;}el.innerHTML=alerts.map(a=>`<div class="alert-card alert-${a.sev}"><div class="alert-icon">${a.sev==='critical'?'🚨':'⚠️'}</div><div><div class="alert-agent">${a.agent}</div><div class="alert-type">${a.type}</div></div><span style="margin-left:auto;font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;background:rgba(${a.sev==='critical'?'240,64,96':'240,128,64'},.15);color:${a.sev==='critical'?'var(--critical)':'var(--warning)';font-family:var(--font-head)}">${a.sev==='critical'?'CRITICAL':'WARNING'}</span></div>`).join('');}
-
-function buildAgentMap(audits){
-  const m={};
-  audits.forEach(a=>{
-    if(!m[a.agent])m[a.agent]={name:a.agent,team:a.team||'—',tenure:a.tenure||0,evals:[],lastDate:a.date};
-    m[a.agent].evals.push(a);
-    if(a.date>m[a.agent].lastDate)m[a.agent].lastDate=a.date;
-    if(a.tenure)m[a.agent].tenure=a.tenure;
-  });
-  return Object.values(m).map(ag=>{
-    const v=ag.evals.filter(e=>e.totalScore!==null),vn=v.filter(e=>e.ncScore!==null),vc=v.filter(e=>e.crScore!==null);
-    const sd=calcStdDev(v.map(e=>e.totalScore));
-    return{...ag,avgTot:v.length?Math.round(v.reduce((s,e)=>s+e.totalScore,0)/v.length):null,avgNc:vn.length?Math.round(vn.reduce((s,e)=>s+e.ncScore,0)/vn.length):null,avgCr:vc.length?Math.round(vc.reduce((s,e)=>s+e.crScore,0)/vc.length):null,passRate:v.length?Math.round(v.filter(e=>e.result==='Pass').length/v.length*100):null,sd,risk:calcRiskScore(ag.evals),stability:stabilityRating(sd)};
-  }).sort((a,b)=>(b.avgTot||0)-(a.avgTot||0));
+async function delAudit(e,id){
+  e.stopPropagation();
+  if(getUserRole()!=="admin"){showToast("Only Admin can delete records","e");return;}
+  if(!confirm('Delete this audit?'))return;
+  try{
+    await remove(ref(db,'audits/'+id));
+    showToast('Deleted','s');
+    renderAuditLog();
+  }catch(er){showToast('Error','e');}
 }
 
-function renderLeaderboard(agents){
-  const el=document.getElementById('leaderboardCard');
-  if(!agents.length){el.innerHTML='<div class="empty-state" style="padding:28px"><p>No data yet</p></div>';return;}
-  const medals=['🥇','🥈','🥉'];
-  const rows=agents.slice(0,10).map((ag,i)=>{
-    const c=ag.avgTot>=85?'var(--success)':ag.avgTot>=70?'var(--warning)':'var(--critical)';
-    const v=ag.evals.filter(e=>e.totalScore!==null);
-    const recent=v.slice(0,5),prev=v.slice(5,10);
-    const rAvg=recent.length?recent.reduce((s,e)=>s+e.totalScore,0)/recent.length:null;
-    const pAvg=prev.length?prev.reduce((s,e)=>s+e.totalScore,0)/prev.length:null;
-    const trend=rAvg===null||pAvg===null?'—':rAvg>pAvg?`<span style="color:var(--success)">↑ ${(rAvg-pAvg).toFixed(0)}%</span>`:rAvg<pAvg?`<span style="color:var(--critical)">↓ ${(pAvg-rAvg).toFixed(0)}%</span>`:`<span style="color:var(--muted)">→</span>`;
-    const streak=v.filter(e=>e.result==='Pass').length;
-    return`<div class="lb-item${i<3?' lb-'+(i+1):''}">
-      <div class="lb-rank" style="color:${i===0?'#ffd700':i===1?'#e2e8f0':i===2?'#cd7f32':'var(--muted)'}">${i<3?medals[i]:i+1}</div>
-      <div class="lb-info">
-        <div class="lb-name">${ag.name}</div>
-        <div class="lb-meta"><span>${ag.team}</span><span style="color:var(--border-bright)">·</span><span>${ag.evals.length} evals</span><span class="ten-badge">${ag.tenure?ag.tenure+'m':'—'}</span></div>
-      </div>
-      <div class="lb-bar">
-        <div class="lb-bar-track"><div class="lb-bar-fill" style="width:${ag.avgTot||0}%;background:${c}"></div></div>
-        <div style="display:flex;justify-content:space-between;margin-top:4px;font-size:9px;color:var(--muted)"><span>NC:${ag.avgNc!==null?ag.avgNc+'%':'—'}</span><span>CR:${ag.avgCr!==null?ag.avgCr+'%':'—'}</span><span style="color:${ag.stability.color}">${ag.stability.label}</span></div>
-      </div>
-      <div class="lb-trend">${trend}</div>
-      <div class="lb-score" style="color:${c}">${ag.avgTot!==null?ag.avgTot+'%':'—'}</div>
-      ${streak>0?`<div class="lb-streak">🔥 ${streak}</div>`:''}
-    </div>`;
-  }).join('');
-  el.innerHTML=rows;
+async function clearAllAudits(){
+  if(getUserRole()!=="admin"){showToast("Only Admin can clear all records","e");return;}
+  if(!confirm('Delete ALL audits? This cannot be undone.'))return;
+  try{
+    await remove(ref(db,'audits'));
+    showToast('All audits cleared','s');
+    renderAuditLog();
+    updateBadge();
+  }catch(er){showToast('Error','e');}
 }
 
 async function renderPerformance(){
   const audits=await loadAudits();
-  const alerts=getDipAlerts(audits);
+  const uAgents=[...new Set(audits.map(a=>a.agent))];
+  document.getElementById('ps-total').textContent=audits.length;
+  document.getElementById('ps-agents').textContent=uAgents.length;
   const ws=audits.filter(a=>a.totalScore!==null);
-  const uA=[...new Set(audits.map(a=>a.agent))];
-  animateVal(document.getElementById('ps-total'),audits.length);
-  animateVal(document.getElementById('ps-agents'),uA.length);
-  animateVal(document.getElementById('ps-atrisk'),alerts.filter(a=>a.sev==='critical').length);
-  if(ws.length){animateVal(document.getElementById('ps-avg'),Math.round(ws.reduce((s,a)=>s+a.totalScore,0)/ws.length),'%');animateVal(document.getElementById('ps-pass'),Math.round(ws.filter(a=>a.result==='Pass').length/ws.length*100),'%');}
-  else{document.getElementById('ps-avg').textContent='—';document.getElementById('ps-pass').textContent='—';}
-  renderDipAlerts(alerts,'dipAlertsPerf');
-  const agents=buildAgentMap(audits);
-  renderLeaderboard(agents);
+  if(ws.length){
+    document.getElementById('ps-avg').textContent=Math.round(ws.reduce((s,a)=>s+a.totalScore,0)/ws.length)+'%';
+    document.getElementById('ps-pass').textContent=Math.round(ws.filter(a=>a.result==='Pass').length/ws.length*100)+'%';
+  }else{document.getElementById('ps-avg').textContent='—';document.getElementById('ps-pass').textContent='—';}
+  const aMap={};
+  audits.forEach(a=>{
+    if(!aMap[a.agent])aMap[a.agent]={name:a.agent,team:a.team||'—',tenure:a.tenure||0,evals:[],lastDate:a.date};
+    aMap[a.agent].evals.push(a);
+    if(a.date>aMap[a.agent].lastDate)aMap[a.agent].lastDate=a.date;
+    if(a.tenure)aMap[a.agent].tenure=a.tenure;
+  });
+  const agents=Object.values(aMap).map(ag=>{
+    const v=ag.evals.filter(e=>e.totalScore!==null);
+    const vn=v.filter(e=>e.ncScore!==null),vc=v.filter(e=>e.crScore!==null);
+    return{...ag,
+      avgTot:v.length?Math.round(v.reduce((s,e)=>s+e.totalScore,0)/v.length):null,
+      avgNc:vn.length?Math.round(vn.reduce((s,e)=>s+e.ncScore,0)/vn.length):null,
+      avgCr:vc.length?Math.round(vc.reduce((s,e)=>s+e.crScore,0)/vc.length):null,
+      passRate:v.length?Math.round(v.filter(e=>e.result==='Pass').length/v.length*100):null
+    };
+  }).sort((a,b)=>(b.avgTot||0)-(a.avgTot||0));
   renderAgentCards('topPerformers',agents.slice(0,4),true);
   renderAgentCards('bottomPerformers',agents.slice(-4).reverse(),false);
-  document.getElementById('agentTableBody').innerHTML=agents.length?agents.map((ag,i)=>{const rc=ag.risk>=60?'var(--critical)':ag.risk>=30?'var(--warning)':'var(--success)';return`<tr><td style="color:var(--muted);font-family:var(--font-head);font-weight:700">${i+1}</td><td style="font-family:var(--font-head);font-weight:700">${ag.name}</td><td style="color:var(--text-dim)">${ag.team}</td><td><span class="ten-badge">${ag.tenure?ag.tenure+'m':'—'}</span></td><td style="color:var(--text-dim)">${ag.evals.length}</td><td>${ag.avgNc!==null?`<span style="color:var(--accent);font-family:var(--font-head);font-weight:700">${ag.avgNc}%</span>`:'—'}</td><td>${ag.avgCr!==null?`<span style="color:var(--critical);font-family:var(--font-head);font-weight:700">${ag.avgCr}%</span>`:'—'}</td><td class="sbc"><div class="sbw"><div class="smb"><div class="smf" style="width:${ag.avgTot||0}%;background:${ag.avgTot>=85?'var(--success)':ag.avgTot>=70?'var(--warning)':'var(--critical)'}"></div></div><span class="sv" style="color:${ag.avgTot>=85?'var(--success)':ag.avgTot>=70?'var(--warning)':'var(--critical)'}">${ag.avgTot!==null?ag.avgTot+'%':'—'}</span></div></td><td><span style="color:${ag.stability.color};font-family:var(--font-head);font-weight:700;font-size:11px">${ag.stability.label}</span></td><td><div class="sbw"><div class="smb"><div class="smf" style="width:${ag.risk}%;background:${rc}"></div></div><span class="sv" style="color:${rc}">${ag.risk}</span></div></td><td style="color:var(--muted);font-size:11px">${ag.lastDate||'—'}</td><td>${stag(ag.avgTot)}</td><td>${ag.evals.some(e=>e.coachingRequired)?'<span class="tag tf">Yes</span>':'<span class="tag tp">No</span>'}</td></tr>`}).join(''):`<tr><td colspan="13"><div class="empty-state" style="padding:22px"><p>No data yet</p></div></td></tr>`;
-  const bands=[{l:'0–3m',min:0,max:3},{l:'4–6m',min:4,max:6},{l:'7–12m',min:7,max:12},{l:'13–24m',min:13,max:24},{l:'25+m',min:25,max:9999}];
-  const brows=bands.map(b=>{const ba=agents.filter(ag=>ag.tenure>=b.min&&ag.tenure<=b.max);if(!ba.length)return null;const be=audits.filter(a=>a.tenure>=b.min&&a.tenure<=b.max&&a.totalScore!==null);const vn=ba.filter(ag=>ag.avgNc!==null),vc=ba.filter(ag=>ag.avgCr!==null),vt=ba.filter(ag=>ag.avgTot!==null);const avgNc=vn.length?Math.round(vn.reduce((s,ag)=>s+ag.avgNc,0)/vn.length):null,avgCr=vc.length?Math.round(vc.reduce((s,ag)=>s+ag.avgCr,0)/vc.length):null,avgTot=vt.length?Math.round(vt.reduce((s,ag)=>s+ag.avgTot,0)/vt.length):null,passR=be.length?Math.round(be.filter(e=>e.result==='Pass').length/be.length*100):null,c=avgTot>=85?'var(--success)':avgTot>=70?'var(--warning)':'var(--critical)';return`<tr><td style="font-family:var(--font-head);font-weight:700">${b.l}</td><td>${ba.length}</td><td>${be.length}</td><td>${avgNc!==null?`<span style="color:var(--accent)">${avgNc}%</span>`:'—'}</td><td>${avgCr!==null?`<span style="color:var(--critical)">${avgCr}%</span>`:'—'}</td><td class="sbc"><div class="sbw"><div class="smb"><div class="smf" style="width:${avgTot||0}%;background:${c}"></div></div><span class="sv" style="color:${c}">${avgTot!==null?avgTot+'%':'—'}</span></div></td><td>${passR!==null?passR+'%':'—'}</td></tr>`;}).filter(Boolean);
-  document.getElementById('tenureTableBody').innerHTML=brows.length?brows.join(''):`<tr><td colspan="7"><div class="empty-state" style="padding:20px"><p>Add tenure data.</p></div></td></tr>`;
+  const atb=document.getElementById('agentTableBody');
+  atb.innerHTML=agents.length?agents.map((ag,i)=>`<tr>
+    <td style="color:var(--muted);font-family:var(--font-head)">${i+1}</td>
+    <td style="font-family:var(--font-head);font-weight:700">${ag.name}</td>
+    <td style="color:var(--muted)">${ag.team}</td>
+    <td><span class="ten-badge">${ag.tenure?ag.tenure+'m':'—'}</span></td>
+    <td>${ag.evals.length}</td>
+    <td>${ag.avgNc!==null?`<span style="color:var(--accent);font-family:var(--font-head);font-weight:700">${ag.avgNc}%</span>`:'—'}</td>
+    <td>${ag.avgCr!==null?`<span style="color:var(--critical);font-family:var(--font-head);font-weight:700">${ag.avgCr}%</span>`:'—'}</td>
+    <td class="sbc"><div class="sbw"><div class="smb"><div class="smf" style="width:${ag.avgTot||0}%;background:${ag.avgTot>=85?'var(--success)':ag.avgTot>=70?'var(--warning)':'var(--critical)'}"></div></div><span class="sv" style="color:${ag.avgTot>=85?'var(--success)':ag.avgTot>=70?'var(--warning)':'var(--critical)'}">${ag.avgTot!==null?ag.avgTot+'%':'—'}</span></div></td>
+    <td style="color:var(--muted);font-size:11px">${ag.lastDate||'—'}</td>
+    <td>${stag(ag.avgTot)}</td>
+    <td>${ag.evals.some(e=>e.coachingRequired)?'<span class="tag tf">Yes</span>':'<span class="tag tp">No</span>'}</td>
+  </tr>`).join(''):`<tr><td colspan="11"><div class="empty-state" style="padding:22px"><p>No data yet</p></div></td></tr>`;
+  const bands=[{l:'0–3 months',min:0,max:3},{l:'4–6 months',min:4,max:6},{l:'7–12 months',min:7,max:12},{l:'13–24 months',min:13,max:24},{l:'25+ months',min:25,max:9999}];
+  const ttb=document.getElementById('tenureTableBody');
+  const brows=bands.map(b=>{
+    const ba=agents.filter(ag=>ag.tenure>=b.min&&ag.tenure<=b.max);
+    if(!ba.length)return null;
+    const be=audits.filter(a=>a.tenure>=b.min&&a.tenure<=b.max&&a.totalScore!==null);
+    const vn=ba.filter(ag=>ag.avgNc!==null),vc=ba.filter(ag=>ag.avgCr!==null),vt=ba.filter(ag=>ag.avgTot!==null);
+    const avgNc=vn.length?Math.round(vn.reduce((s,ag)=>s+ag.avgNc,0)/vn.length):null;
+    const avgCr=vc.length?Math.round(vc.reduce((s,ag)=>s+ag.avgCr,0)/vc.length):null;
+    const avgTot=vt.length?Math.round(vt.reduce((s,ag)=>s+ag.avgTot,0)/vt.length):null;
+    const passR=be.length?Math.round(be.filter(e=>e.result==='Pass').length/be.length*100):null;
+    const c=avgTot>=85?'var(--success)':avgTot>=70?'var(--warning)':'var(--critical)';
+    return `<tr><td style="font-family:var(--font-head);font-weight:700">${b.l}</td><td>${ba.length}</td><td>${be.length}</td>
+      <td>${avgNc!==null?`<span style="color:var(--accent)">${avgNc}%</span>`:'—'}</td>
+      <td>${avgCr!==null?`<span style="color:var(--critical)">${avgCr}%</span>`:'—'}</td>
+      <td class="sbc"><div class="sbw"><div class="smb"><div class="smf" style="width:${avgTot||0}%;background:${c}"></div></div><span class="sv" style="color:${c}">${avgTot!==null?avgTot+'%':'—'}</span></div></td>
+      <td>${passR!==null?passR+'%':'—'}</td></tr>`;
+  }).filter(Boolean);
+  ttb.innerHTML=brows.length?brows.join(''):`<tr><td colspan="7"><div class="empty-state" style="padding:20px"><p>Add tenure when creating audits to see this breakdown.</p></div></td></tr>`;
   renderMonthlyTrend(audits);
-  renderVolumeChart(audits);
-  renderCalendarHeatmap(audits);
+}
+
+let monthlyTrendChart=null;
+function renderMonthlyTrend(audits){
+  const canvas=document.getElementById('monthlyTrendChart');
+  if(!canvas)return;
+  const monthMap={};
+  audits.forEach(a=>{
+    if(!a.date||a.totalScore===null)return;
+    const month=a.date.substring(0,7);
+    if(!monthMap[month])monthMap[month]=[];
+    monthMap[month].push(a.totalScore);
+  });
+  const labels=Object.keys(monthMap).sort();
+  const avgScores=labels.map(m=>{const arr=monthMap[m];return Math.round(arr.reduce((s,v)=>s+v,0)/arr.length);});
+  if(monthlyTrendChart)monthlyTrendChart.destroy();
+  monthlyTrendChart=new Chart(canvas.getContext('2d'),{
+    type:'line',
+    data:{labels,datasets:[{label:'Average QA Score',data:avgScores,borderColor:'#4f8ef7',backgroundColor:'rgba(79,142,247,0.1)',fill:true,tension:.3,pointRadius:4}]},
+    options:{responsive:true,maintainAspectRatio:false,scales:{y:{min:0,max:100,ticks:{color:'#6b7a9e'}},x:{ticks:{color:'#6b7a9e'}}},plugins:{legend:{labels:{color:'#e8edf8'}}}}
+  });
 }
 
 function renderAgentCards(cid,agents,isTop){
   const el=document.getElementById(cid);
   if(!agents.length){el.innerHTML=`<div class="empty-state" style="padding:26px"><p>No data yet</p></div>`;return;}
-  el.innerHTML=agents.map((ag,i)=>{const c=ag.avgTot>=85?'var(--success)':ag.avgTot>=70?'var(--warning)':'var(--critical)';const m=isTop?['🥇','🥈','🥉','🏅'][i]:['⚠️','⚠️','⚠️','⚠️'][i];return`<div class="arc" style="border-top:2px solid ${c}"><div class="arc-rank">${i+1}</div><div style="font-size:18px;margin-bottom:6px">${m}</div><div class="arc-name">${ag.name}</div><div class="arc-meta">${ag.team} · ${ag.evals.length} eval${ag.evals.length!==1?'s':''} <span class="ten-badge">${ag.tenure?ag.tenure+'m':'?'}</span></div><div class="arc-score" style="color:${c}">${ag.avgTot!==null?ag.avgTot+'%':'—'}</div><div style="display:flex;gap:8px;margin-top:5px"><span style="font-size:10px;color:var(--accent)">NC:${ag.avgNc!==null?ag.avgNc+'%':'—'}</span><span style="font-size:10px;color:var(--critical)">CR:${ag.avgCr!==null?ag.avgCr+'%':'—'}</span><span style="font-size:10px;color:${ag.stability.color}">${ag.stability.label}</span></div></div>`;}).join('');}
-
-const chartDefaults={responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#8a9bb8',font:{family:"'Onest',sans-serif",size:11},boxWidth:10,padding:16}},tooltip:{backgroundColor:'rgba(13,19,32,0.97)',titleColor:'#e4ecf8',bodyColor:'#8a9bb8',borderColor:'rgba(28,38,64,0.8)',borderWidth:1,padding:12,cornerRadius:8}},scales:{x:{ticks:{color:'#4a5878',font:{size:10,family:"'Onest',sans-serif"}},grid:{color:'rgba(28,38,64,0.6)'}},y:{ticks:{color:'#4a5878',font:{size:10,family:"'Onest',sans-serif"}},grid:{color:'rgba(28,38,64,0.6)'}}}};
-
-function renderMonthlyTrend(audits){
-  const c=document.getElementById('monthlyTrendChart');if(!c)return;
-  const m={};audits.forEach(a=>{if(!a.date||a.totalScore===null)return;const k=a.date.substring(0,7);if(!m[k])m[k]=[];m[k].push(a.totalScore);});
-  const labels=Object.keys(m).sort(),avg=labels.map(k=>Math.round(m[k].reduce((s,v)=>s+v,0)/m[k].length));
-  if(trendCI)trendCI.destroy();
-  trendCI=new Chart(c.getContext('2d'),{type:'line',data:{labels,datasets:[{label:'Avg QA Score',data:avg,borderColor:'#3d7ef5',backgroundColor:'rgba(61,126,245,0.06)',fill:true,tension:.4,pointRadius:5,pointBackgroundColor:'#3d7ef5',pointBorderColor:'#060a12',pointBorderWidth:2,pointHoverRadius:7}]},options:{...chartDefaults,scales:{y:{...chartDefaults.scales.y,min:0,max:100,ticks:{...chartDefaults.scales.y.ticks,callback:v=>v+'%'}},x:chartDefaults.scales.x}}});
-}
-
-function renderVolumeChart(audits){
-  const c=document.getElementById('volumeChart');if(!c)return;
-  const m={};audits.forEach(a=>{if(!a.date)return;const k=a.date.substring(0,7);if(!m[k])m[k]={Pass:0,Review:0,Fail:0};if(a.result&&m[k][a.result]!==undefined)m[k][a.result]++;});
-  const labels=Object.keys(m).sort();
-  if(volCI)volCI.destroy();
-  volCI=new Chart(c.getContext('2d'),{type:'bar',data:{labels,datasets:[{label:'Pass',data:labels.map(k=>m[k].Pass),backgroundColor:'rgba(34,211,138,0.65)',borderRadius:4},{label:'Review',data:labels.map(k=>m[k].Review),backgroundColor:'rgba(240,128,64,0.65)',borderRadius:4},{label:'Fail',data:labels.map(k=>m[k].Fail),backgroundColor:'rgba(240,64,96,0.65)',borderRadius:4}]},options:{...chartDefaults,scales:{x:{...chartDefaults.scales.x,stacked:true,grid:{display:false}},y:{...chartDefaults.scales.y,stacked:true}}}});
-}
-
-function renderCalendarHeatmap(audits){
-  const el=document.getElementById('calendarContainer');if(!el)return;
-  const dayMap={};
-  audits.forEach(a=>{if(!a.date||a.totalScore===null)return;if(!dayMap[a.date])dayMap[a.date]=[];dayMap[a.date].push(a.totalScore);});
-  const today=new Date(),weeks=26;
-  const startDate=new Date(today);startDate.setDate(today.getDate()-(weeks*7));
-  startDate.setDate(startDate.getDate()-startDate.getDay());
-  function calColor(scores){if(!scores||!scores.length)return'rgba(28,38,64,0.5)';const avg=scores.reduce((s,v)=>s+v,0)/scores.length;if(avg>=85)return'rgba(34,211,138,0.7)';if(avg>=70)return'rgba(240,168,48,0.55)';return'rgba(240,64,96,0.55)';}
-  function fmtDate(d){const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),dd=String(d.getDate()).padStart(2,'0');return`${y}-${m}-${dd}`;}
-  const monthLabels=[];let lastMonth=-1;
-  let weeksHTML='';
-  for(let w=0;w<weeks;w++){
-    let weekHTML='';
-    for(let d=0;d<7;d++){
-      const dt=new Date(startDate);dt.setDate(startDate.getDate()+w*7+d);
-      const ds=fmtDate(dt);const sc=dayMap[ds];
-      const bg=calColor(sc);
-      const tip=sc?`${ds}: ${Math.round(sc.reduce((s,v)=>s+v,0)/sc.length)}% avg (${sc.length} audit${sc.length>1?'s':''})`:`${ds}: No audits`;
-      weekHTML+=`<div class="cal-day" style="background:${bg}" title="${tip}"></div>`;
-      if(d===0){const mn=dt.toLocaleString('default',{month:'short'});if(dt.getMonth()!==lastMonth){monthLabels.push({week:w,label:mn});lastMonth=dt.getMonth();}}
-    }
-    weeksHTML+=`<div class="cal-week">${weekHTML}</div>`;
-  }
-  el.innerHTML=`<div class="cal-wrap">
-    <div style="display:flex;gap:3px;margin-bottom:4px;padding-left:22px;overflow:hidden;">${monthLabels.map((m,i,arr)=>`<div style="font-size:9px;color:var(--muted);font-family:var(--font-head);flex:${i<arr.length-1?arr[i+1].week-m.week:1} 1 0">${m.label}</div>`).join('')}</div>
-    <div style="display:flex;gap:3px;">
-      <div class="cal-days-label"><div class="cal-day-label">M</div><div class="cal-day-label" style="margin-top:3px"></div><div class="cal-day-label" style="margin-top:3px">W</div><div class="cal-day-label" style="margin-top:3px"></div><div class="cal-day-label" style="margin-top:3px">F</div><div class="cal-day-label" style="margin-top:3px"></div><div class="cal-day-label" style="margin-top:3px">S</div></div>
-      <div class="cal-grid">${weeksHTML}</div>
-    </div>
-    <div class="cal-legend"><span>Less</span><div class="cal-legend-cell" style="background:rgba(28,38,64,0.5)"></div><div class="cal-legend-cell" style="background:rgba(240,64,96,0.55)"></div><div class="cal-legend-cell" style="background:rgba(240,168,48,0.55)"></div><div class="cal-legend-cell" style="background:rgba(34,211,138,0.7)"></div><span>More (Avg Score)</span></div>
-  </div>`;
-}
-
-async function renderAnalytics(){
-  const audits=await loadAudits();
-  const agents=buildAgentMap(audits);
-  ['radarAgentSelect','cmpAgent1','cmpAgent2'].forEach(id=>{
-    const sel=document.getElementById(id);
-    const cur=sel.value;
-    sel.innerHTML='<option value="">Select agent...</option>'+agents.map(ag=>`<option value="${ag.name}" ${ag.name===cur?'selected':''}>${ag.name}</option>`).join('');
-  });
-  renderDistributionChart(audits);
-  if(document.getElementById('radarAgentSelect').value)renderRadarChart(document.getElementById('radarAgentSelect').value,audits);
-  renderComparison();
-  renderTenureChart(audits);
-  renderConversionChart(audits);
-  renderTeamTable(audits);
-  renderHeatmap(audits);
-}
-
-function renderDistributionChart(audits){
-  const c=document.getElementById('distChart');if(!c)return;
-  const buckets=[{l:'<60',min:0,max:59},{l:'60–69',min:60,max:69},{l:'70–74',min:70,max:74},{l:'75–79',min:75,max:79},{l:'80–84',min:80,max:84},{l:'85–89',min:85,max:89},{l:'90–94',min:90,max:94},{l:'95–100',min:95,max:100}];
-  const scores=audits.filter(a=>a.totalScore!==null).map(a=>a.totalScore);
-  const counts=buckets.map(b=>scores.filter(s=>s>=b.min&&s<=b.max).length);
-  const colors=buckets.map(b=>b.min>=85?'rgba(34,211,138,0.7)':b.min>=70?'rgba(240,128,64,0.6)':'rgba(240,64,96,0.6)');
-  if(distCI)distCI.destroy();
-  distCI=new Chart(c.getContext('2d'),{type:'bar',data:{labels:buckets.map(b=>b.l),datasets:[{label:'Audits',data:counts,backgroundColor:colors,borderRadius:5,borderWidth:0}]},options:{...chartDefaults,plugins:{...chartDefaults.plugins,legend:{display:false}}}});
-}
-
-function onRadarAgentChange(){const v=document.getElementById('radarAgentSelect').value;if(v)renderRadarChart(v,_allAudits);}
-function renderRadarChart(agentName,audits){
-  const c=document.getElementById('radarChart');if(!c)return;
-  if(!agentName){if(radarCI){radarCI.destroy();radarCI=null;}return;}
-  const aa=audits.filter(a=>a.agent===agentName&&a.scores);
-  function groupAvg(keys){const r=[];keys.forEach(k=>{aa.forEach(a=>{if(a.scores&&k in a.scores){if(a.scores[k]==='yes')r.push(100);else if(a.scores[k]==='no')r.push(0);}});});return r.length?Math.round(r.reduce((s,v)=>s+v,0)/r.length):0;}
-  const data=[groupAvg(['nc1','nc2','nc3','nc4']),groupAvg(['nc5','nc6','nc7']),groupAvg(['nc8','nc9','nc10','nc11','nc12']),groupAvg(['cr1','cr2','cr3','cr4','cr5']),groupAvg(['cr6','cr7','cr8','cr9','cr10'])];
-  if(radarCI)radarCI.destroy();
-  radarCI=new Chart(c.getContext('2d'),{type:'radar',data:{labels:['Opening/Closing','Issue ID','Cust. Experience','Critical (Core)','Critical (Sales)'],datasets:[{label:agentName,data,backgroundColor:'rgba(61,126,245,0.12)',borderColor:'rgba(61,126,245,0.8)',pointBackgroundColor:'#3d7ef5',pointBorderColor:'#060a12',pointBorderWidth:2,pointRadius:5,borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,scales:{r:{min:0,max:100,ticks:{color:'#4a5878',backdropColor:'transparent',stepSize:25,font:{size:9,family:"'Onest',sans-serif"}},grid:{color:'rgba(28,38,64,0.7)'},pointLabels:{color:'#e4ecf8',font:{size:10,family:"'Epilogue',sans-serif",weight:'700'}},angleLines:{color:'rgba(28,38,64,0.7)'}}},plugins:{legend:{labels:{color:'#8a9bb8',font:{size:11,family:"'Onest',sans-serif"}}},tooltip:{backgroundColor:'rgba(13,19,32,0.97)',titleColor:'#e4ecf8',bodyColor:'#8a9bb8',borderColor:'rgba(28,38,64,0.8)',borderWidth:1,padding:12,cornerRadius:8}}}});
-}
-
-function renderComparison(){
-  const n1=document.getElementById('cmpAgent1').value,n2=document.getElementById('cmpAgent2').value;
-  const el=document.getElementById('comparisonResult');
-  if(!n1||!n2||n1===n2){el.innerHTML='<div style="text-align:center;color:var(--muted);padding:20px;font-size:13px;">Choose two different agents to compare.</div>';return;}
-  const audits=_allAudits;
-  function agStats(name){const aa=audits.filter(a=>a.agent===name&&a.totalScore!==null);if(!aa.length)return null;const avgT=Math.round(aa.reduce((s,a)=>s+a.totalScore,0)/aa.length),vn=aa.filter(a=>a.ncScore!==null),vc=aa.filter(a=>a.crScore!==null),avgNc=vn.length?Math.round(vn.reduce((s,a)=>s+a.ncScore,0)/vn.length):null,avgCr=vc.length?Math.round(vc.reduce((s,a)=>s+a.crScore,0)/vc.length):null,pass=Math.round(aa.filter(a=>a.result==='Pass').length/aa.length*100),sd=calcStdDev(aa.map(a=>a.totalScore)),risk=calcRiskScore(aa);return{name,evals:aa.length,avgT,avgNc,avgCr,pass,stability:stabilityRating(sd),risk};}
-  const s1=agStats(n1),s2=agStats(n2);
-  if(!s1||!s2){el.innerHTML='<div style="text-align:center;color:var(--muted);padding:20px">Insufficient data for one or both agents.</div>';return;}
-  function stat(label,v1,v2,suffix='%',higherIsBetter=true){const w=higherIsBetter?(v1>v2?1:v1<v2?2:0):(v1<v2?1:v1>v2?2:0);const c1=w===1?'var(--success)':w===2?'var(--critical)':'var(--text-dim)';const c2=w===2?'var(--success)':w===1?'var(--critical)':'var(--text-dim)';return`<div style="display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:11px 20px;border-bottom:1px solid var(--border);gap:12px"><div style="font-family:var(--font-head);font-weight:800;font-size:20px;letter-spacing:-0.5px;color:${c1};text-align:right">${v1!==null?v1+suffix:'—'}</div><div style="font-size:9.5px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);text-align:center;white-space:nowrap;font-family:var(--font-head);font-weight:700">${label}</div><div style="font-family:var(--font-head);font-weight:800;font-size:20px;letter-spacing:-0.5px;color:${c2}">${v2!==null?v2+suffix:'—'}</div></div>`;}
-  el.innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--border);">
-    <div style="padding:16px 20px;background:rgba(61,126,245,0.04);border-right:1px solid var(--border)"><div style="font-family:var(--font-head);font-weight:800;font-size:16px;letter-spacing:-0.3px">${n1}</div><div style="font-size:11px;color:var(--muted);margin-top:3px">${s1.evals} evaluations</div></div>
-    <div style="padding:16px 20px"><div style="font-family:var(--font-head);font-weight:800;font-size:16px;letter-spacing:-0.3px">${n2}</div><div style="font-size:11px;color:var(--muted);margin-top:3px">${s2.evals} evaluations</div></div>
-  </div>
-  ${stat('Avg Overall Score',s1.avgT,s2.avgT)}
-  ${stat('Non-Critical %',s1.avgNc,s2.avgNc)}
-  ${stat('Critical %',s1.avgCr,s2.avgCr)}
-  ${stat('Pass Rate',s1.pass,s2.pass)}
-  ${stat('Risk Score',s1.risk,s2.risk,'',false)}
-  <div style="display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:11px 20px;gap:12px"><div style="font-family:var(--font-head);font-weight:700;font-size:13.5px;text-align:right;color:${s1.stability.color}">${s1.stability.label}</div><div style="font-size:9.5px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);text-align:center;font-family:var(--font-head);font-weight:700">Stability</div><div style="font-family:var(--font-head);font-weight:700;font-size:13.5px;color:${s2.stability.color}">${s2.stability.label}</div></div>`;
-}
-
-function renderTenureChart(audits){
-  const c=document.getElementById('tenureChart');if(!c)return;
-  const bands=[{l:'0–3m',min:0,max:3},{l:'4–6m',min:4,max:6},{l:'7–12m',min:7,max:12},{l:'13–24m',min:13,max:24},{l:'25+m',min:25,max:9999}];
-  const labels=[],data=[],bg=[];
-  bands.forEach(b=>{const ba=audits.filter(a=>a.tenure>=b.min&&a.tenure<=b.max&&a.totalScore!==null);if(!ba.length)return;const avg=Math.round(ba.reduce((s,a)=>s+a.totalScore,0)/ba.length);labels.push(b.l);data.push(avg);bg.push(avg>=85?'rgba(34,211,138,0.65)':avg>=70?'rgba(240,128,64,0.65)':'rgba(240,64,96,0.65)');});
-  if(tenureCI)tenureCI.destroy();
-  tenureCI=new Chart(c.getContext('2d'),{type:'bar',data:{labels,datasets:[{label:'Avg QA Score',data,backgroundColor:bg,borderRadius:6,borderWidth:0}]},options:{...chartDefaults,scales:{y:{...chartDefaults.scales.y,min:0,max:100,ticks:{...chartDefaults.scales.y.ticks,callback:v=>v+'%'}},x:{...chartDefaults.scales.x,grid:{display:false}}}}});
-}
-
-function renderConversionChart(audits){
-  const c=document.getElementById('conversionChart');if(!c)return;
-  const conv=audits.filter(a=>a.converted==='yes'&&a.totalScore!==null),noconv=audits.filter(a=>a.converted==='no'&&a.totalScore!==null);
-  function avg(arr,key){const v=arr.filter(a=>a[key]!==null);return v.length?Math.round(v.reduce((s,a)=>s+a[key],0)/v.length):0;}
-  if(convCI)convCI.destroy();
-  convCI=new Chart(c.getContext('2d'),{type:'bar',data:{labels:['Overall Score','Non-Critical','Critical'],datasets:[{label:`Converted (n=${conv.length})`,data:[avg(conv,'totalScore'),avg(conv,'ncScore'),avg(conv,'crScore')],backgroundColor:'rgba(34,211,138,0.6)',borderColor:'rgba(34,211,138,0.9)',borderWidth:1,borderRadius:5},{label:`Not Converted (n=${noconv.length})`,data:[avg(noconv,'totalScore'),avg(noconv,'ncScore'),avg(noconv,'crScore')],backgroundColor:'rgba(240,64,96,0.5)',borderColor:'rgba(240,64,96,0.9)',borderWidth:1,borderRadius:5}]},options:{...chartDefaults,scales:{y:{...chartDefaults.scales.y,min:0,max:100,ticks:{...chartDefaults.scales.y.ticks,callback:v=>v+'%'}},x:{...chartDefaults.scales.x,grid:{display:false}}}}});
-}
-
-function renderTeamTable(audits){
-  const teams={};audits.forEach(a=>{const t=a.team||'Unknown';if(!teams[t])teams[t]={name:t,agents:new Set(),evals:[],ncS:[],crS:[],totS:[]};teams[t].agents.add(a.agent);teams[t].evals.push(a);if(a.ncScore!==null)teams[t].ncS.push(a.ncScore);if(a.crScore!==null)teams[t].crS.push(a.crScore);if(a.totalScore!==null)teams[t].totS.push(a.totalScore);});
-  const rows=Object.values(teams).sort((a,b)=>{const aa=a.totS.length?a.totS.reduce((s,v)=>s+v,0)/a.totS.length:0,bb=b.totS.length?b.totS.reduce((s,v)=>s+v,0)/b.totS.length:0;return bb-aa;}).map(t=>{const avgNc=t.ncS.length?Math.round(t.ncS.reduce((s,v)=>s+v,0)/t.ncS.length):null,avgCr=t.crS.length?Math.round(t.crS.reduce((s,v)=>s+v,0)/t.crS.length):null,avgTot=t.totS.length?Math.round(t.totS.reduce((s,v)=>s+v,0)/t.totS.length):null,pass=t.evals.filter(e=>e.result==='Pass').length,fail=t.evals.filter(e=>e.result==='Fail').length,crF=t.crS.filter(s=>s<70).length,passR=t.totS.length?Math.round(pass/t.totS.length*100):null,failR=t.totS.length?Math.round(fail/t.totS.length*100):null,crFR=t.crS.length?Math.round(crF/t.crS.length*100):null,c=avgTot>=85?'var(--success)':avgTot>=70?'var(--warning)':'var(--critical)';return`<tr><td style="font-family:var(--font-head);font-weight:700">${t.name}</td><td>${t.agents.size}</td><td>${t.evals.length}</td><td>${avgNc!==null?`<span style="color:var(--accent);font-weight:700">${avgNc}%</span>`:'—'}</td><td>${avgCr!==null?`<span style="color:var(--critical);font-weight:700">${avgCr}%</span>`:'—'}</td><td class="sbc"><div class="sbw"><div class="smb"><div class="smf" style="width:${avgTot||0}%;background:${c}"></div></div><span class="sv" style="color:${c}">${avgTot!==null?avgTot+'%':'—'}</span></div></td><td>${passR!==null?`<span style="color:var(--success);font-weight:700">${passR}%</span>`:'—'}</td><td>${failR!==null?`<span style="color:var(--critical);font-weight:700">${failR}%</span>`:'—'}</td><td>${crFR!==null?`<span style="color:var(--warning);font-weight:700">${crFR}%</span>`:'—'}</td></tr>`;});
-  document.getElementById('teamTableBody').innerHTML=rows.length?rows.join(''):`<tr><td colspan="9"><div class="empty-state" style="padding:22px"><p>No data yet</p></div></td></tr>`;
-}
-
-function heatColor(rate){if(rate===null)return{bg:'var(--surface2)',text:'var(--muted)',label:'—'};if(rate===0)return{bg:'rgba(34,211,138,.28)',text:'var(--success)',label:'0%'};if(rate<=40)return{bg:'rgba(240,128,64,.32)',text:'var(--warning)',label:rate+'%'};if(rate<=70)return{bg:'rgba(240,64,96,.42)',text:'var(--critical)',label:rate+'%'};return{bg:'rgba(240,64,96,.78)',text:'#fff',label:rate+'%'};}
-function renderHeatmap(audits){
-  const agents=[...new Set(audits.map(a=>a.agent))].sort();
-  if(!agents.length){document.getElementById('heatmapContainer').innerHTML=`<div class="empty-state" style="padding:30px"><p>No data yet</p></div>`;return;}
-  const map={};agents.forEach(ag=>{map[ag]={};AK.forEach(k=>{map[ag][k]={y:0,n:0};});});
-  audits.forEach(a=>{if(!map[a.agent])return;AK.forEach(k=>{if(a.scores&&k in a.scores){if(a.scores[k]==='yes')map[a.agent][k].y++;else if(a.scores[k]==='no')map[a.agent][k].n++;}});});
-  const thCols=AK.map(k=>`<th title="${PM[k].label}" style="font-size:9px;padding:4px 3px;color:${PM[k].type==='CR'?'var(--critical)':'var(--accent)'}">${PM[k].short}</th>`).join('');
-  const rows=agents.map(ag=>{const cells=AK.map(k=>{const d=map[ag][k],tot=d.y+d.n,rate=tot>0?Math.round(d.n/tot*100):null,hc=heatColor(rate);return`<td style="background:${hc.bg};color:${hc.text};font-size:9px;font-weight:700">${hc.label}</td>`;}).join('');return`<tr><td class="agent-name">${ag}</td>${cells}</tr>`;}).join('');
-  document.getElementById('heatmapContainer').innerHTML=`<table class="heatmap-table"><thead><tr><th class="agent-col">Agent</th>${thCols}</tr></thead><tbody>${rows}</tbody></table>`;
-}
-
-async function saveCoachingSession(){
-  if(!auth.currentUser){showToast("Please login first","e");return;}
-  const agent=document.getElementById('coachAgent').value.trim(),date=document.getElementById('coachDate').value;
-  if(!agent||!date){showToast('Enter agent and date','e');return;}
-  const s={agent,date,notes:document.getElementById('coachNotes').value,timestamp:Date.now(),createdBy:auth.currentUser.email};
-  try{const r=await push(ref(db,'coaching'));await set(r,s);showToast('Coaching session saved','s');document.getElementById('coachAgent').value='';document.getElementById('coachDate').value='';document.getElementById('coachNotes').value='';renderCoaching();}
-  catch(e){showToast('Error','e');}
-}
-async function renderCoaching(){
-  const [sessions,audits]=await Promise.all([loadCoachingSessions(),loadAudits()]);
-  const el=document.getElementById('coachingROIList');
-  if(!sessions.length){el.innerHTML=`<div class="empty-state"><div class="ei">🎯</div><h3>No coaching sessions logged</h3><p>Log a session above.</p></div>`;return;}
-  el.innerHTML=sessions.map(s=>{
-    const cTs=new Date(s.date).getTime(),thirty=30*24*60*60*1000;
-    const aa=audits.filter(a=>a.agent===s.agent&&a.totalScore!==null);
-    const before=aa.filter(a=>{const t=new Date(a.date).getTime();return t>=cTs-thirty&&t<cTs;});
-    const after=aa.filter(a=>{const t=new Date(a.date).getTime();return t>cTs&&t<=cTs+thirty;});
-    const avgB=before.length?Math.round(before.reduce((s,a)=>s+a.totalScore,0)/before.length):null;
-    const avgA=after.length?Math.round(after.reduce((s,a)=>s+a.totalScore,0)/after.length):null;
-    const imp=avgB!==null&&avgA!==null?avgA-avgB:null;
-    const ic=imp===null?'var(--muted)':imp>0?'var(--success)':imp<0?'var(--critical)':'var(--warning)';
-    const il=imp===null?'Insufficient Data':imp>0?`+${imp}% Improvement`:imp<0?`${imp}% Decline`:'No Change';
-    return`<div class="roi-card"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px"><div><div style="font-family:var(--font-head);font-weight:700;font-size:14.5px;letter-spacing:-0.2px">🎯 ${s.agent}</div><div style="font-size:11px;color:var(--muted);margin-top:3px">Coaching: ${s.date}${s.notes?' · '+s.notes:''}</div></div><span style="font-family:var(--font-head);font-weight:800;font-size:16px;color:${ic}">${il}</span></div><div class="roi-stats"><div class="roi-stat"><div class="roi-stat-label">Before (30d avg)</div><div class="roi-stat-val" style="color:${avgB!==null?(avgB>=85?'var(--success)':avgB>=70?'var(--warning)':'var(--critical)'):'var(--muted)'}">${avgB!==null?avgB+'%':'—'}</div><div style="font-size:10px;color:var(--muted);margin-top:5px">${before.length} eval${before.length!==1?'s':''}</div></div><div class="roi-stat"><div class="roi-stat-label">After (30d avg)</div><div class="roi-stat-val" style="color:${avgA!==null?(avgA>=85?'var(--success)':avgA>=70?'var(--warning)':'var(--critical)'):'var(--muted)'}">${avgA!==null?avgA+'%':'—'}</div><div style="font-size:10px;color:var(--muted);margin-top:5px">${after.length} eval${after.length!==1?'s':''}</div></div><div class="roi-stat"><div class="roi-stat-label">ROI Impact</div><div class="roi-stat-val" style="color:${ic}">${imp!==null?(imp>0?'+':'')+imp+'%':'—'}</div><div style="font-size:10px;color:var(--muted);margin-top:5px">${imp>5?'✅ Effective':imp>0?'↗ Improving':imp<0?'⚠️ Declining':'—'}</div></div></div>${getUserRole()==='admin'?`<div style="text-align:right;margin-top:14px"><button class="btn btn-danger btn-sm" onclick="deleteCoaching('${s.id}')">🗑</button></div>`:''}</div>`;
+  el.innerHTML=agents.map((ag,i)=>{
+    const c=ag.avgTot>=85?'var(--success)':ag.avgTot>=70?'var(--warning)':'var(--critical)';
+    const m=isTop?['🥇','🥈','🥉','🏅'][i]:['⚠️','⚠️','⚠️','⚠️'][i];
+    return `<div class="arc" style="position:relative;border-top:3px solid ${c}">
+      <div class="arc-rank">${i+1}</div>
+      <div style="font-size:18px;margin-bottom:5px">${m}</div>
+      <div class="arc-name">${ag.name}</div>
+      <div class="arc-meta">${ag.team} · ${ag.evals.length} eval${ag.evals.length!==1?'s':''} <span class="ten-badge" style="margin-left:3px">${ag.tenure?ag.tenure+'m':'?'}</span></div>
+      <div class="arc-score" style="color:${c}">${ag.avgTot!==null?ag.avgTot+'%':'—'}</div>
+      <div style="display:flex;gap:7px;margin-top:5px"><span style="font-size:10px;color:var(--accent)">NC:${ag.avgNc!==null?ag.avgNc+'%':'—'}</span><span style="font-size:10px;color:var(--critical)">CR:${ag.avgCr!==null?ag.avgCr+'%':'—'}</span></div>
+    </div>`;
   }).join('');
 }
-async function deleteCoaching(id){if(getUserRole()!=="admin"){showToast("Admin only","e");return;}if(!confirm('Delete?'))return;try{await remove(ref(db,'coaching/'+id));showToast('Deleted','s');renderCoaching();}catch(e){showToast('Error','e');}}
 
 async function renderPareto(){
   const audits=await loadAudits();
-  if(!audits.length){document.getElementById('paretoTableBody').innerHTML=`<tr><td colspan="8"><div class="empty-state" style="padding:22px"><p>No data yet.</p></div></td></tr>`;['par-total','par-top','par-cr','par-80'].forEach(id=>document.getElementById(id).textContent='—');if(pCI){pCI.destroy();pCI=null;}if(sCI){sCI.destroy();sCI=null;}return;}
-  const fc={},tr={};AK.forEach(k=>{fc[k]=0;tr[k]=0;});
-  audits.forEach(a=>{AK.forEach(k=>{if(a.scores&&k in a.scores){if(a.scores[k]==='yes'||a.scores[k]==='no')tr[k]++;if(a.scores[k]==='no')fc[k]++;}});});
+  if(!audits.length){
+    document.getElementById('paretoTableBody').innerHTML=`<tr><td colspan="8"><div class="empty-state" style="padding:22px"><p>No audit data yet.</p></div></td></tr>`;
+    ['par-total','par-top','par-cr','par-80'].forEach(id=>document.getElementById(id).textContent='—');
+    if(pCI){pCI.destroy();pCI=null;}if(sCI){sCI.destroy();sCI=null;}return;
+  }
+  const fc={},tr={};
+  AK.forEach(k=>{fc[k]=0;tr[k]=0;});
+  audits.forEach(a=>{AK.forEach(k=>{if(k in a.scores){if(a.scores[k]==='yes'||a.scores[k]==='no')tr[k]++;if(a.scores[k]==='no')fc[k]++;}});});
   const sorted=AK.filter(k=>tr[k]>0).sort((a,b)=>fc[b]-fc[a]);
-  const totFails=sorted.reduce((s,k)=>s+fc[k],0);let cum=0,p80=0;
-  const rows=sorted.map((k,i)=>{cum+=fc[k];const cp=totFails>0?Math.round(cum/totFails*100):0;if(cp<=80)p80=i+1;const fr=tr[k]>0?Math.round(fc[k]/tr[k]*100):0;return{k,i,fc:fc[k],tr:tr[k],fr,cp};});
-  animateVal(document.getElementById('par-total'),totFails,'');
-  document.getElementById('par-top').textContent=sorted.length?PM[sorted[0]].label.substring(0,22)+'…':'—';
-  animateVal(document.getElementById('par-cr'),sorted.filter(k=>PM[k].type==='CR').reduce((s,k)=>s+fc[k],0),'');
+  const totFails=sorted.reduce((s,k)=>s+fc[k],0);
+  let cum=0,p80=0;
+  const rows=sorted.map((k,i)=>{
+    cum+=fc[k];
+    const cp=totFails>0?Math.round(cum/totFails*100):0;
+    if(cp<=80)p80=i+1;
+    const fr=tr[k]>0?Math.round(fc[k]/tr[k]*100):0;
+    return{k,i,fc:fc[k],tr:tr[k],fr,cp};
+  });
+  document.getElementById('par-total').textContent=totFails;
+  document.getElementById('par-top').textContent=sorted.length?PM[sorted[0]].label.substring(0,24)+'…':'—';
+  document.getElementById('par-cr').textContent=sorted.filter(k=>PM[k].type==='CR').reduce((s,k)=>s+fc[k],0);
   document.getElementById('par-80').textContent=p80||'—';
-  document.getElementById('paretoTableBody').innerHTML=rows.map(r=>{const pm=PM[r.k],c=r.fr>=50?'var(--critical)':r.fr>=25?'var(--warning)':'var(--success)';return`<tr><td style="font-family:var(--font-head);font-weight:700;color:var(--muted)">${r.i+1}</td><td>${pm.label}</td><td><span class="tag ${pm.type==='CR'?'tcr':'tnc'}">${pm.type}</span></td><td style="font-family:var(--font-head);font-weight:700;color:var(--critical)">${r.fc}</td><td style="color:var(--muted)">${r.tr}</td><td class="sbc"><div class="sbw"><div class="smb"><div class="smf" style="width:${r.fr}%;background:${c}"></div></div><span class="sv" style="color:${c}">${r.fr}%</span></div></td><td style="font-family:var(--font-head);font-weight:700;color:${r.cp<=80?'var(--accent2)':'var(--muted)'}">${r.cp}%</td><td>${r.cp<=80?'<span class="tag tf" style="font-size:9px">Top 80%</span>':'<span style="color:var(--muted);font-size:11px">—</span>'}</td></tr>`;}).join('');
-  const labels=sorted.map(k=>PM[k].label.length>16?PM[k].label.substring(0,16)+'…':PM[k].label),counts=sorted.map(k=>fc[k]),cumPcts=[];let c2=0;
+  document.getElementById('paretoTableBody').innerHTML=rows.map(r=>{
+    const pm=PM[r.k];
+    const c=r.fr>=50?'var(--critical)':r.fr>=25?'var(--warning)':'var(--success)';
+    return `<tr>
+      <td style="font-family:var(--font-head);font-weight:700;color:var(--muted)">${r.i+1}</td>
+      <td>${pm.label}</td>
+      <td><span class="tag ${pm.type==='CR'?'tcr':'tnc'}">${pm.type}</span></td>
+      <td style="font-family:var(--font-head);font-weight:700;color:var(--critical)">${r.fc}</td>
+      <td style="color:var(--muted)">${r.tr}</td>
+      <td class="sbc"><div class="sbw"><div class="smb"><div class="smf" style="width:${r.fr}%;background:${c}"></div></div><span class="sv" style="color:${c}">${r.fr}%</span></div></td>
+      <td style="font-family:var(--font-head);font-weight:700;color:${r.cp<=80?'var(--accent2)':'var(--muted)'}">${r.cp}%</td>
+      <td>${r.cp<=80?'<span class="tag tf" style="font-size:9px">Top 80%</span>':'<span style="color:var(--muted);font-size:11px">—</span>'}</td>
+    </tr>`;
+  }).join('');
+  const labels=sorted.map(k=>PM[k].label.length>18?PM[k].label.substring(0,18)+'…':PM[k].label);
+  const counts=sorted.map(k=>fc[k]);
+  const cumPcts=[];let c2=0;
   sorted.forEach(k=>{c2+=fc[k];cumPcts.push(totFails>0?Math.round(c2/totFails*100):0);});
-  const bColors=sorted.map(k=>PM[k].type==='CR'?'rgba(240,64,96,0.75)':'rgba(61,126,245,0.75)');
+  const bColors=sorted.map(k=>PM[k].type==='CR'?'rgba(247,79,106,.8)':'rgba(79,142,247,.8)');
   if(pCI)pCI.destroy();
-  pCI=new Chart(document.getElementById('paretoChart').getContext('2d'),{type:'bar',data:{labels,datasets:[{label:'Failures',data:counts,backgroundColor:bColors,yAxisID:'y',order:2,borderRadius:4},{label:'Cumulative %',data:cumPcts,type:'line',borderColor:'rgba(240,168,48,0.9)',backgroundColor:'rgba(240,168,48,0.04)',borderWidth:2.5,pointRadius:3,pointBackgroundColor:'rgba(240,168,48,1)',fill:false,yAxisID:'y1',tension:.3,order:1},{label:'80% Line',data:Array(sorted.length).fill(80),type:'line',borderColor:'rgba(255,255,255,.15)',borderWidth:1.5,borderDash:[5,4],pointRadius:0,fill:false,yAxisID:'y1',order:0}]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{display:false},tooltip:{backgroundColor:'rgba(13,19,32,0.97)',borderColor:'rgba(28,38,64,0.8)',borderWidth:1,titleColor:'#e4ecf8',bodyColor:'#8a9bb8',padding:12,cornerRadius:8}},scales:{x:{ticks:{color:'#4a5878',font:{size:9,family:"'Onest',sans-serif"},maxRotation:50},grid:{color:'rgba(28,38,64,0.5)'}},y:{position:'left',ticks:{color:'#4a5878',font:{size:10,family:"'Onest',sans-serif"}},grid:{color:'rgba(28,38,64,0.5)'}},y1:{position:'right',min:0,max:100,ticks:{color:'rgba(240,168,48,.7)',font:{size:10,family:"'Onest',sans-serif"},callback:v=>v+'%'},grid:{display:false}}}}});
+  pCI=new Chart(document.getElementById('paretoChart').getContext('2d'),{
+    type:'bar',
+    data:{labels,datasets:[
+      {label:'Failure Count',data:counts,backgroundColor:bColors,borderColor:bColors,borderWidth:0,yAxisID:'y',order:2},
+      {label:'Cumulative %',data:cumPcts,type:'line',borderColor:'rgba(247,193,79,.9)',backgroundColor:'rgba(247,193,79,.05)',borderWidth:2.5,pointRadius:3,pointBackgroundColor:'rgba(247,193,79,1)',fill:false,yAxisID:'y1',tension:.3,order:1},
+      {label:'80% Line',data:Array(sorted.length).fill(80),type:'line',borderColor:'rgba(255,255,255,.2)',borderWidth:1.5,borderDash:[5,4],pointRadius:0,fill:false,yAxisID:'y1',order:0}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+      plugins:{legend:{display:false},tooltip:{backgroundColor:'rgba(20,25,40,.95)',borderColor:'rgba(79,142,247,.3)',borderWidth:1,titleColor:'#e8edf8',bodyColor:'#6b7a9e',padding:10}},
+      scales:{
+        x:{ticks:{color:'#6b7a9e',font:{size:9},maxRotation:50},grid:{color:'rgba(37,46,69,.5)'}},
+        y:{position:'left',ticks:{color:'#6b7a9e',font:{size:10}},grid:{color:'rgba(37,46,69,.5)'},title:{display:true,text:'Failures',color:'#6b7a9e',font:{size:10}}},
+        y1:{position:'right',min:0,max:100,ticks:{color:'rgba(247,193,79,.8)',font:{size:10},callback:v=>v+'%'},grid:{display:false},title:{display:true,text:'Cumulative %',color:'rgba(247,193,79,.8)',font:{size:10}}}
+      }
+    }
+  });
   const ncF=NCK.reduce((s,k)=>s+fc[k],0),crF=CRK.reduce((s,k)=>s+fc[k],0);
   if(sCI)sCI.destroy();
-  sCI=new Chart(document.getElementById('splitChart').getContext('2d'),{type:'doughnut',data:{labels:['Non-Critical','Critical'],datasets:[{data:[ncF,crF],backgroundColor:['rgba(61,126,245,0.7)','rgba(240,64,96,0.7)'],borderColor:['rgba(61,126,245,1)','rgba(240,64,96,1)'],borderWidth:2,hoverOffset:8}]},options:{responsive:false,cutout:'65%',plugins:{legend:{position:'bottom',labels:{color:'#8a9bb8',padding:16,font:{size:11,family:"'Onest',sans-serif"}}},tooltip:{backgroundColor:'rgba(13,19,32,0.97)',borderColor:'rgba(28,38,64,0.8)',borderWidth:1,titleColor:'#e4ecf8',bodyColor:'#8a9bb8',padding:12,cornerRadius:8}}}});
+  sCI=new Chart(document.getElementById('splitChart').getContext('2d'),{
+    type:'doughnut',
+    data:{labels:['Non-Critical','Critical'],datasets:[{data:[ncF,crF],backgroundColor:['rgba(79,142,247,.75)','rgba(247,79,106,.75)'],borderColor:['rgba(79,142,247,1)','rgba(247,79,106,1)'],borderWidth:2,hoverOffset:8}]},
+    options:{responsive:false,cutout:'65%',plugins:{legend:{position:'bottom',labels:{color:'#6b7a9e',padding:14,font:{size:11}}},tooltip:{backgroundColor:'rgba(20,25,40,.95)',borderColor:'rgba(79,142,247,.3)',borderWidth:1,titleColor:'#e8edf8',bodyColor:'#6b7a9e',padding:10}}}
+  });
 }
 
-async function exportAllExcel(){const a=await loadAudits();if(!a.length){showToast('No data','e');return;}const wb=XLSX.utils.book_new();addAuditSheet(wb,a);addAgentSheet(wb,a);addParetoSheet(wb,a);XLSX.writeFile(wb,'QA_Intelligence_'+new Date().toISOString().slice(0,10)+'.xlsx');showToast('Exported!','s');}
+async function exportAllExcel(){
+  const audits=await loadAudits();
+  if(!audits.length){showToast('No data to export','e');return;}
+  const wb=XLSX.utils.book_new();
+  addAuditSheet(wb,audits);addAgentSheet(wb,audits);addParetoSheet(wb,audits);
+  XLSX.writeFile(wb,'QA_Dashboard_Export_'+new Date().toISOString().slice(0,10)+'.xlsx');
+  showToast('Excel exported successfully!','s');
+}
 async function exportAuditExcel(){const a=await loadAudits();if(!a.length){showToast('No data','e');return;}const wb=XLSX.utils.book_new();addAuditSheet(wb,a);XLSX.writeFile(wb,'QA_Audit_Log.xlsx');showToast('Exported!','s');}
-async function exportPerfExcel(){const a=await loadAudits();if(!a.length){showToast('No data','e');return;}const wb=XLSX.utils.book_new();addAgentSheet(wb,a);XLSX.writeFile(wb,'QA_Performance.xlsx');showToast('Exported!','s');}
-async function exportParetoExcel(){const a=await loadAudits();if(!a.length){showToast('No data','e');return;}const wb=XLSX.utils.book_new();addParetoSheet(wb,a);XLSX.writeFile(wb,'QA_Pareto.xlsx');showToast('Exported!','s');}
-function addAuditSheet(wb,audits){const rows=[['Date','Agent','Reviewer','Call ID','Channel','Team','Tenure','Language','Converted','NC%','CR%','Overall%','Result','Coaching Req',...AK.map(k=>PM[k].label)]];audits.forEach(a=>rows.push([a.date,a.agent,a.reviewer,a.callId,a.channel,a.team,a.tenure,a.language,a.converted,a.ncScore,a.crScore,a.totalScore,a.result,a.coachingRequired?'Yes':'No',...AK.map(k=>a.scores&&a.scores[k]?a.scores[k]:'')]));const ws=XLSX.utils.aoa_to_sheet(rows);XLSX.utils.book_append_sheet(wb,ws,'Audit Log');}
-function addAgentSheet(wb,audits){const aMap={};audits.forEach(a=>{if(!aMap[a.agent])aMap[a.agent]={name:a.agent,team:a.team||'',tenure:a.tenure||0,evals:[]};aMap[a.agent].evals.push(a);if(a.tenure)aMap[a.agent].tenure=a.tenure;});const rows=[['Agent','Team','Tenure','Evals','Avg NC%','Avg CR%','Avg Overall%','Pass','Fail','Review','Pass Rate%','Stability','Risk','Last Eval']];Object.values(aMap).forEach(ag=>{const v=ag.evals.filter(e=>e.totalScore!==null);const avgT=v.length?Math.round(v.reduce((s,e)=>s+e.totalScore,0)/v.length):null;const vn=v.filter(e=>e.ncScore!==null),vc=v.filter(e=>e.crScore!==null);const avgNc=vn.length?Math.round(vn.reduce((s,e)=>s+e.ncScore,0)/vn.length):null;const avgCr=vc.length?Math.round(vc.reduce((s,e)=>s+e.crScore,0)/vc.length):null;const pass=v.filter(e=>e.result==='Pass').length,fail=v.filter(e=>e.result==='Fail').length,rev=v.filter(e=>e.result==='Review').length;const sd=calcStdDev(v.map(e=>e.totalScore));const risk=calcRiskScore(ag.evals);rows.push([ag.name,ag.team,ag.tenure,ag.evals.length,avgNc,avgCr,avgT,pass,fail,rev,v.length?Math.round(pass/v.length*100):'',stabilityRating(sd).label,risk,ag.evals.map(e=>e.date).sort().pop()||'']);});const ws=XLSX.utils.aoa_to_sheet(rows);XLSX.utils.book_append_sheet(wb,ws,'Agent Performance');}
-function addParetoSheet(wb,audits){const fc={},tr={};AK.forEach(k=>{fc[k]=0;tr[k]=0;});audits.forEach(a=>{AK.forEach(k=>{if(a.scores&&k in a.scores){if(a.scores[k]==='yes'||a.scores[k]==='no')tr[k]++;if(a.scores[k]==='no')fc[k]++;}});});const sorted=AK.filter(k=>tr[k]>0).sort((a,b)=>fc[b]-fc[a]);const totFails=sorted.reduce((s,k)=>s+fc[k],0);let cum=0;const rows=[['Rank','Parameter','Type','Fails','Total Rated','Fail Rate%','Cumulative%','In 80% Pareto']];sorted.forEach((k,i)=>{cum+=fc[k];const cp=totFails>0?Math.round(cum/totFails*100):0;const pm=PM[k];rows.push([i+1,pm.label,pm.type,fc[k],tr[k],tr[k]>0?Math.round(fc[k]/tr[k]*100):0,cp,cp<=80?'Yes':'No']);});const ws=XLSX.utils.aoa_to_sheet(rows);XLSX.utils.book_append_sheet(wb,ws,'Pareto');}
+async function exportPerfExcel(){const a=await loadAudits();if(!a.length){showToast('No data','e');return;}const wb=XLSX.utils.book_new();addAgentSheet(wb,a);XLSX.writeFile(wb,'QA_Agent_Performance.xlsx');showToast('Exported!','s');}
+async function exportParetoExcel(){const a=await loadAudits();if(!a.length){showToast('No data','e');return;}const wb=XLSX.utils.book_new();addParetoSheet(wb,a);XLSX.writeFile(wb,'QA_Pareto_Analysis.xlsx');showToast('Exported!','s');}
 
-function resetForm(skipConfirm=false){if(!skipConfirm&&!confirm('Reset form?'))return;CS={};document.querySelectorAll('.br').forEach(b=>b.classList.remove('ay','an','ana'));['agentName','reviewerName','callId','team','agentLang','callSummary','observations','recommendation'].forEach(id=>document.getElementById(id).value='');['channel','converted'].forEach(id=>document.getElementById(id).value='');document.getElementById('tenure').value='';document.getElementById('evalDate').valueAsDate=new Date();updateDash();}
-function showToast(msg,type){const t=document.getElementById('toast');t.textContent=msg;t.className='show '+(type==='s'?'ts':'te');setTimeout(()=>t.classList.remove('show'),3000);}
+function addAuditSheet(wb,audits){
+  const rows=[['Date','Agent','Reviewer','Call ID','Channel','Team','Tenure (months)','Language','NC Score%','Critical Score%','Overall Score%','Result','Summary','Observations','Recommendation',...AK.map(k=>PM[k].label)]];
+  audits.forEach(a=>rows.push([a.date,a.agent,a.reviewer,a.callId,a.channel,a.team,a.tenure,a.language,a.ncScore,a.crScore,a.totalScore,a.result,a.summary,a.observations,a.recommendation,...AK.map(k=>a.scores[k]||'')]));
+  const ws=XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols']=[{wch:12},{wch:20},{wch:18},{wch:14},{wch:14},{wch:12},{wch:8},{wch:10},{wch:8},{wch:10},{wch:10},{wch:7},{wch:40},{wch:40},{wch:40},...AK.map(()=>({wch:10}))];
+  XLSX.utils.book_append_sheet(wb,ws,'Audit Log');
+}
+function addAgentSheet(wb,audits){
+  const aMap={};
+  audits.forEach(a=>{if(!aMap[a.agent])aMap[a.agent]={name:a.agent,team:a.team||'',tenure:a.tenure||0,evals:[]};aMap[a.agent].evals.push(a);if(a.tenure)aMap[a.agent].tenure=a.tenure;});
+  const rows=[['Agent','Team','Tenure (months)','Total Evals','Avg NC%','Avg Critical%','Avg Overall%','Pass Count','Fail Count','Review Count','Pass Rate%','Last Eval Date']];
+  Object.values(aMap).forEach(ag=>{
+    const v=ag.evals.filter(e=>e.totalScore!==null);
+    const avgTot=v.length?Math.round(v.reduce((s,e)=>s+e.totalScore,0)/v.length):null;
+    const vn=v.filter(e=>e.ncScore!==null),vc=v.filter(e=>e.crScore!==null);
+    const avgNc=vn.length?Math.round(vn.reduce((s,e)=>s+e.ncScore,0)/vn.length):null;
+    const avgCr=vc.length?Math.round(vc.reduce((s,e)=>s+e.crScore,0)/vc.length):null;
+    const pass=v.filter(e=>e.result==='Pass').length,fail=v.filter(e=>e.result==='Fail').length,rev=v.filter(e=>e.result==='Review').length;
+    const last=ag.evals.map(e=>e.date).sort().pop()||'';
+    rows.push([ag.name,ag.team,ag.tenure,ag.evals.length,avgNc,avgCr,avgTot,pass,fail,rev,v.length?Math.round(pass/v.length*100):'',last]);
+  });
+  const ws=XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols']=[{wch:20},{wch:14},{wch:8},{wch:8},{wch:8},{wch:10},{wch:10},{wch:8},{wch:8},{wch:8},{wch:10},{wch:14}];
+  XLSX.utils.book_append_sheet(wb,ws,'Agent Performance');
+}
+function addParetoSheet(wb,audits){
+  const fc={},tr={};AK.forEach(k=>{fc[k]=0;tr[k]=0;});
+  audits.forEach(a=>{AK.forEach(k=>{if(k in a.scores){if(a.scores[k]==='yes'||a.scores[k]==='no')tr[k]++;if(a.scores[k]==='no')fc[k]++;}});});
+  const sorted=AK.filter(k=>tr[k]>0).sort((a,b)=>fc[b]-fc[a]);
+  const totFails=sorted.reduce((s,k)=>s+fc[k],0);
+  let cum=0;
+  const rows=[['Rank','Parameter','Group','Type','Fail Count','Total Rated','Fail Rate%','Cumulative%','In 80% Pareto']];
+  sorted.forEach((k,i)=>{
+    cum+=fc[k];const cp=totFails>0?Math.round(cum/totFails*100):0;
+    const pm=PM[k];
+    rows.push([i+1,pm.label,pm.group,pm.type,fc[k],tr[k],tr[k]>0?Math.round(fc[k]/tr[k]*100):0,cp,cp<=80?'Yes':'No']);
+  });
+  const ws=XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols']=[{wch:6},{wch:44},{wch:22},{wch:8},{wch:10},{wch:10},{wch:10},{wch:12},{wch:14}];
+  XLSX.utils.book_append_sheet(wb,ws,'Pareto Analysis');
+}
+
+function resetForm(skipConfirm=false){
+  if(!skipConfirm){if(!confirm('Reset form?'))return;}
+  CS={};
+  document.querySelectorAll('.br').forEach(b=>b.classList.remove('ay','an','ana'));
+  ['agentName','reviewerName','callId','team','agentLang','callSummary','observations','recommendation'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('channel').value='';
+  document.getElementById('tenure').value='';
+  document.getElementById('evalDate').valueAsDate=new Date();
+  updateDash();
+}
+
+function showToast(msg,type){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.className='show '+(type==='s'?'ts':'te');
+  setTimeout(()=>t.classList.remove('show'),3000);
+}
+
 function esc(s){return s?.replace(/</g,'&lt;').replace(/>/g,'&gt;')||'';}
 
 document.getElementById('evalDate').valueAsDate=new Date();
-updateGauge(0);
 updateDash();
 </script>
 </body>
