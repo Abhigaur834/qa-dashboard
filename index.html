@@ -1098,6 +1098,7 @@ tbody td { padding: 11px 16px; font-size: 13px; color: var(--text); }
         <button class="nav-tab" onclick="switchTab('analytics',this)">🧠 Analytics</button>
         <button class="nav-tab" onclick="switchTab('coaching',this)">🎯 Coaching ROI</button>
         <button class="nav-tab" onclick="switchTab('pareto',this)">📉 Pareto</button>
+        <button class="nav-tab" id="agentsNavTab" onclick="switchTab('agents',this)" style="display:none">👥 Agents</button>
       </div>
       <div class="top-bar-right">
         <div id="userProfile">
@@ -1118,27 +1119,77 @@ tbody td { padding: 11px 16px; font-size: 13px; color: var(--text); }
     <!-- ══ TAB 1: SCORECARD ══ -->
     <div id="tab-scorecard" class="tab-panel active">
       <div class="meta-grid">
-        <div class="meta-card"><label>Agent Name</label><input type="text" id="agentName" placeholder="Enter agent name"></div>
-        <div class="meta-card"><label>Reviewer Name</label><input type="text" id="reviewerName" placeholder="Reviewer name"></div>
-        <div class="meta-card"><label>Date of Evaluation</label><input type="date" id="evalDate"></div>
-        <div class="meta-card"><label>Call / Chat ID</label><input type="text" id="callId" placeholder="e.g. CHT-00421"></div>
-        <div class="meta-card"><label>Channel</label><select id="channel"><option value="">Select channel</option><option>Inbound Call</option><option>Outbound Call</option><option>Live Chat</option><option>Email</option></select></div>
-        <div class="meta-card"><label>Team / Queue</label><input type="text" id="team" placeholder="e.g. Sales"></div>
-        <div class="meta-card"><label>Tenure (months)</label><input type="number" id="tenure" placeholder="e.g. 6" min="0"></div>
-        <div class="meta-card"><label>Language</label><input type="text" id="agentLang" placeholder="e.g. English"></div>
-        <div class="meta-card"><label>Lead Converted?</label><select id="converted"><option value="">Select</option><option value="yes">Yes ✓</option><option value="no">No ✗</option><option value="na">N/A</option></select></div>
-      </div>
 
-      <div class="score-dash">
-        <div class="sc-card sct gauge-card">
-          <div class="sc-label">Overall Score</div>
-          <div class="gauge-wrap">
-            <canvas id="gaugeChart" width="160" height="90"></canvas>
-            <div class="gauge-center">
-              <div class="gauge-score" id="totalScore" style="color:var(--accent2)">—</div>
-              <div class="gauge-result" id="resultVal" style="color:var(--muted)">—</div>
-            </div>
+          <!-- Agent Selection — auto-fills Emp ID, Tenure, TL, Team -->
+          <div class="meta-card" style="grid-column:span 2">
+            <label>Select Agent</label>
+            <select id="agentSelect" onchange="onAgentSelect()">
+              <option value="">— Select Agent —</option>
+            </select>
           </div>
+          <div class="meta-card">
+            <label>Emp ID</label>
+            <div id="empIdDisplay" style="padding:10px 0;font-family:var(--font-head);font-weight:700;color:var(--accent);font-size:13px">—</div>
+          </div>
+          <div class="meta-card">
+            <label>TL Name</label>
+            <div id="tlNameDisplay" style="padding:10px 0;font-family:var(--font-head);font-weight:600;color:var(--text-dim);font-size:13px">—</div>
+          </div>
+
+          <!-- Hidden fields auto-filled -->
+          <input type="hidden" id="agentName">
+          <input type="hidden" id="tenure">
+          <input type="hidden" id="team">
+
+          <!-- Audited By = logged-in user (read-only) -->
+          <div class="meta-card">
+            <label>Audited By</label>
+            <div id="reviewerName" style="padding:10px 0;font-family:var(--font-head);font-weight:600;color:var(--accent2);font-size:12px;word-break:break-all">—</div>
+          </div>
+          <div class="meta-card"><label>Date of Evaluation</label><input type="date" id="evalDate"></div>
+          <div class="meta-card"><label>Call / Chat ID</label><input type="text" id="callId" placeholder="e.g. CHT-00421"></div>
+          <div class="meta-card"><label>Channel</label><select id="channel"><option value="">Select channel</option><option>Inbound Call</option><option>Outbound Call</option><option>Live Chat</option><option>Email</option></select></div>
+
+          <!-- New fields -->
+          <div class="meta-card">
+            <label>Audit Type</label>
+            <select id="auditType">
+              <option value="">Select type</option>
+              <option value="Normal">Normal</option>
+              <option value="OJT">OJT</option>
+            </select>
+          </div>
+          <div class="meta-card">
+            <label>Lead Status</label>
+            <select id="leadStatus">
+              <option value="">Select status</option>
+              <option value="Opps">Opportunity</option>
+              <option value="DQ">DQ</option>
+              <option value="Future Sales">Future Sales</option>
+              <option value="B2C">B2C</option>
+              <option value="CP">CP</option>
+            </select>
+          </div>
+          <div class="meta-card">
+            <label>Country</label>
+            <select id="countryName">
+              <option value="">Select country</option>
+              <option>India</option><option>UAE</option><option>USA</option>
+              <option>UK</option><option>Australia</option><option>Canada</option>
+              <option>Singapore</option><option>Other</option>
+            </select>
+          </div>
+          <div class="meta-card"><label>Language</label><input type="text" id="agentLang" placeholder="e.g. English"></div>
+          <div class="meta-card"><label>Lead Converted?</label><select id="converted"><option value="">Select</option><option value="yes">Yes ✓</option><option value="no">No ✗</option><option value="na">N/A</option></select></div>
+        </div>
+
+      <!-- Score Dashboard -->
+      <div class="score-dash">
+        <div class="sc-card" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px">
+          <div class="sc-label">Overall Score</div>
+          <canvas id="gaugeChart" width="160" height="90"></canvas>
+          <div class="gauge-score" id="totalScore">—</div>
+          <div class="gauge-result" id="resultVal" style="color:var(--muted)">—</div>
           <div class="sc-sub" id="resultSub" style="text-align:center;margin-top:6px">Awaiting scores</div>
         </div>
         <div class="sc-card scnc">
@@ -1289,6 +1340,10 @@ tbody td { padding: 11px 16px; font-size: 13px; color: var(--text); }
         <div class="card-hdr"><div class="card-title">📈 Monthly QA Trend</div></div>
         <div class="chart-wrap" style="height:260px"><canvas id="monthlyTrendChart"></canvas></div>
       </div>
+      <div class="card" style="margin-bottom:18px">
+        <div class="card-hdr"><div class="card-title">📅 Week-wise Score Trend</div></div>
+        <div class="chart-wrap" style="height:240px"><canvas id="weekTrendChart"></canvas></div>
+      </div>
     </div>
 
     <!-- ══ TAB 4: ANALYTICS ══ -->
@@ -1397,6 +1452,58 @@ tbody td { padding: 11px 16px; font-size: 13px; color: var(--text); }
       <div class="abar"><button class="btn btn-excel btn-sm" onclick="exportParetoExcel()">⬇ Export Pareto</button></div>
     </div>
 
+    <!-- ── AGENT MANAGEMENT TAB (Admin only) ── -->
+    <div id="tab-agents" class="tab-panel">
+      <div class="card" style="margin-bottom:20px">
+        <div class="card-hdr">
+          <div class="card-title">➕ Add New Agent</div>
+          <span style="font-size:11px;color:var(--muted)">Agents added here appear in the Scorecard dropdown automatically</span>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr 120px auto;gap:12px;align-items:end;padding:4px 0 12px">
+          <div>
+            <label style="display:block;font-size:10px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);font-family:var(--font-head);font-weight:700;margin-bottom:6px">Full Name *</label>
+            <input type="text" id="newAgentName" placeholder="e.g. John Smith" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-family:var(--font-body);font-size:13px;padding:10px 12px;outline:none;box-sizing:border-box">
+          </div>
+          <div>
+            <label style="display:block;font-size:10px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);font-family:var(--font-head);font-weight:700;margin-bottom:6px">Emp ID *</label>
+            <input type="text" id="newAgentEmpId" placeholder="e.g. EMP042" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-family:var(--font-body);font-size:13px;padding:10px 12px;outline:none;box-sizing:border-box">
+          </div>
+          <div>
+            <label style="display:block;font-size:10px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);font-family:var(--font-head);font-weight:700;margin-bottom:6px">TL Name</label>
+            <input type="text" id="newAgentTL" placeholder="e.g. TL Ravi" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-family:var(--font-body);font-size:13px;padding:10px 12px;outline:none;box-sizing:border-box">
+          </div>
+          <div>
+            <label style="display:block;font-size:10px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);font-family:var(--font-head);font-weight:700;margin-bottom:6px">Team</label>
+            <input type="text" id="newAgentTeam" placeholder="e.g. Sales A" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-family:var(--font-body);font-size:13px;padding:10px 12px;outline:none;box-sizing:border-box">
+          </div>
+          <div>
+            <label style="display:block;font-size:10px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);font-family:var(--font-head);font-weight:700;margin-bottom:6px">Tenure (m)</label>
+            <input type="number" id="newAgentTenure" placeholder="6" min="0" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-family:var(--font-body);font-size:13px;padding:10px 12px;outline:none;box-sizing:border-box">
+          </div>
+          <div>
+            <button class="btn btn-success" onclick="saveAgent()" style="white-space:nowrap;height:42px;padding:0 18px">➕ Add Agent</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-hdr">
+          <div class="card-title">👥 Agent Directory</div>
+          <span id="agentCountBadge" style="background:var(--accent-dim);color:var(--accent);font-size:11px;font-family:var(--font-head);font-weight:700;padding:3px 10px;border-radius:20px;border:1px solid rgba(61,126,245,0.2)">0 agents</span>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr>
+              <th>Emp ID</th><th>Full Name</th><th>TL Name</th><th>Team</th><th>Tenure</th><th>Action</th>
+            </tr></thead>
+            <tbody id="agentListBody">
+              <tr><td colspan="6" style="text-align:center;padding:32px;color:var(--muted)">Loading agents...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
   </div><!-- /content -->
 </div><!-- /mainApp -->
 
@@ -1419,7 +1526,9 @@ onAuthStateChanged(auth,u=>{
     updateBadge();
     const role=getUserRole(),p=UP[u.email];
     if(p){document.getElementById("profileName").textContent="👤 "+p.name;document.getElementById("profileDesignation").textContent=p.designation;document.getElementById("profileEmail").textContent=u.email;const at=role==="admin"?"🔐 Admin":role==="qa"?"🧪 QA Analyst":role==="tl"?"👔 Team Leader":"👤 Agent";document.getElementById("profileAccess").innerHTML=at+"<br>🕒 "+new Date().toLocaleTimeString();}
-    if(role==="admin"){document.getElementById("clearBtn").style.display="inline-flex";document.getElementById("clearBtn2").style.display="inline-flex";}
+    if(role==="admin"){document.getElementById("clearBtn").style.display="inline-flex";document.getElementById("clearBtn2").style.display="inline-flex";const at=document.getElementById('agentsNavTab');if(at)at.style.display='flex';}
+    loadAgents().then(()=>{ populateAgentDropdown(); renderAgentList(); });
+    setReviewerName();
   }else{document.getElementById('loginScreen').style.display='flex';document.getElementById('mainApp').style.display='none';}
 });
 window.loginUser=function(){const e=document.getElementById("loginEmail").value.trim(),p=document.getElementById("loginPassword").value.trim();if(!e||!p){showToast("Enter email and password","e");return;}signInWithEmailAndPassword(auth,e,p).then(()=>showToast("Login successful","s")).catch(er=>showToast(er.message,"e"));};
@@ -1433,7 +1542,83 @@ const NCK=['nc1','nc2','nc3','nc4','nc5','nc6','nc7','nc8','nc9','nc10','nc11','
 const CRK=['cr1','cr2','cr3','cr4','cr5','cr6','cr7','cr8','cr9','cr10'];
 const AK=[...NCK,...CRK];
 const GROUPS={'Call Opening/Closing':['nc1','nc2','nc3','nc4'],'Issue Identification':['nc5','nc6','nc7'],'Customer Experience':['nc8','nc9','nc10','nc11','nc12'],'Critical Parameters':CRK};
-let CS={},gaugeCI=null,pCI=null,sCI=null,trendCI=null,tenureCI=null,convCI=null,volCI=null,distCI=null,radarCI=null;
+// ── Agent data lives in Firebase under 'agents/' ──
+let _agentList = []; // populated from Firebase on login
+
+async function loadAgents(){
+  const snap = await get(ref(db,'agents'));
+  _agentList = [];
+  if(snap.exists()) Object.entries(snap.val()).forEach(([id,d])=>_agentList.push({id,...d}));
+  _agentList.sort((a,b)=>a.name.localeCompare(b.name));
+  return _agentList;
+}
+
+function onAgentSelect(){
+  const sel = document.getElementById('agentSelect');
+  const id = sel.value;
+  if(!id){
+    document.getElementById('agentName').value='';
+    document.getElementById('empIdDisplay').textContent='—';
+    document.getElementById('tlNameDisplay').textContent='—';
+    document.getElementById('tenure').value='';
+    document.getElementById('team').value='';
+    return;
+  }
+  const ag = _agentList.find(a=>a.id===id);
+  if(!ag) return;
+  document.getElementById('agentName').value = ag.name;
+  document.getElementById('empIdDisplay').textContent = ag.empId||'—';
+  document.getElementById('tlNameDisplay').textContent = ag.tl||'—';
+  document.getElementById('tenure').value = ag.tenure||'';
+  document.getElementById('team').value = ag.team||'';
+}
+
+async function saveAgent(){
+  if(getUserRole()!=='admin'){showToast('Admin only','e');return;}
+  const name  = document.getElementById('newAgentName').value.trim();
+  const empId = document.getElementById('newAgentEmpId').value.trim();
+  const tl    = document.getElementById('newAgentTL').value.trim();
+  const team  = document.getElementById('newAgentTeam').value.trim();
+  const tenure= parseInt(document.getElementById('newAgentTenure').value)||0;
+  if(!name||!empId){showToast('Name and Emp ID are required','e');return;}
+  await set(ref(db,'agents/'+empId), {name,empId,tl,team,tenure});
+  showToast('✅ Agent saved: '+name,'s');
+  ['newAgentName','newAgentEmpId','newAgentTL','newAgentTeam','newAgentTenure'].forEach(id=>document.getElementById(id).value='');
+  await loadAgents();
+  populateAgentDropdown();
+  renderAgentList();
+}
+
+async function deleteAgent(empId){
+  if(getUserRole()!=='admin'){showToast('Admin only','e');return;}
+  if(!confirm('Delete this agent?'))return;
+  await remove(ref(db,'agents/'+empId));
+  showToast('Agent removed','s');
+  await loadAgents();
+  populateAgentDropdown();
+  renderAgentList();
+}
+
+function renderAgentList(){
+  const tbody = document.getElementById('agentListBody');
+  if(!tbody) return;
+  if(!_agentList.length){
+    tbody.innerHTML='<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--muted)">No agents added yet. Use the form above to add agents.</td></tr>';
+    return;
+  }
+  const badge=document.getElementById('agentCountBadge');if(badge)badge.textContent=_agentList.length+' agent'+(+_agentList.length!==1?'s':'');
+  tbody.innerHTML = _agentList.map(ag=>`
+    <tr>
+      <td style="font-family:var(--font-head);font-weight:700;color:var(--accent)">${ag.empId||'—'}</td>
+      <td style="font-weight:600">${ag.name}</td>
+      <td style="color:var(--text-dim)">${ag.tl||'—'}</td>
+      <td style="color:var(--text-dim)">${ag.team||'—'}</td>
+      <td><span class="ten-badge">${ag.tenure?ag.tenure+'m':'—'}</span></td>
+      <td>${getUserRole()==='admin'?`<button class="btn btn-danger btn-sm" onclick="deleteAgent('${ag.empId}')">🗑 Remove</button>`:''}</td>
+    </tr>`).join('');
+}
+
+let CS={},gaugeCI=null,pCI=null,sCI=null,trendCI=null,weekCI=null,tenureCI=null,convCI=null,volCI=null,distCI=null,radarCI=null;
 let _allAudits=[];
 
 function animateVal(el,target,suffix='',dur=1000){
@@ -1494,7 +1679,14 @@ function updatePT(ncP,crP){
     const rated=keys.filter(k=>k in CS);let y=0,a=0;
     rated.forEach(k=>{if(CS[k]==='yes'){y++;a++;}else if(CS[k]==='no'){a++;}});
     const p=a>0?Math.round(y/a*100):null,c=p===null?'var(--muted)':p>=85?'var(--success)':p>=70?'var(--warning)':'var(--critical)';
-    rows.push(`<tr><td><strong>${name}</strong></td><td><span class="tag ${type==='Critical'?'tcr':'tnc'}">${type}</span></td><td style="font-family:var(--font-head);font-weight:700">${y}/${a}</td><td style="color:var(--muted)">${rated.length}</td><td class="sbc"><div class="sbw"><div class="smb"><div class="smf" style="width:${p||0}%;background:${c}"></div></div><span class="sv" style="color:${c}">${p!==null?p+'%':'—'}</span></div></td><td>${stag(p)}</td></tr>`);
+    if(type==='Critical'){
+      // Critical = 100% FATAL — any N = fail
+      const hasFail=rated.some(k=>CS[k]==='no');
+      const crTag=hasFail?'<span class="tag tf" style="font-size:9px;letter-spacing:.5px">⚠ FATAL</span>':'<span class="tag tp" style="font-size:9px">✓ OK</span>';
+      rows.push(`<tr><td><strong>${name}</strong></td><td><span class="tag tcr">Critical</span></td><td style="font-family:var(--font-head);font-weight:700;color:${hasFail?'var(--critical)':'var(--success)'}">${y}/${a} <span style="font-size:9px;color:var(--muted)">(${rated.length} rated)</span></td><td colspan="2" style="text-align:center">${crTag}<span style="font-size:10px;color:var(--muted);margin-left:8px">100% required</span></td><td>${hasFail?'<span class="tag tf">Fatal</span>':'<span class="tag tp">Pass</span>'}</td></tr>`);
+    } else {
+      rows.push(`<tr><td><strong>${name}</strong></td><td><span class="tag tnc">Non-Critical</span></td><td style="font-family:var(--font-head);font-weight:700">${y}/${a} <span style="font-size:9px;color:var(--muted)">(${rated.length} params)</span></td><td style="color:var(--muted)">${rated.length}</td><td class="sbc"><div class="sbw"><div class="smb"><div class="smf" style="width:${p||0}%;background:${c}"></div></div><span class="sv" style="color:${c}">${p!==null?p+'%':'—'}</span></div></td><td>${stag(p)}</td></tr>`);
+    }
   });
   rows.push(srow('NC TOTAL (40%)',ncP,'var(--accent)'));
   rows.push(srow('CRITICAL TOTAL (60%)',crP,'var(--critical)'));
@@ -1506,12 +1698,26 @@ function stag(p){return p===null?'–':p>=85?'<span class="tag tp">Pass</span>':
 
 async function saveAudit(){
   if(!auth.currentUser){showToast("Please login first","e");return;}
-  const agent=document.getElementById('agentName').value.trim(),reviewer=document.getElementById('reviewerName').value.trim();
-  if(!agent||!reviewer){showToast('Enter Agent and Reviewer names.','e');return;}
+  const agent=document.getElementById('agentName').value.trim();
+  const reviewer=auth.currentUser.email;
+  if(!agent){showToast('Please select an agent.','e');return;}
   const ncP=calcPct(NCK.filter(k=>k in CS)),crP=calcPct(CRK.filter(k=>k in CS));
   if(ncP===null&&crP===null){showToast('Score at least one parameter.','e');return;}
   const tot=ncP!==null&&crP!==null?Math.round(ncP*.4+crP*.6):ncP!==null?ncP:crP;
-  const audit={timestamp:Date.now(),createdBy:auth.currentUser.email,date:document.getElementById('evalDate').value,agent,reviewer,callId:document.getElementById('callId').value,channel:document.getElementById('channel').value,team:document.getElementById('team').value,tenure:parseInt(document.getElementById('tenure').value)||0,language:document.getElementById('agentLang').value,converted:document.getElementById('converted').value,summary:document.getElementById('callSummary').value,observations:document.getElementById('observations').value,recommendation:document.getElementById('recommendation').value,scores:{...CS},ncScore:ncP,crScore:crP,totalScore:tot,result:tot>=85?'Pass':tot>=70?'Review':'Fail',coachingRequired:tot<85};
+  const agSel=document.getElementById('agentSelect');
+  const agId=agSel.value;
+  const agData=agId?(_agentList.find(a=>a.id===agId)||{}):{};
+  const audit={timestamp:Date.now(),createdBy:auth.currentUser.email,date:document.getElementById('evalDate').value,
+    agent,reviewer,empId:agData.empId||'',tlName:agData.tl||'',
+    callId:document.getElementById('callId').value,channel:document.getElementById('channel').value,
+    team:agData.team||'',tenure:agData.tenure||0,
+    auditType:document.getElementById('auditType').value,
+    leadStatus:document.getElementById('leadStatus').value,
+    country:document.getElementById('countryName').value,
+    language:document.getElementById('agentLang').value,converted:document.getElementById('converted').value,
+    summary:document.getElementById('callSummary').value,observations:document.getElementById('observations').value,
+    recommendation:document.getElementById('recommendation').value,scores:{...CS},ncScore:ncP,crScore:crP,totalScore:tot,
+    result:tot>=85?'Pass':tot>=70?'Review':'Fail',coachingRequired:tot<85};
   try{const r=await push(ref(db,'audits'));await set(r,audit);showToast('✅ Audit saved for '+agent,'s');updateBadge();resetForm(true);}
   catch(e){showToast('Storage error','e');}
 }
@@ -1522,6 +1728,20 @@ async function loadAudits(){
   if(snap.exists())Object.entries(snap.val()).forEach(([id,d])=>a.push({id,...d}));
   _allAudits=a.sort((a,b)=>b.timestamp-a.timestamp);
   return _allAudits;
+}
+function populateAgentDropdown(){
+  const sel=document.getElementById('agentSelect');
+  if(!sel)return;
+  if(!_agentList.length){
+    sel.innerHTML='<option value="">— No agents added yet —</option>';
+    return;
+  }
+  sel.innerHTML='<option value="">— Select Agent —</option>'+
+    _agentList.map(a=>`<option value="${a.id}">${a.name} (${a.empId})</option>`).join('');
+}
+function setReviewerName(){
+  const el=document.getElementById('reviewerName');
+  if(el&&auth.currentUser) el.textContent=auth.currentUser.email;
 }
 async function loadCoachingSessions(){
   if(!auth.currentUser)return[];
@@ -1560,10 +1780,16 @@ async function renderAuditLog(){
       <td>${getUserRole()==="admin"?`<button class="btn btn-danger btn-sm" onclick="delAudit(event,'${a.id}')">🗑</button>`:''}</td>
     </tr>
     <tr class="adr" id="adr-${i}"><td colspan="13"><div class="dgrid">
+      <div class="di"><label>Emp ID</label><p>${a.empId||'—'}</p></div>
+      <div class="di"><label>TL Name</label><p>${a.tlName||'—'}</p></div>
       <div class="di"><label>Team</label><p>${a.team||'—'}</p></div>
       <div class="di"><label>Tenure</label><p>${a.tenure?a.tenure+' months':'—'}</p></div>
+      <div class="di"><label>Audit Type</label><p>${a.auditType||'Normal'}</p></div>
+      <div class="di"><label>Lead Status</label><p>${a.leadStatus||'—'}</p></div>
+      <div class="di"><label>Country</label><p>${a.country||'—'}</p></div>
       <div class="di"><label>Language</label><p>${a.language||'—'}</p></div>
       <div class="di"><label>Converted</label><p>${a.converted||'—'}</p></div>
+      <div class="di"><label>🧑‍💼 Audited By</label><p style="color:var(--accent2);font-weight:600">${a.reviewer||a.createdBy||'—'}</p></div>
       ${a.summary?`<div class="di" style="grid-column:span 4"><label>Summary</label><p style="color:var(--text-dim)">${esc(a.summary)}</p></div>`:''}
       ${a.observations?`<div class="di" style="grid-column:span 2"><label>Observations</label><p style="color:var(--text-dim)">${esc(a.observations)}</p></div>`:''}
       ${a.recommendation?`<div class="di" style="grid-column:span 2"><label>Recommendation</label><p style="color:var(--text-dim)">${esc(a.recommendation)}</p></div>`:''}
@@ -1644,6 +1870,7 @@ async function renderPerformance(){
   const brows=bands.map(b=>{const ba=agents.filter(ag=>ag.tenure>=b.min&&ag.tenure<=b.max);if(!ba.length)return null;const be=audits.filter(a=>a.tenure>=b.min&&a.tenure<=b.max&&a.totalScore!==null);const vn=ba.filter(ag=>ag.avgNc!==null),vc=ba.filter(ag=>ag.avgCr!==null),vt=ba.filter(ag=>ag.avgTot!==null);const avgNc=vn.length?Math.round(vn.reduce((s,ag)=>s+ag.avgNc,0)/vn.length):null,avgCr=vc.length?Math.round(vc.reduce((s,ag)=>s+ag.avgCr,0)/vc.length):null,avgTot=vt.length?Math.round(vt.reduce((s,ag)=>s+ag.avgTot,0)/vt.length):null,passR=be.length?Math.round(be.filter(e=>e.result==='Pass').length/be.length*100):null,c=avgTot>=85?'var(--success)':avgTot>=70?'var(--warning)':'var(--critical)';return`<tr><td style="font-family:var(--font-head);font-weight:700">${b.l}</td><td>${ba.length}</td><td>${be.length}</td><td>${avgNc!==null?`<span style="color:var(--accent)">${avgNc}%</span>`:'—'}</td><td>${avgCr!==null?`<span style="color:var(--critical)">${avgCr}%</span>`:'—'}</td><td class="sbc"><div class="sbw"><div class="smb"><div class="smf" style="width:${avgTot||0}%;background:${c}"></div></div><span class="sv" style="color:${c}">${avgTot!==null?avgTot+'%':'—'}</span></div></td><td>${passR!==null?passR+'%':'—'}</td></tr>`;}).filter(Boolean);
   document.getElementById('tenureTableBody').innerHTML=brows.length?brows.join(''):`<tr><td colspan="7"><div class="empty-state" style="padding:20px"><p>Add tenure data.</p></div></td></tr>`;
   renderMonthlyTrend(audits);
+  renderWeekTrend(audits);
   renderVolumeChart(audits);
   renderCalendarHeatmap(audits);
 }
@@ -1661,6 +1888,40 @@ function renderMonthlyTrend(audits){
   const labels=Object.keys(m).sort(),avg=labels.map(k=>Math.round(m[k].reduce((s,v)=>s+v,0)/m[k].length));
   if(trendCI)trendCI.destroy();
   trendCI=new Chart(c.getContext('2d'),{type:'line',data:{labels,datasets:[{label:'Avg QA Score',data:avg,borderColor:'#3d7ef5',backgroundColor:'rgba(61,126,245,0.06)',fill:true,tension:.4,pointRadius:5,pointBackgroundColor:'#3d7ef5',pointBorderColor:'#060a12',pointBorderWidth:2,pointHoverRadius:7}]},options:{...chartDefaults,scales:{y:{...chartDefaults.scales.y,min:0,max:100,ticks:{...chartDefaults.scales.y.ticks,callback:v=>v+'%'}},x:chartDefaults.scales.x}}});
+}
+
+function renderWeekTrend(audits){
+  const c=document.getElementById('weekTrendChart');if(!c)return;
+  const weeks={};
+  audits.forEach(a=>{
+    if(!a.date||a.totalScore===null)return;
+    const d=new Date(a.date);
+    // Get ISO week string: YYYY-Www
+    const jan1=new Date(d.getFullYear(),0,1);
+    const wn=Math.ceil(((d-jan1)/86400000+jan1.getDay()+1)/7);
+    const key=`${d.getFullYear()}-W${String(wn).padStart(2,'0')}`;
+    if(!weeks[key])weeks[key]=[];
+    weeks[key].push(a.totalScore);
+  });
+  const labels=Object.keys(weeks).sort().slice(-12);
+  const avgs=labels.map(k=>Math.round(weeks[k].reduce((s,v)=>s+v,0)/weeks[k].length));
+  const counts=labels.map(k=>weeks[k].length);
+  if(weekCI)weekCI.destroy();
+  weekCI=new Chart(c.getContext('2d'),{
+    type:'line',
+    data:{
+      labels,
+      datasets:[
+        {label:'Avg Score %',data:avgs,borderColor:'rgba(61,126,245,0.9)',backgroundColor:'rgba(61,126,245,0.1)',tension:0.4,fill:true,pointBackgroundColor:'rgba(61,126,245,1)',pointRadius:4,yAxisID:'y'},
+        {label:'Audit Count',data:counts,borderColor:'rgba(34,211,138,0.7)',backgroundColor:'rgba(34,211,138,0.08)',tension:0.3,fill:false,borderDash:[4,3],pointRadius:3,yAxisID:'y1'}
+      ]
+    },
+    options:{...chartDefaults,scales:{
+      x:{...chartDefaults.scales.x,grid:{display:false}},
+      y:{...chartDefaults.scales.y,min:0,max:100,title:{display:true,text:'Score %',color:'rgba(255,255,255,0.4)',font:{size:10}}},
+      y1:{position:'right',min:0,ticks:{color:'rgba(255,255,255,0.4)',font:{size:10}},grid:{display:false},title:{display:true,text:'Count',color:'rgba(255,255,255,0.4)',font:{size:10}}}
+    }}
+  });
 }
 
 function renderVolumeChart(audits){
@@ -1855,7 +2116,18 @@ function addAuditSheet(wb,audits){const rows=[['Date','Agent','Reviewer','Call I
 function addAgentSheet(wb,audits){const aMap={};audits.forEach(a=>{if(!aMap[a.agent])aMap[a.agent]={name:a.agent,team:a.team||'',tenure:a.tenure||0,evals:[]};aMap[a.agent].evals.push(a);if(a.tenure)aMap[a.agent].tenure=a.tenure;});const rows=[['Agent','Team','Tenure','Evals','Avg NC%','Avg CR%','Avg Overall%','Pass','Fail','Review','Pass Rate%','Stability','Risk','Last Eval']];Object.values(aMap).forEach(ag=>{const v=ag.evals.filter(e=>e.totalScore!==null);const avgT=v.length?Math.round(v.reduce((s,e)=>s+e.totalScore,0)/v.length):null;const vn=v.filter(e=>e.ncScore!==null),vc=v.filter(e=>e.crScore!==null);const avgNc=vn.length?Math.round(vn.reduce((s,e)=>s+e.ncScore,0)/vn.length):null;const avgCr=vc.length?Math.round(vc.reduce((s,e)=>s+e.crScore,0)/vc.length):null;const pass=v.filter(e=>e.result==='Pass').length,fail=v.filter(e=>e.result==='Fail').length,rev=v.filter(e=>e.result==='Review').length;const sd=calcStdDev(v.map(e=>e.totalScore));const risk=calcRiskScore(ag.evals);rows.push([ag.name,ag.team,ag.tenure,ag.evals.length,avgNc,avgCr,avgT,pass,fail,rev,v.length?Math.round(pass/v.length*100):'',stabilityRating(sd).label,risk,ag.evals.map(e=>e.date).sort().pop()||'']);});const ws=XLSX.utils.aoa_to_sheet(rows);XLSX.utils.book_append_sheet(wb,ws,'Agent Performance');}
 function addParetoSheet(wb,audits){const fc={},tr={};AK.forEach(k=>{fc[k]=0;tr[k]=0;});audits.forEach(a=>{AK.forEach(k=>{if(a.scores&&k in a.scores){if(a.scores[k]==='yes'||a.scores[k]==='no')tr[k]++;if(a.scores[k]==='no')fc[k]++;}});});const sorted=AK.filter(k=>tr[k]>0).sort((a,b)=>fc[b]-fc[a]);const totFails=sorted.reduce((s,k)=>s+fc[k],0);let cum=0;const rows=[['Rank','Parameter','Type','Fails','Total Rated','Fail Rate%','Cumulative%','In 80% Pareto']];sorted.forEach((k,i)=>{cum+=fc[k];const cp=totFails>0?Math.round(cum/totFails*100):0;const pm=PM[k];rows.push([i+1,pm.label,pm.type,fc[k],tr[k],tr[k]>0?Math.round(fc[k]/tr[k]*100):0,cp,cp<=80?'Yes':'No']);});const ws=XLSX.utils.aoa_to_sheet(rows);XLSX.utils.book_append_sheet(wb,ws,'Pareto');}
 
-function resetForm(skipConfirm=false){if(!skipConfirm&&!confirm('Reset form?'))return;CS={};document.querySelectorAll('.br').forEach(b=>b.classList.remove('ay','an','ana'));['agentName','reviewerName','callId','team','agentLang','callSummary','observations','recommendation'].forEach(id=>document.getElementById(id).value='');['channel','converted'].forEach(id=>document.getElementById(id).value='');document.getElementById('tenure').value='';document.getElementById('evalDate').valueAsDate=new Date();updateDash();}
+function resetForm(skipConfirm=false){
+  if(!skipConfirm&&!confirm('Reset form?'))return;
+  CS={};
+  document.querySelectorAll('.br').forEach(b=>b.classList.remove('ay','an','ana'));
+  ['agentName','callId','agentLang','team','tenure'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['channel','converted','auditType','leadStatus','countryName','agentSelect'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['callSummary','observations','recommendation'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('empIdDisplay').textContent='—';
+  document.getElementById('tlNameDisplay').textContent='—';
+  document.getElementById('evalDate').valueAsDate=new Date();
+  updateDash();
+}
 function showToast(msg,type){const t=document.getElementById('toast');t.textContent=msg;t.className='show '+(type==='s'?'ts':'te');setTimeout(()=>t.classList.remove('show'),3000);}
 function esc(s){return s?.replace(/</g,'&lt;').replace(/>/g,'&gt;')||'';}
 
