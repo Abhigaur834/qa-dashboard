@@ -821,49 +821,96 @@ tbody td { padding: 11px 16px; font-size: 13px; color: var(--text); }
 /* LEFT PANEL */
 .login-left {
   position: relative;
-  background: #05070f;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  padding: 60px;
+  padding: 48px 40px;
   overflow: hidden;
+  /* Conic gradient creates the laser starburst rays — fully CSS, works everywhere */
+  background:
+    /* Dot grid overlay */
+    radial-gradient(circle, rgba(255,255,255,0.04) 1px, transparent 1px),
+    /* Top soft glow */
+    radial-gradient(ellipse 60% 40% at 50% 0%, rgba(80,30,160,0.35) 0%, transparent 60%),
+    /* Bottom teal glow */
+    radial-gradient(ellipse 60% 40% at 50% 100%, rgba(0,150,180,0.2) 0%, transparent 60%),
+    /* Center purple burst */
+    radial-gradient(ellipse 80% 70% at 50% 52%, rgba(60,15,100,0.7) 0%, transparent 65%),
+    /* Laser conic rays */
+    conic-gradient(from 0deg at 50% 52%,
+      #06040e        0deg,
+      rgba(160,40,255,0.55)  8deg,
+      #06040e       18deg,
+      rgba(0,200,220,0.45)  28deg,
+      #06040e       40deg,
+      rgba(80,60,255,0.4)   50deg,
+      #06040e       62deg,
+      rgba(200,60,255,0.5)  72deg,
+      #06040e       84deg,
+      rgba(0,180,255,0.4)   94deg,
+      #06040e      108deg,
+      rgba(140,30,255,0.45) 118deg,
+      #06040e      130deg,
+      rgba(0,220,200,0.35)  140deg,
+      #06040e      154deg,
+      rgba(100,50,255,0.4)  164deg,
+      #06040e      178deg,
+      rgba(180,50,255,0.5)  188deg,
+      #06040e      200deg,
+      rgba(0,180,220,0.4)   210deg,
+      #06040e      224deg,
+      rgba(60,80,255,0.4)   234deg,
+      #06040e      248deg,
+      rgba(220,60,255,0.45) 258deg,
+      #06040e      272deg,
+      rgba(0,200,180,0.35)  282deg,
+      #06040e      296deg,
+      rgba(120,40,255,0.4)  306deg,
+      #06040e      320deg,
+      rgba(0,160,255,0.4)   330deg,
+      #06040e      344deg,
+      rgba(160,40,255,0.55) 360deg
+    );
+  background-size: 28px 28px, 100% 100%, 100% 100%, 100% 100%, 100% 100%;
 }
 
-/* Laser beam rays layer */
+/* Extra bright center core spot */
 .login-left::before {
-  display: none;
-}
-
-/* dot grid on top */
-.login-left .login-dotgrid {
+  content: '';
   position: absolute;
-  inset: 0;
-  background-image: radial-gradient(circle, rgba(255,255,255,0.035) 1px, transparent 1px);
-  background-size: 28px 28px;
+  width: 220px; height: 220px;
+  border-radius: 50%;
+  background: radial-gradient(circle,
+    rgba(255,255,255,0.12) 0%,
+    rgba(180,80,255,0.25) 25%,
+    rgba(100,20,200,0.2) 50%,
+    transparent 70%
+  );
+  top: 50%; left: 50%;
+  transform: translate(-50%, -48%);
   z-index: 1;
   pointer-events: none;
+  filter: blur(6px);
 }
 
-/* ::after — subtle center purple glow */
+/* Bright core dot */
 .login-left::after {
   content: '';
   position: absolute;
-  inset: 0;
-  background: radial-gradient(ellipse 70% 60% at 42% 54%, rgba(70,20,110,0.3) 0%, transparent 65%);
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #ffffff 0%, rgba(200,140,255,0.9) 50%, transparent 100%);
+  top: 50%; left: 50%;
+  transform: translate(-50%, -48%);
+  z-index: 2;
   pointer-events: none;
-  z-index: 1;
+  box-shadow: 0 0 20px 6px rgba(180,80,255,0.6), 0 0 60px 20px rgba(100,20,200,0.3);
 }
 
 /* Laser SVG fills entire left panel as background */
 .login-laser-svg {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 0;
-  pointer-events: none;
-  display: block;
+  display: none;
 }
 
 /* Glow blobs */
@@ -875,20 +922,20 @@ tbody td { padding: 11px 16px; font-size: 13px; color: var(--text); }
   z-index: 1;
 }
 .login-blob-1 {
-  width: 500px; height: 500px;
-  background: radial-gradient(circle, rgba(61,126,245,0.12) 0%, transparent 70%);
-  top: -120px; left: -120px;
+  width: 400px; height: 400px;
+  background: radial-gradient(circle, rgba(140,40,255,0.18) 0%, transparent 70%);
+  top: -100px; left: -100px;
   animation: blobFloat1 16s ease-in-out infinite alternate;
 }
 .login-blob-2 {
-  width: 400px; height: 400px;
-  background: radial-gradient(circle, rgba(139,108,245,0.1) 0%, transparent 70%);
+  width: 350px; height: 350px;
+  background: radial-gradient(circle, rgba(0,180,200,0.15) 0%, transparent 70%);
   bottom: -80px; right: -80px;
   animation: blobFloat2 20s ease-in-out infinite alternate;
 }
 .login-blob-3 {
-  width: 300px; height: 300px;
-  background: radial-gradient(circle, rgba(0,200,200,0.07) 0%, transparent 70%);
+  width: 250px; height: 250px;
+  background: radial-gradient(circle, rgba(80,50,255,0.12) 0%, transparent 70%);
   top: 50%; left: 50%;
   transform: translate(-50%,-50%);
   animation: blobFloat3 12s ease-in-out infinite alternate;
@@ -916,10 +963,10 @@ tbody td { padding: 11px 16px; font-size: 13px; color: var(--text); }
   gap: 10px;
   animation: pillFloat 6s ease-in-out infinite alternate;
 }
-.lsp-1 { top: 18%; left: 8%; animation-delay: 0s; animation-duration: 7s; border-color: rgba(34,211,138,0.25); }
-.lsp-2 { top: 32%; right: 6%; animation-delay: 1.5s; animation-duration: 9s; border-color: rgba(61,126,245,0.25); }
-.lsp-3 { bottom: 28%; left: 10%; animation-delay: 0.8s; animation-duration: 8s; border-color: rgba(240,168,48,0.25); }
-.lsp-4 { bottom: 16%; right: 8%; animation-delay: 2s; animation-duration: 6.5s; border-color: rgba(139,108,245,0.25); }
+.lsp-1 { top: 12%; left: 5%; animation-delay: 0s; animation-duration: 7s; border-color: rgba(34,211,138,0.3); }
+.lsp-2 { top: 12%; right: 5%; animation-delay: 1.5s; animation-duration: 9s; border-color: rgba(61,126,245,0.3); }
+.lsp-3 { bottom: 20%; left: 5%; animation-delay: 0.8s; animation-duration: 8s; border-color: rgba(240,168,48,0.3); }
+.lsp-4 { bottom: 20%; right: 5%; animation-delay: 2s; animation-duration: 6.5s; border-color: rgba(139,108,245,0.3); }
 @keyframes pillFloat {
   from { transform: translateY(0px); }
   to { transform: translateY(-12px); }
@@ -944,12 +991,12 @@ tbody td { padding: 11px 16px; font-size: 13px; color: var(--text); }
   text-align: center;
 }.login-graphic-title {
   font-family: var(--font-head);
-  font-size: 38px;
+  font-size: 32px;
   font-weight: 900;
-  letter-spacing: -2px;
-  line-height: 1.1;
-  margin-bottom: 16px;
-  background: linear-gradient(135deg, #e4ecf8 30%, rgba(61,126,245,0.8) 100%);
+  letter-spacing: -1.5px;
+  line-height: 1.15;
+  margin-bottom: 12px;
+  background: linear-gradient(135deg, #e4ecf8 30%, rgba(180,100,255,0.9) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -965,7 +1012,7 @@ tbody td { padding: 11px 16px; font-size: 13px; color: var(--text); }
 /* SVG chart graphic */
 .login-chart-wrapper {
   position: relative;
-  width: 340px;
+  width: 300px;
   margin: 0 auto;
 }
 
