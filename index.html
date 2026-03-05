@@ -946,30 +946,33 @@ tbody td { padding: 11px 16px; font-size: 13px; color: var(--text); }
 
 /* Stat pills floating */
 .login-stat-pills {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 20px;
+  position: relative;
   z-index: 2;
+  pointer-events: none;
+  flex-wrap: wrap;
 }
 .lsp {
-  position: absolute;
   background: rgba(8,14,30,0.82);
   backdrop-filter: blur(14px);
   border: 1px solid rgba(61,126,245,0.2);
   border-radius: 12px;
-  padding: 10px 16px;
+  padding: 8px 14px;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   animation: pillFloat 6s ease-in-out infinite alternate;
 }
-.lsp-1 { top: 12%; left: 5%; animation-delay: 0s; animation-duration: 7s; border-color: rgba(34,211,138,0.3); }
-.lsp-2 { top: 12%; right: 5%; animation-delay: 1.5s; animation-duration: 9s; border-color: rgba(61,126,245,0.3); }
-.lsp-3 { bottom: 20%; left: 5%; animation-delay: 0.8s; animation-duration: 8s; border-color: rgba(240,168,48,0.3); }
-.lsp-4 { bottom: 20%; right: 5%; animation-delay: 2s; animation-duration: 6.5s; border-color: rgba(139,108,245,0.3); }
+.lsp-1 { animation-delay: 0s; animation-duration: 7s; border-color: rgba(34,211,138,0.3); }
+.lsp-2 { animation-delay: 1.5s; animation-duration: 9s; border-color: rgba(61,126,245,0.3); }
+.lsp-3 { animation-delay: 0.8s; animation-duration: 8s; border-color: rgba(240,168,48,0.3); }
+.lsp-4 { animation-delay: 2s; animation-duration: 6.5s; border-color: rgba(139,108,245,0.3); }
 @keyframes pillFloat {
   from { transform: translateY(0px); }
-  to { transform: translateY(-12px); }
+  to { transform: translateY(-6px); }
 }
 .lsp-icon { width: 28px; height: 28px; border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
 .lsp-1 .lsp-icon { background: rgba(34,211,138,0.15); }
@@ -989,24 +992,26 @@ tbody td { padding: 11px 16px; font-size: 13px; color: var(--text); }
   position: relative;
   z-index: 2;
   text-align: center;
-}.login-graphic-title {
+  width: 100%;
+}
+.login-graphic-title {
   font-family: var(--font-head);
-  font-size: 32px;
+  font-size: 28px;
   font-weight: 900;
   letter-spacing: -1.5px;
   line-height: 1.15;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
   background: linear-gradient(135deg, #e4ecf8 30%, rgba(180,100,255,0.9) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 .login-graphic-sub {
-  font-size: 13px;
+  font-size: 12px;
   color: var(--muted);
-  line-height: 1.7;
-  max-width: 340px;
-  margin: 0 auto 40px;
+  line-height: 1.6;
+  max-width: 300px;
+  margin: 0 auto 18px;
 }
 
 /* SVG chart graphic */
@@ -1127,8 +1132,8 @@ tbody td { padding: 11px 16px; font-size: 13px; color: var(--text); }
 /* Feature list */
 .login-features {
   display: flex;
-  gap: 20px;
-  margin-top: 36px;
+  gap: 14px;
+  margin-top: 16px;
   justify-content: center;
   flex-wrap: wrap;
 }
@@ -1416,40 +1421,41 @@ tbody td { padding: 11px 16px; font-size: 13px; color: var(--text); }
     <div class="login-blob login-blob-2"></div>
     <div class="login-blob login-blob-3"></div>
 
-    <!-- Floating stat pills -->
-    <div class="login-stat-pills">
-      <div class="lsp lsp-1">
-        <div class="lsp-icon">✅</div>
-        <div class="lsp-body">
-          <div class="lsp-val">94%</div>
-          <div class="lsp-label">Pass Rate</div>
-        </div>
-      </div>
-      <div class="lsp lsp-2">
-        <div class="lsp-icon">📊</div>
-        <div class="lsp-body">
-          <div class="lsp-val">1,284</div>
-          <div class="lsp-label">Total Audits</div>
-        </div>
-      </div>
-      <div class="lsp lsp-3">
-        <div class="lsp-icon">⚡</div>
-        <div class="lsp-body">
-          <div class="lsp-val">88.4%</div>
-          <div class="lsp-label">Avg Score</div>
-        </div>
-      </div>
-      <div class="lsp lsp-4">
-        <div class="lsp-icon">🎯</div>
-        <div class="lsp-body">
-          <div class="lsp-val">32</div>
-          <div class="lsp-label">Agents Tracked</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Central content -->
+    <!-- Central content — pills + headline + chart all in one flow -->
     <div class="login-graphic">
+
+      <!-- Stat pills row at top -->
+      <div class="login-stat-pills">
+        <div class="lsp lsp-1">
+          <div class="lsp-icon">✅</div>
+          <div class="lsp-body">
+            <div class="lsp-val">94%</div>
+            <div class="lsp-label">Pass Rate</div>
+          </div>
+        </div>
+        <div class="lsp lsp-2">
+          <div class="lsp-icon">📊</div>
+          <div class="lsp-body">
+            <div class="lsp-val">1,284</div>
+            <div class="lsp-label">Total Audits</div>
+          </div>
+        </div>
+        <div class="lsp lsp-3">
+          <div class="lsp-icon">⚡</div>
+          <div class="lsp-body">
+            <div class="lsp-val">88.4%</div>
+            <div class="lsp-label">Avg Score</div>
+          </div>
+        </div>
+        <div class="lsp lsp-4">
+          <div class="lsp-icon">🎯</div>
+          <div class="lsp-body">
+            <div class="lsp-val">32</div>
+            <div class="lsp-label">Agents</div>
+          </div>
+        </div>
+      </div>
+
       <div class="login-graphic-title">Quality Intelligence<br>at your fingertips.</div>
       <div class="login-graphic-sub">Real-time QA scoring, agent analytics, coaching ROI, and Pareto insights — all in one unified platform.</div>
 
