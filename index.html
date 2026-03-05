@@ -820,29 +820,35 @@ tbody td { padding: 11px 16px; font-size: 13px; color: var(--text); }
   background: #07090f;
 }
 
-/* Subtle animated background orbs */
+/* Subtle gradient corners behind canvas */
 #loginScreen::before {
   content: '';
   position: absolute;
-  width: 600px; height: 600px;
+  width: 700px; height: 700px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(61,126,245,0.07) 0%, transparent 70%);
-  top: -180px; left: -180px;
-  animation: orbA 18s ease-in-out infinite alternate;
+  background: radial-gradient(circle, rgba(61,126,245,0.09) 0%, transparent 70%);
+  top: -200px; left: -200px;
   pointer-events: none;
 }
 #loginScreen::after {
   content: '';
   position: absolute;
-  width: 500px; height: 500px;
+  width: 600px; height: 600px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(139,108,245,0.06) 0%, transparent 70%);
-  bottom: -150px; right: -150px;
-  animation: orbB 22s ease-in-out infinite alternate;
+  background: radial-gradient(circle, rgba(139,108,245,0.07) 0%, transparent 70%);
+  bottom: -180px; right: -180px;
   pointer-events: none;
 }
-@keyframes orbA { from { transform: translate(0,0); } to { transform: translate(60px,80px); } }
-@keyframes orbB { from { transform: translate(0,0); } to { transform: translate(-50px,-60px); } }
+
+/* Canvas fills entire background */
+#loginBg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+}
 
 /* Centered card */
 .login-card {
@@ -1033,6 +1039,7 @@ tbody td { padding: 11px 16px; font-size: 13px; color: var(--text); }
 
 <!-- ── LOGIN ── -->
 <div id="loginScreen">
+  <canvas id="loginBg"></canvas>
   <div class="login-card">
 
     <!-- Logo -->
@@ -1855,6 +1862,90 @@ function esc(s){return s?.replace(/</g,'&lt;').replace(/>/g,'&gt;')||'';}
 document.getElementById('evalDate').valueAsDate=new Date();
 updateGauge(0);
 updateDash();
+</script>
+<!-- Login background particle network -->
+<script>
+(function() {
+  const canvas = document.getElementById('loginBg');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+
+  // Config
+  const PARTICLE_COUNT = 70;
+  const MAX_DIST = 140;
+  const COLORS = ['rgba(61,126,245,', 'rgba(139,108,245,', 'rgba(34,211,138,', 'rgba(100,160,255,'];
+
+  let W, H, particles = [];
+
+  function resize() {
+    W = canvas.width  = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  }
+
+  function Particle() {
+    this.x  = Math.random() * W;
+    this.y  = Math.random() * H;
+    this.vx = (Math.random() - 0.5) * 0.45;
+    this.vy = (Math.random() - 0.5) * 0.45;
+    this.r  = Math.random() * 1.8 + 0.8;
+    this.color = COLORS[Math.floor(Math.random() * COLORS.length)];
+  }
+
+  function init() {
+    particles = [];
+    for (let i = 0; i < PARTICLE_COUNT; i++) particles.push(new Particle());
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+
+    // Move & wrap
+    particles.forEach(p => {
+      p.x += p.vx;
+      p.y += p.vy;
+      if (p.x < 0) p.x = W;
+      if (p.x > W) p.x = 0;
+      if (p.y < 0) p.y = H;
+      if (p.y > H) p.y = 0;
+    });
+
+    // Draw lines
+    for (let i = 0; i < particles.length; i++) {
+      for (let j = i + 1; j < particles.length; j++) {
+        const dx = particles[i].x - particles[j].x;
+        const dy = particles[i].y - particles[j].y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < MAX_DIST) {
+          const alpha = (1 - dist / MAX_DIST) * 0.18;
+          ctx.beginPath();
+          ctx.strokeStyle = particles[i].color + alpha + ')';
+          ctx.lineWidth = 0.7;
+          ctx.moveTo(particles[i].x, particles[i].y);
+          ctx.lineTo(particles[j].x, particles[j].y);
+          ctx.stroke();
+        }
+      }
+    }
+
+    // Draw dots
+    particles.forEach(p => {
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = p.color + '0.55)';
+      ctx.fill();
+    });
+
+    // Only animate while login is visible
+    if (document.getElementById('loginScreen').style.display !== 'none') {
+      requestAnimationFrame(draw);
+    }
+  }
+
+  resize();
+  init();
+  draw();
+  window.addEventListener('resize', () => { resize(); init(); });
+})();
 </script>
 </body>
 </html>
