@@ -812,7 +812,7 @@ tbody td { padding: 11px 16px; font-size: 13px; color: var(--text); }
   position: fixed;
   inset: 0;
   display: grid;
-  grid-template-columns: 1fr 420px;
+  grid-template-columns: 1fr 1fr;
   z-index: 9999;
   overflow: hidden;
   background: var(--bg);
@@ -1186,9 +1186,14 @@ tbody td { padding: 11px 16px; font-size: 13px; color: var(--text); }
   display: flex;
   flex-direction: column;
   justify-content: center;
+  align-items: center;
   padding: 60px 48px;
   position: relative;
   overflow: hidden;
+}
+.login-right > * {
+  width: 100%;
+  max-width: 420px;
 }
 .login-right::before {
   content: '';
