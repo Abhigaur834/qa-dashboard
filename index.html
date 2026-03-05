@@ -259,24 +259,24 @@ body::after {
 .s-sub { font-size: 11px; color: var(--muted); margin-top: 6px; font-weight: 400; }
 
 /* ─── META GRID (Scorecard form) ─── */
-.meta-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px,1fr)); gap: 12px; margin-bottom: 22px; }
+.meta-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px,1fr)); gap: 8px; margin-bottom: 14px; }
 
 .meta-card {
   background: linear-gradient(145deg, var(--surface), var(--surface2));
   border: 1px solid var(--border);
-  border-radius: var(--r-md);
-  padding: 13px 15px;
+  border-radius: var(--r-sm);
+  padding: 8px 12px;
   transition: border-color .2s;
 }
 .meta-card:focus-within { border-color: rgba(61,126,245,0.5); }
 
 .meta-card label {
   display: block;
-  font-size: 9.5px;
+  font-size: 9px;
   text-transform: uppercase;
-  letter-spacing: 1.5px;
+  letter-spacing: 1.2px;
   color: var(--muted);
-  margin-bottom: 7px;
+  margin-bottom: 4px;
   font-weight: 600;
   font-family: var(--font-head);
 }
@@ -288,8 +288,8 @@ body::after {
   border-bottom: 1px solid var(--border);
   color: var(--text);
   font-family: var(--font-body);
-  font-size: 13.5px;
-  padding: 4px 0;
+  font-size: 12.5px;
+  padding: 3px 0;
   outline: none;
   transition: border-color .2s;
   font-weight: 500;
@@ -298,7 +298,7 @@ body::after {
 .meta-card select option { background: var(--surface2); }
 
 /* ─── SCORE DASHBOARD ─── */
-.score-dash { display: grid; grid-template-columns: 220px 1fr 1fr 1fr; gap: 16px; margin-bottom: 22px; }
+.score-dash { display: grid; grid-template-columns: 180px 1fr 1fr 1fr; gap: 12px; margin-bottom: 16px; }
 
 .sc-card {
   border: 1px solid var(--border);
@@ -1454,6 +1454,39 @@ tbody td { padding: 11px 16px; font-size: 13px; color: var(--text); }
 
     <!-- ── AGENT MANAGEMENT TAB (Admin only) ── -->
     <div id="tab-agents" class="tab-panel">
+      <!-- Excel bulk upload -->
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-hdr">
+          <div class="card-title">📤 Bulk Upload Agents via Excel</div>
+          <span style="font-size:11px;color:var(--muted)">Upload .xlsx with columns: Name, EmpID, TL, Team, Tenure</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;padding:4px 0 8px;flex-wrap:wrap">
+          <label style="display:inline-flex;align-items:center;gap:8px;background:var(--surface2);border:1px dashed rgba(61,126,245,0.4);border-radius:var(--r-sm);padding:10px 18px;cursor:pointer;font-size:13px;color:var(--accent);font-family:var(--font-head);font-weight:600;transition:all .2s">
+            📂 Choose Excel File
+            <input type="file" id="agentExcelFile" accept=".xlsx,.xls" style="display:none" onchange="importAgentsExcel(this)">
+          </label>
+          <div id="excelUploadStatus" style="font-size:12px;color:var(--muted)">No file selected</div>
+          <a id="agentTemplateLink" href="#" onclick="downloadAgentTemplate(event)" style="font-size:11px;color:var(--accent);text-decoration:underline;margin-left:auto">⬇ Download Template</a>
+        </div>
+      </div>
+
+      <!-- Admin access grant -->
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-hdr">
+          <div class="card-title">🔐 Grant Admin Access</div>
+          <span style="font-size:11px;color:var(--muted)">Give another user admin privileges</span>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr auto;gap:12px;align-items:end;padding:4px 0 8px">
+          <div>
+            <label style="display:block;font-size:10px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);font-family:var(--font-head);font-weight:700;margin-bottom:6px">User Email</label>
+            <input type="email" id="newAdminEmail" placeholder="e.g. colleague@company.com" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-family:var(--font-body);font-size:13px;padding:10px 12px;outline:none;box-sizing:border-box">
+          </div>
+          <button class="btn btn-success" onclick="grantAdmin()" style="height:42px;padding:0 20px;white-space:nowrap">🔐 Grant Admin</button>
+        </div>
+        <div class="card-hdr" style="margin-top:8px"><div class="card-title" style="font-size:12px">Current Admins</div></div>
+        <div id="adminListDisplay" style="padding:6px 0;font-size:12px;color:var(--text-dim)">Loading...</div>
+      </div>
+
       <div class="card" style="margin-bottom:20px">
         <div class="card-hdr">
           <div class="card-title">➕ Add New Agent</div>
@@ -1527,7 +1560,9 @@ onAuthStateChanged(auth,u=>{
     const role=getUserRole(),p=UP[u.email];
     if(p){document.getElementById("profileName").textContent="👤 "+p.name;document.getElementById("profileDesignation").textContent=p.designation;document.getElementById("profileEmail").textContent=u.email;const at=role==="admin"?"🔐 Admin":role==="qa"?"🧪 QA Analyst":role==="tl"?"👔 Team Leader":"👤 Agent";document.getElementById("profileAccess").innerHTML=at+"<br>🕒 "+new Date().toLocaleTimeString();}
     if(role==="admin"){document.getElementById("clearBtn").style.display="inline-flex";document.getElementById("clearBtn2").style.display="inline-flex";const at=document.getElementById('agentsNavTab');if(at)at.style.display='flex';}
+    loadGrantedAdmins();
     loadAgents().then(()=>{ populateAgentDropdown(); renderAgentList(); });
+    renderAdminList();
     setReviewerName();
   }else{document.getElementById('loginScreen').style.display='flex';document.getElementById('mainApp').style.display='none';}
 });
@@ -1546,10 +1581,12 @@ const GROUPS={'Call Opening/Closing':['nc1','nc2','nc3','nc4'],'Issue Identifica
 let _agentList = []; // populated from Firebase on login
 
 async function loadAgents(){
-  const snap = await get(ref(db,'agents'));
-  _agentList = [];
-  if(snap.exists()) Object.entries(snap.val()).forEach(([id,d])=>_agentList.push({id,...d}));
-  _agentList.sort((a,b)=>a.name.localeCompare(b.name));
+  try{
+    const snap = await window.get(window.ref(window.db,'agents'));
+    _agentList = [];
+    if(snap.exists()) Object.entries(snap.val()).forEach(([id,d])=>_agentList.push({id,...d}));
+    _agentList.sort((a,b)=>a.name.localeCompare(b.name));
+  }catch(e){ console.warn('loadAgents error',e); }
   return _agentList;
 }
 
@@ -1581,29 +1618,33 @@ async function saveAgent(){
   const team  = document.getElementById('newAgentTeam').value.trim();
   const tenure= parseInt(document.getElementById('newAgentTenure').value)||0;
   if(!name||!empId){showToast('Name and Emp ID are required','e');return;}
-  await set(ref(db,'agents/'+empId), {name,empId,tl,team,tenure});
-  showToast('✅ Agent saved: '+name,'s');
-  ['newAgentName','newAgentEmpId','newAgentTL','newAgentTeam','newAgentTenure'].forEach(id=>document.getElementById(id).value='');
-  await loadAgents();
-  populateAgentDropdown();
-  renderAgentList();
+  try{
+    await window.set(window.ref(window.db,'agents/'+empId.trim()), {name,empId:empId.trim(),tl,team,tenure});
+    showToast('✅ Agent saved: '+name,'s');
+    ['newAgentName','newAgentEmpId','newAgentTL','newAgentTeam','newAgentTenure'].forEach(id=>document.getElementById(id).value='');
+    await loadAgents();
+    populateAgentDropdown();
+    renderAgentList();
+  }catch(e){showToast('Error saving agent: '+e.message,'e');}
 }
 
 async function deleteAgent(empId){
   if(getUserRole()!=='admin'){showToast('Admin only','e');return;}
   if(!confirm('Delete this agent?'))return;
-  await remove(ref(db,'agents/'+empId));
-  showToast('Agent removed','s');
-  await loadAgents();
-  populateAgentDropdown();
-  renderAgentList();
+  try{
+    await window.remove(window.ref(window.db,'agents/'+empId));
+    showToast('Agent removed','s');
+    await loadAgents();
+    populateAgentDropdown();
+    renderAgentList();
+  }catch(e){showToast('Error: '+e.message,'e');}
 }
 
 function renderAgentList(){
   const tbody = document.getElementById('agentListBody');
   if(!tbody) return;
   if(!_agentList.length){
-    tbody.innerHTML='<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--muted)">No agents added yet. Use the form above to add agents.</td></tr>';
+    tbody.innerHTML='<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--muted)">No agents added yet. Use the form above or upload an Excel file.</td></tr>';
     return;
   }
   const badge=document.getElementById('agentCountBadge');if(badge)badge.textContent=_agentList.length+' agent'+(+_agentList.length!==1?'s':'');
@@ -1616,6 +1657,113 @@ function renderAgentList(){
       <td><span class="ten-badge">${ag.tenure?ag.tenure+'m':'—'}</span></td>
       <td>${getUserRole()==='admin'?`<button class="btn btn-danger btn-sm" onclick="deleteAgent('${ag.empId}')">🗑 Remove</button>`:''}</td>
     </tr>`).join('');
+}
+
+// ── Excel bulk import ────────────────────────────────────────────────────────
+async function importAgentsExcel(input){
+  if(!input.files||!input.files[0])return;
+  const statusEl=document.getElementById('excelUploadStatus');
+  statusEl.textContent='Reading file...';
+  statusEl.style.color='var(--muted)';
+  try{
+    const ab=await input.files[0].arrayBuffer();
+    const wb=XLSX.read(ab,{type:'arraybuffer'});
+    const ws=wb.Sheets[wb.SheetNames[0]];
+    const rows=XLSX.utils.sheet_to_json(ws,{defval:''});
+    if(!rows.length){statusEl.textContent='❌ No data found in sheet';statusEl.style.color='var(--critical)';return;}
+    let saved=0,skipped=0;
+    for(const row of rows){
+      // flexible column name matching
+      const name=(row['Name']||row['name']||row['Agent Name']||row['AGENT NAME']||'').toString().trim();
+      const empId=(row['EmpID']||row['Emp ID']||row['emp_id']||row['EMP ID']||row['Employee ID']||'').toString().trim();
+      const tl=(row['TL']||row['TL Name']||row['Team Leader']||'').toString().trim();
+      const team=(row['Team']||row['team']||'').toString().trim();
+      const tenure=parseInt(row['Tenure']||row['tenure']||0)||0;
+      if(!name||!empId){skipped++;continue;}
+      await window.set(window.ref(window.db,'agents/'+empId),{name,empId,tl,team,tenure});
+      saved++;
+    }
+    statusEl.textContent=`✅ ${saved} agents imported${skipped?' ('+skipped+' skipped — missing Name/EmpID)':''}`;
+    statusEl.style.color='var(--success)';
+    input.value='';
+    await loadAgents();
+    populateAgentDropdown();
+    renderAgentList();
+  }catch(e){
+    statusEl.textContent='❌ Error: '+e.message;
+    statusEl.style.color='var(--critical)';
+  }
+}
+
+function downloadAgentTemplate(e){
+  e.preventDefault();
+  const ws=XLSX.utils.aoa_to_sheet([
+    ['Name','EmpID','TL','Team','Tenure'],
+    ['John Smith','EMP001','TL Ravi','Sales A',6],
+    ['Jane Doe','EMP002','TL Priya','Sales B',12],
+  ]);
+  ws['!cols']=[{wch:20},{wch:10},{wch:15},{wch:12},{wch:8}];
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,'Agents');
+  XLSX.writeFile(wb,'agent_upload_template.xlsx');
+}
+
+// ── Admin access management ──────────────────────────────────────────────────
+async function grantAdmin(){
+  if(getUserRole()!=='admin'){showToast('Admin only','e');return;}
+  const email=document.getElementById('newAdminEmail').value.trim().toLowerCase();
+  if(!email||!email.includes('@')){showToast('Enter a valid email','e');return;}
+  try{
+    await window.set(window.ref(window.db,'admins/'+email.replace(/\./g,'_')),{email,grantedBy:window.auth.currentUser.email,grantedAt:Date.now()});
+    showToast('✅ Admin access granted to '+email,'s');
+    document.getElementById('newAdminEmail').value='';
+    renderAdminList();
+  }catch(e){showToast('Error: '+e.message,'e');}
+}
+
+async function revokeAdmin(email){
+  if(getUserRole()!=='admin'){showToast('Admin only','e');return;}
+  if(email===window.auth.currentUser.email){showToast("You can't revoke your own access",'e');return;}
+  if(!confirm('Revoke admin access for '+email+'?'))return;
+  try{
+    await window.remove(window.ref(window.db,'admins/'+email.replace(/\./g,'_')));
+    showToast('Admin access revoked','s');
+    renderAdminList();
+  }catch(e){showToast('Error: '+e.message,'e');}
+}
+
+async function renderAdminList(){
+  const el=document.getElementById('adminListDisplay');
+  if(!el)return;
+  try{
+    const snap=await window.get(window.ref(window.db,'admins'));
+    const hardcoded=['gaurabhi834@gmail.com'];
+    let admins=[...hardcoded];
+    if(snap.exists()) Object.values(snap.val()).forEach(a=>{if(!admins.includes(a.email))admins.push(a.email);});
+    el.innerHTML=admins.map(e=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)">
+      <span style="font-family:var(--font-head);font-weight:600">${e}${hardcoded.includes(e)?'<span style="margin-left:8px;font-size:9px;background:rgba(61,126,245,0.12);color:var(--accent);padding:2px 7px;border-radius:10px">Primary</span>':''}</span>
+      ${!hardcoded.includes(e)?`<button class="btn btn-danger btn-sm" onclick="revokeAdmin('${e}')">Revoke</button>`:''}
+    </div>`).join('');
+  }catch(e){el.textContent='Could not load admin list';}
+}
+
+// ── Override getUserRole to also check Firebase admins ───────────────────────
+const _origGetUserRole=window.getUserRole;
+window.getUserRole=function(){
+  const base=_origGetUserRole();
+  if(base==='admin')return'admin';
+  // Check if current user's email was granted admin in Firebase
+  const u=window.auth&&window.auth.currentUser;
+  if(u&&window._grantedAdmins&&window._grantedAdmins.includes(u.email))return'admin';
+  return base;
+};
+window._grantedAdmins=[];
+// Load granted admins on startup
+async function loadGrantedAdmins(){
+  try{
+    const snap=await window.get(window.ref(window.db,'admins'));
+    if(snap.exists()) window._grantedAdmins=Object.values(snap.val()).map(a=>a.email);
+  }catch(e){}
 }
 
 let CS={},gaugeCI=null,pCI=null,sCI=null,trendCI=null,weekCI=null,tenureCI=null,convCI=null,volCI=null,distCI=null,radarCI=null;
