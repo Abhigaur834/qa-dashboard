@@ -1551,20 +1551,73 @@ const fc={apiKey:"AIzaSyCifkNrq_PA8FtW7devgVsaNGXW-Tce0n8",authDomain:"qa-dashbo
 const app=initializeApp(fc),db=getDatabase(app),auth=getAuth(app);
 window.db=db;window.ref=ref;window.push=push;window.get=get;window.remove=remove;window.set=set;window.auth=auth;
 const UP={"gaurabhi834@gmail.com":{name:"Abhishek Gaur",designation:"Deputy Manager – QA"},"tl.pinki@ocubeservices.com":{name:"Pinki Kumari",designation:"Team Leader – Sales"},"tl.shahid@ocubeservices.com":{name:"Md Shahid",designation:"Team Leader – Support"},"qa.prince@ocubeservices.com":{name:"Prince Kumar",designation:"Quality Analyst"}};
-window.getUserRole=function(){const u=auth.currentUser;if(!u)return null;const e=u.email;if(e==="gaurabhi834@gmail.com")return"admin";if(e==="qa.prince@ocubeservices.com")return"qa";if(e==="tl.pinki@ocubeservices.com"||e==="tl.shahid@ocubeservices.com")return"tl";return"agent";};
+window._grantedAdmins=[];
+window._grantedAdminData={};
+
+// Load granted admins from Firebase — must resolve BEFORE role checks
+async function loadGrantedAdmins(){
+  try{
+    const snap=await window.get(window.ref(window.db,'admins'));
+    window._grantedAdmins=[];
+    window._grantedAdminData={};
+    if(snap.exists()) Object.values(snap.val()).forEach(a=>{
+      window._grantedAdmins.push(a.email);
+      window._grantedAdminData[a.email]=a;
+    });
+  }catch(e){console.warn('loadGrantedAdmins error',e);}
+}
+
+window.getUserRole=function(){
+  const u=auth.currentUser;if(!u)return null;
+  const e=u.email;
+  // Hardcoded primary admin
+  if(e==="gaurabhi834@gmail.com")return"admin";
+  // Firebase-granted admins
+  if(window._grantedAdmins.includes(e))return"admin";
+  // Hardcoded roles
+  if(e==="qa.prince@ocubeservices.com")return"qa";
+  if(e==="tl.pinki@ocubeservices.com"||e==="tl.shahid@ocubeservices.com")return"tl";
+  return"agent";
+};
+
+function applyUIForRole(u){
+  const role=getUserRole();
+  const p=UP[u.email];
+
+  // Profile — show for ALL users, fallback to email if not in UP
+  const displayName=p?p.name:u.email.split('@')[0].replace(/[._]/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
+  const designation=p?p.designation:(window._grantedAdminData[u.email]?'Admin (Granted Access)':'QA User');
+  const roleLabel=role==="admin"?"🔐 Admin":role==="qa"?"🧪 QA Analyst":role==="tl"?"👔 Team Leader":"👤 Agent";
+  document.getElementById("profileName").textContent="👤 "+displayName;
+  document.getElementById("profileDesignation").textContent=designation;
+  document.getElementById("profileEmail").textContent=u.email;
+  document.getElementById("profileAccess").innerHTML=roleLabel+"<br>🕒 "+new Date().toLocaleTimeString();
+
+  // Admin-only UI
+  if(role==="admin"){
+    document.getElementById("clearBtn").style.display="inline-flex";
+    document.getElementById("clearBtn2").style.display="inline-flex";
+    const at=document.getElementById('agentsNavTab');
+    if(at)at.style.display='flex';
+  }
+}
+
 onAuthStateChanged(auth,u=>{
   if(u){
     document.getElementById('loginScreen').style.display='none';
     document.getElementById('mainApp').style.display='block';
     updateBadge();
-    const role=getUserRole(),p=UP[u.email];
-    if(p){document.getElementById("profileName").textContent="👤 "+p.name;document.getElementById("profileDesignation").textContent=p.designation;document.getElementById("profileEmail").textContent=u.email;const at=role==="admin"?"🔐 Admin":role==="qa"?"🧪 QA Analyst":role==="tl"?"👔 Team Leader":"👤 Agent";document.getElementById("profileAccess").innerHTML=at+"<br>🕒 "+new Date().toLocaleTimeString();}
-    if(role==="admin"){document.getElementById("clearBtn").style.display="inline-flex";document.getElementById("clearBtn2").style.display="inline-flex";const at=document.getElementById('agentsNavTab');if(at)at.style.display='flex';}
-    loadGrantedAdmins();
-    loadAgents().then(()=>{ populateAgentDropdown(); renderAgentList(); });
-    renderAdminList();
-    setReviewerName();
-  }else{document.getElementById('loginScreen').style.display='flex';document.getElementById('mainApp').style.display='none';}
+    // CRITICAL: load granted admins FIRST, then apply role-dependent UI
+    loadGrantedAdmins().then(()=>{
+      applyUIForRole(u);
+      loadAgents().then(()=>{ populateAgentDropdown(); renderAgentList(); });
+      renderAdminList();
+      setReviewerName();
+    });
+  }else{
+    document.getElementById('loginScreen').style.display='flex';
+    document.getElementById('mainApp').style.display='none';
+  }
 });
 window.loginUser=function(){const e=document.getElementById("loginEmail").value.trim(),p=document.getElementById("loginPassword").value.trim();if(!e||!p){showToast("Enter email and password","e");return;}signInWithEmailAndPassword(auth,e,p).then(()=>showToast("Login successful","s")).catch(er=>showToast(er.message,"e"));};
 window.logoutUser=function(){signOut(auth).then(()=>showToast("Logged out","s"));};
@@ -1745,25 +1798,6 @@ async function renderAdminList(){
       ${!hardcoded.includes(e)?`<button class="btn btn-danger btn-sm" onclick="revokeAdmin('${e}')">Revoke</button>`:''}
     </div>`).join('');
   }catch(e){el.textContent='Could not load admin list';}
-}
-
-// ── Override getUserRole to also check Firebase admins ───────────────────────
-const _origGetUserRole=window.getUserRole;
-window.getUserRole=function(){
-  const base=_origGetUserRole();
-  if(base==='admin')return'admin';
-  // Check if current user's email was granted admin in Firebase
-  const u=window.auth&&window.auth.currentUser;
-  if(u&&window._grantedAdmins&&window._grantedAdmins.includes(u.email))return'admin';
-  return base;
-};
-window._grantedAdmins=[];
-// Load granted admins on startup
-async function loadGrantedAdmins(){
-  try{
-    const snap=await window.get(window.ref(window.db,'admins'));
-    if(snap.exists()) window._grantedAdmins=Object.values(snap.val()).map(a=>a.email);
-  }catch(e){}
 }
 
 let CS={},gaugeCI=null,pCI=null,sCI=null,trendCI=null,weekCI=null,tenureCI=null,convCI=null,volCI=null,distCI=null,radarCI=null;
