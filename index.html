@@ -793,18 +793,49 @@ tbody td { padding: 11px 16px; font-size: 13px; color: var(--text); }
 /* ─── PROFILE BADGE ─── */
 #userProfile {
   display: flex;
-  flex-direction: column;
-  padding: 7px 14px;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 12px 6px 6px;
   background: var(--surface2);
   border: 1px solid var(--border-bright);
-  border-radius: var(--r-sm);
-  font-size: 11px;
-  text-align: right;
+  border-radius: 40px;
+  cursor: default;
+  transition: border-color .2s, box-shadow .2s;
 }
-#profileName { font-size: 13px; font-weight: 600; color: var(--text); }
-#profileDesignation { color: var(--muted); font-size: 11px; }
-#profileAccess { margin-top: 3px; color: var(--accent); font-size: 10.5px; line-height: 1.4; }
-#profileEmail { font-size: 10px; color: var(--muted); }
+#userProfile:hover {
+  border-color: rgba(61,126,245,0.4);
+  box-shadow: 0 0 0 3px rgba(61,126,245,0.08);
+}
+#profileAvatar {
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), var(--purple));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 800;
+  color: #fff;
+  font-family: var(--font-head);
+  flex-shrink: 0;
+  letter-spacing: -0.5px;
+}
+#profileInfo { display: flex; flex-direction: column; gap: 1px; }
+#profileName { font-size: 12px; font-weight: 700; color: var(--text); font-family: var(--font-head); letter-spacing: -0.2px; line-height: 1.2; }
+#profileDesignation { font-size: 10px; color: var(--muted); font-weight: 400; line-height: 1.2; }
+#profileAccess { display: none; }
+#profileEmail { display: none; }
+#profileRoleBadge {
+  font-size: 9px;
+  font-weight: 700;
+  font-family: var(--font-head);
+  letter-spacing: 0.8px;
+  padding: 2px 8px;
+  border-radius: 20px;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+.role-admin  { background: rgba(61,126,245,0.15); color: var(--accent); border: 1px solid rgba(61,126,245,0.25); }
+.role-qa     { background: rgba(168,85,247,0.15); color: var(--purple); border: 1px solid rgba(168,85,247,0.25); }
+.role-tl     { background: rgba(34,211,138,0.15); color: var(--success); border: 1px solid rgba(34,211,138,0.25); }
+.role-agent  { background: rgba(255,255,255,0.06); color: var(--muted); border: 1px solid var(--border); }
 
 /* ─── LOGIN SCREEN ─── */
 /* ─── LOGIN SCREEN ─── */
@@ -1102,10 +1133,14 @@ tbody td { padding: 11px 16px; font-size: 13px; color: var(--text); }
       </div>
       <div class="top-bar-right">
         <div id="userProfile">
-          <div id="profileName"></div>
-          <div id="profileDesignation"></div>
-          <div id="profileAccess"></div>
-          <div id="profileEmail"></div>
+          <div id="profileAvatar">?</div>
+          <div id="profileInfo">
+            <div id="profileName">Loading...</div>
+            <div id="profileDesignation"></div>
+          </div>
+          <div id="profileRoleBadge" class="role-agent">Agent</div>
+          <div id="profileAccess" style="display:none"></div>
+          <div id="profileEmail" style="display:none"></div>
         </div>
         <button class="btn btn-excel btn-sm" onclick="exportAllExcel()">⬇ Export</button>
         <button id="clearBtn" class="btn btn-danger btn-sm" onclick="clearAllAudits()" style="display:none;">🗑 Clear</button>
@@ -1587,10 +1622,41 @@ function applyUIForRole(u){
   const displayName=p?p.name:u.email.split('@')[0].replace(/[._]/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
   const designation=p?p.designation:(window._grantedAdminData[u.email]?'Admin (Granted Access)':'QA User');
   const roleLabel=role==="admin"?"🔐 Admin":role==="qa"?"🧪 QA Analyst":role==="tl"?"👔 Team Leader":"👤 Agent";
-  document.getElementById("profileName").textContent="👤 "+displayName;
+  // Avatar initials from name
+  const nameParts=displayName.trim().split(' ').filter(Boolean);
+  const initials=(nameParts.length>=2
+    ? nameParts[0][0]+nameParts[nameParts.length-1][0]
+    : displayName.slice(0,2)).toUpperCase();
+  document.getElementById("profileAvatar").textContent=initials;
+
+  document.getElementById("profileName").textContent=displayName;
   document.getElementById("profileDesignation").textContent=designation;
   document.getElementById("profileEmail").textContent=u.email;
-  document.getElementById("profileAccess").innerHTML=roleLabel+"<br>🕒 "+new Date().toLocaleTimeString();
+
+  // Role badge
+  const badge=document.getElementById("profileRoleBadge");
+  if(badge){
+    const roleMap={
+      admin:{label:"🔐 Admin",cls:"role-admin"},
+      qa:{label:"🧪 QA",cls:"role-qa"},
+      tl:{label:"👔 TL",cls:"role-tl"},
+      agent:{label:"Agent",cls:"role-agent"}
+    };
+    const rm=roleMap[role]||roleMap.agent;
+    badge.textContent=rm.label;
+    badge.className="";
+    badge.classList.add("profileRoleBadge".replace("Badge",""), rm.cls);
+    badge.style.cssText="font-size:9px;font-weight:700;font-family:var(--font-head);letter-spacing:0.8px;padding:2px 8px;border-radius:20px;text-transform:uppercase;flex-shrink:0;";
+    // apply colour via class
+    badge.className=rm.cls;
+    // inline as fallback
+    const colors={admin:"rgba(61,126,245,0.15)",qa:"rgba(168,85,247,0.15)",tl:"rgba(34,211,138,0.15)",agent:"rgba(255,255,255,0.06)"};
+    const textColors={admin:"var(--accent)",qa:"var(--purple)",tl:"var(--success)",agent:"var(--muted)"};
+    const borders={admin:"rgba(61,126,245,0.25)",qa:"rgba(168,85,247,0.25)",tl:"rgba(34,211,138,0.25)",agent:"var(--border)"};
+    badge.style.background=colors[role]||colors.agent;
+    badge.style.color=textColors[role]||textColors.agent;
+    badge.style.border="1px solid "+(borders[role]||borders.agent);
+  }
 
   // Admin-only UI
   if(role==="admin"){
