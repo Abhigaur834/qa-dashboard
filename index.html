@@ -847,6 +847,12 @@ tbody td{padding:11px 16px;font-size:13px;color:var(--text);}
         </div>
         <div class="table-wrap"><table><thead><tr><th>Process ID</th><th>Created</th><th>Created By</th><th>Action</th></tr></thead>
         <tbody id="processListBody"><tr><td colspan="4" style="text-align:center;padding:28px;color:var(--muted)">Loading...</td></tr></tbody></table></div>
+        <div style="padding:12px 20px;border-top:1px solid var(--border)">
+          <button class="btn" onclick="migrateLegacyAudits()" style="font-size:11px;background:rgba(251,146,60,0.12);border-color:rgba(251,146,60,0.3);color:rgb(251,146,60)">
+            &#8635; Migrate Legacy Audits to New Paths
+          </button>
+          <span style="font-size:10px;color:var(--muted);margin-left:10px">Run once to move old LQ audits into the new process structure permanently</span>
+        </div>
       </div>
 
       <div class="card" style="margin-bottom:16px">
@@ -1432,14 +1438,52 @@ async function saveAudit(){
 // ── LOAD AUDITS (with caching) ───────────────────────────────────────────────
 async function loadAudits(forceRefresh=false){
   if(!auth.currentUser)return[];
-  // ★ FIX: Cache audits for 30s to avoid repeated Firebase fetches on tab switches
   if(!forceRefresh&&Date.now()-_auditsCacheTime<30000&&_allAudits.length>0) return _allAudits;
-  const snap=await get(ref(db,`processes/${window._currentProcess}/audits`));const a=[];
-  if(snap.exists())Object.entries(snap.val()).forEach(([id,d])=>a.push({id,...d}));
-  _allAudits=a.sort((a,b)=>b.timestamp-a.timestamp);
+  const a=[];
+  const seen=new Set();
+  // Load from NEW path: processes/{process}/audits
+  try{
+    const snap=await get(ref(db,`processes/${window._currentProcess}/audits`));
+    if(snap.exists())Object.entries(snap.val()).forEach(([id,d])=>{
+      if(!seen.has(id)){seen.add(id);a.push({id,...d,_path:'new'});}
+    });
+  }catch(e){console.warn('loadAudits new path:',e);}
+  // Also load from OLD flat path: audits/ (data saved before multi-process migration)
+  // Only load old audits that match current process, or if no process tag assume LQ
+  try{
+    const oldSnap=await get(ref(db,'audits'));
+    if(oldSnap.exists())Object.entries(oldSnap.val()).forEach(([id,d])=>{
+      if(seen.has(id))return; // already loaded from new path
+      // Match by process field on audit, or fall back to current process
+      const proc=(d.process||d.processId||'LQ').toUpperCase();
+      if(proc===window._currentProcess.toUpperCase()){
+        seen.add(id);a.push({id,...d,_path:'legacy'});
+      }
+    });
+  }catch(e){console.warn('loadAudits legacy path:',e);}
+  _allAudits=a.sort((a,b)=>(b.timestamp||0)-(a.timestamp||0));
   _auditsCacheTime=Date.now();
   return _allAudits;
 }
+// Migrate legacy audits from flat 'audits/' to 'processes/{proc}/audits'
+window.migrateLegacyAudits = async function(){
+  if(!window.isSuperAdmin()){showToast('Super Admin only','e');return;}
+  showToast('Migrating legacy audits...','s');
+  try{
+    const oldSnap=await get(ref(db,'audits'));
+    if(!oldSnap.exists()){showToast('No legacy audits found','s');return;}
+    let count=0;
+    const entries=Object.entries(oldSnap.val());
+    for(const [id,d] of entries){
+      const proc=(d.process||d.processId||'LQ').toUpperCase();
+      await set(ref(db,`processes/${proc}/audits/${id}`),d);
+      count++;
+    }
+    _auditsCacheTime=0;
+    showToast('✅ Migrated '+count+' audits to new paths','s');
+  }catch(e){showToast('Migration error: '+e.message,'e');}
+};
+
 function populateAgentDropdown(){
   const sel=document.getElementById('agentSelect');if(!sel)return;
   if(!_agentList.length){sel.innerHTML='<option value="">— No agents added yet —</option>';return;}
