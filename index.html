@@ -1003,36 +1003,64 @@ function applyUIForRole(u){
 
 onAuthStateChanged(auth, u => {
   if(u) {
-    document.getElementById('loginScreen').style.display = 'none';
-    loadGrantedAdmins().then(() => {
-      loadUserProcesses(u).then(procs => {
-        if(isSuperAdmin()) {
-          // Super admin — load all processes then show selector
-          loadProcessList().then(() => {
-            if(_processList.length === 0) {
-              // Seed default processes
-              seedDefaultProcesses().then(() => showProcessSelector(u));
-            } else {
-              showProcessSelector(u);
-            }
-          });
-        } else if(Object.keys(procs).length === 0) {
-          showToast('No process assigned to your account. Contact admin.', 'e');
-          signOut(auth);
-        } else if(Object.keys(procs).length === 1) {
-          selectProcess(Object.keys(procs)[0], u);
-        } else {
-          showProcessSelector(u);
-        }
-      });
-    });
+    // Keep login screen visible until we're fully ready to show something
+    _initApp(u);
   } else {
-    document.getElementById('loginScreen').style.display = 'flex';
-    document.getElementById('mainApp').style.display = 'none';
-    document.getElementById('processSelector').classList.remove('show');
-    _currentProcess = null;
+    _showLogin();
   }
 });
+
+function _showLogin() {
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('mainApp').style.display = 'none';
+  const ps = document.getElementById('processSelector');
+  if(ps) ps.classList.remove('show');
+  _currentProcess = null;
+}
+
+async function _initApp(u) {
+  // Keep login screen showing — don't hide it until we're ready
+  try {
+    await loadGrantedAdmins();
+  } catch(e) { console.warn('loadGrantedAdmins failed', e); }
+
+  try {
+    let procs = {};
+    try {
+      procs = await loadUserProcesses(u);
+    } catch(e) { console.warn('loadUserProcesses failed', e); }
+
+    if(isSuperAdmin()) {
+      try {
+        await loadProcessList();
+        if(_processList.length === 0) {
+          await seedDefaultProcesses();
+        }
+      } catch(e) { console.warn('loadProcessList failed', e); }
+      // Now hide login and show selector
+      document.getElementById('loginScreen').style.display = 'none';
+      showProcessSelector(u);
+
+    } else if(Object.keys(procs).length === 0) {
+      // No process — keep login visible, sign out
+      showToast('No process assigned. Contact your admin.', 'e');
+      setTimeout(() => signOut(auth), 2500);
+
+    } else if(Object.keys(procs).length === 1) {
+      document.getElementById('loginScreen').style.display = 'none';
+      selectProcess(Object.keys(procs)[0]);
+
+    } else {
+      document.getElementById('loginScreen').style.display = 'none';
+      showProcessSelector(u);
+    }
+  } catch(e) {
+    // Something went wrong — fall back to login screen
+    console.error('_initApp error:', e);
+    _showLogin();
+    showToast('Something went wrong. Please try again.', 'e');
+  }
+}
 window.loginUser=function(){const e=document.getElementById("loginEmail").value.trim(),p=document.getElementById("loginPassword").value.trim();if(!e||!p){showToast("Enter email and password","e");return;}signInWithEmailAndPassword(auth,e,p).then(()=>showToast("Login successful","s")).catch(er=>showToast(er.message,"e"));};
 window.logoutUser=function(){signOut(auth).then(()=>{showToast("Logged out","s");_currentProcess=null;_processList=[];_userProcesses={};});};
 </script>
@@ -1040,6 +1068,22 @@ window.logoutUser=function(){signOut(auth).then(()=>{showToast("Logged out","s")
 
 
 <!-- APP LOGIC -->
+<script>
+// Global error safety net — if JS crashes, show login instead of blank screen
+window.onerror = function(msg, src, line, col, err) {
+  console.error('QA.Hub error:', msg, 'at', src, line+':'+col, err);
+  var ls = document.getElementById('loginScreen');
+  var ma = document.getElementById('mainApp');
+  var ps = document.getElementById('processSelector');
+  if(ls && ls.style.display === 'none') { ls.style.display = 'flex'; }
+  if(ma) ma.style.display = 'none';
+  if(ps) ps.classList.remove('show');
+  return false;
+};
+window.onunhandledrejection = function(e) {
+  console.error('Unhandled promise rejection:', e.reason);
+};
+</script>
 <script>
 // ── PARAMETER METADATA with points ──────────────────────────────────────────
 const PM={
@@ -2203,28 +2247,35 @@ window.switchProcess=function(){
 };
 
 window.selectProcess=function(processId){
-  _currentProcess=processId;
-  _auditsCacheTime=0;_allAudits=[];
-  document.getElementById('processSelector').classList.remove('show');
-  document.getElementById('mainApp').style.display='block';
-  const badge=document.getElementById('currentProcBadge');
-  const label=document.getElementById('currentProcLabel');
-  if(badge)badge.style.display='inline-flex';
-  if(label)label.textContent=processId;
-  const u=auth.currentUser;
-  if(u){
-    updateBadge();
-    applyUIForRole(u);
-    loadAgents().then(()=>{populateAgentDropdown();renderAgentList();});
-    renderAdminList();
-    setReviewerName();
-    renderProcessUserList();
-    populateProcessDropdowns();
-    if(isSuperAdmin()||getUserRole()==='processAdmin'){
-      renderProcessManagement();
-      document.getElementById('processMgmtSection').style.display='block';
+  try {
+    _currentProcess=processId;
+    _auditsCacheTime=0;_allAudits=[];
+    const ps=document.getElementById('processSelector');if(ps)ps.classList.remove('show');
+    document.getElementById('mainApp').style.display='block';
+    document.getElementById('loginScreen').style.display='none';
+    const badge=document.getElementById('currentProcBadge');
+    const label=document.getElementById('currentProcLabel');
+    if(badge)badge.style.display='inline-flex';
+    if(label)label.textContent=processId;
+    const u=auth.currentUser;
+    if(u){
+      try{updateBadge();}catch(e){}
+      try{applyUIForRole(u);}catch(e){console.warn('applyUIForRole',e);}
+      try{loadAgents().then(()=>{populateAgentDropdown();renderAgentList();});}catch(e){}
+      try{renderAdminList();}catch(e){}
+      try{setReviewerName();}catch(e){}
+      try{renderProcessUserList();}catch(e){}
+      try{populateProcessDropdowns();}catch(e){}
+      if(isSuperAdmin()||getUserRole()==='processAdmin'||getUserRole()==='admin'){
+        try{
+          document.getElementById('processMgmtSection').style.display='block';
+          renderProcessManagement();
+        }catch(e){}
+      }
     }
-    populateProcessDropdowns();
+  } catch(e) {
+    console.error('selectProcess error:', e);
+    showToast('Error loading process. Please refresh.','e');
   }
 };
 
