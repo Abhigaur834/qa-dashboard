@@ -1032,47 +1032,74 @@ function _showLogin() {
 }
 
 async function _initApp(u) {
-  // Keep login screen showing — don't hide it until we're ready
-  try {
-    await loadGrantedAdmins();
-  } catch(e) { console.warn('loadGrantedAdmins failed', e); }
+  console.log('[QAHub] _initApp start', u.email);
 
-  try {
-    let procs = {};
+  // Step 1: load granted admins (non-fatal)
+  try { await loadGrantedAdmins(); console.log('[QAHub] admins loaded', window._grantedAdmins); }
+  catch(e) { console.warn('[QAHub] loadGrantedAdmins failed:', e.message); }
+
+  const superAdmin = isSuperAdmin();
+  console.log('[QAHub] isSuperAdmin:', superAdmin);
+
+  // Step 2: load user processes
+  let procs = {};
+  try { procs = await loadUserProcesses(u); console.log('[QAHub] userProcesses:', procs); }
+  catch(e) { console.warn('[QAHub] loadUserProcesses failed:', e.message); }
+
+  // Step 3: branch by role
+  if(superAdmin) {
+    console.log('[QAHub] super admin path');
     try {
-      procs = await loadUserProcesses(u);
-    } catch(e) { console.warn('loadUserProcesses failed', e); }
+      await loadProcessList();
+      console.log('[QAHub] processList:', _processList);
+      if(_processList.length === 0) {
+        console.log('[QAHub] seeding defaults');
+        await seedDefaultProcesses();
+        console.log('[QAHub] seeded');
+      }
+    } catch(e) { console.warn('[QAHub] loadProcessList/seed failed:', e.message); }
 
-    if(isSuperAdmin()) {
-      try {
-        await loadProcessList();
-        if(_processList.length === 0) {
-          await seedDefaultProcesses();
-        }
-      } catch(e) { console.warn('loadProcessList failed', e); }
-      // Now hide login and show selector
+    try {
       document.getElementById('loginScreen').style.display = 'none';
       showProcessSelector(u);
+    } catch(e) {
+      console.error('[QAHub] showProcessSelector failed:', e.message);
+      // Fallback: go straight to first process
+      if(_processList.length > 0) {
+        document.getElementById('loginScreen').style.display = 'none';
+        selectProcess(_processList[0].id);
+      } else {
+        // No processes yet — just enter with a default
+        _processList = [{id:'CX'},{id:'CS'},{id:'LQ'}];
+        document.getElementById('loginScreen').style.display = 'none';
+        selectProcess('CX');
+      }
+    }
 
-    } else if(Object.keys(procs).length === 0) {
-      // No process — keep login visible, sign out
-      showToast('No process assigned. Contact your admin.', 'e');
-      setTimeout(() => signOut(auth), 2500);
+  } else if(Object.keys(procs).length === 0) {
+    console.log('[QAHub] no processes assigned');
+    showToast('No process assigned to your account. Contact admin.', 'e');
+    setTimeout(() => signOut(auth), 3000);
 
-    } else if(Object.keys(procs).length === 1) {
+  } else if(Object.keys(procs).length === 1) {
+    console.log('[QAHub] single process, entering:', Object.keys(procs)[0]);
+    try {
       document.getElementById('loginScreen').style.display = 'none';
       selectProcess(Object.keys(procs)[0]);
+    } catch(e) { console.error('[QAHub] selectProcess failed:', e.message); }
 
-    } else {
+  } else {
+    console.log('[QAHub] multiple processes, showing selector');
+    try {
       document.getElementById('loginScreen').style.display = 'none';
       showProcessSelector(u);
+    } catch(e) {
+      console.error('[QAHub] showProcessSelector multi failed:', e.message);
+      document.getElementById('loginScreen').style.display = 'none';
+      selectProcess(Object.keys(procs)[0]);
     }
-  } catch(e) {
-    // Something went wrong — fall back to login screen
-    console.error('_initApp error:', e);
-    _showLogin();
-    showToast('Something went wrong. Please try again.', 'e');
   }
+  console.log('[QAHub] _initApp done. currentProcess:', _currentProcess);
 }
 window.loginUser=function(){const e=document.getElementById("loginEmail").value.trim(),p=document.getElementById("loginPassword").value.trim();if(!e||!p){showToast("Enter email and password","e");return;}signInWithEmailAndPassword(auth,e,p).then(()=>showToast("Login successful","s")).catch(er=>showToast(er.message,"e"));};
 window.logoutUser=function(){signOut(auth).then(()=>{showToast("Logged out","s");_currentProcess=null;_processList=[];_userProcesses={};});};
@@ -2246,13 +2273,21 @@ function showProcessSelector(u){
     }
     return;
   }
+  const rawList = (_processList||[]).filter(p=>p&&p.id);
   const procs=isSuperAdmin()
-    ?_processList.map(p=>({id:p.id,role:'admin'}))
-    :Object.entries(_userProcesses).map(([id,role])=>({id,role}));
+    ?rawList.map(p=>({id:p.id,role:'admin'}))
+    :Object.entries(_userProcesses||{}).map(([id,role])=>({id,role}));
   if(!procs.length){
-    showToast('No processes available. Contact admin.','e');
-    setTimeout(()=>signOut(auth),2500);
-    return;
+    if(isSuperAdmin()){
+      // Super admin with no processes — seed defaults and show them
+      const defaults=['CX','CS','LQ'];
+      defaults.forEach(id=>{_processList.push({id,role:'admin'});});
+      procs.push(...defaults.map(id=>({id,role:'admin'})));
+    } else {
+      showToast('No processes available. Contact admin.','e');
+      setTimeout(()=>signOut(auth),2500);
+      return;
+    }
   }
   const roleLabel={admin:'Admin',qa:'QA Auditor',tl:'Team Leader',agent:'Agent',processAdmin:'Process Admin'};
   list.innerHTML=procs.map(p=>`
