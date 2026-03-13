@@ -855,6 +855,17 @@ tbody td{padding:11px 16px;font-size:13px;color:var(--text);}
         </div>
       </div>
 
+      <div id="assignUserCard" class="card" style="margin-bottom:16px;display:none">
+        <div class="card-hdr"><div class="card-title">&#128101; Assign User Access</div><span style="font-size:11px;color:var(--muted)">Grant process-specific roles</span></div>
+        <div style="display:grid;grid-template-columns:1fr 160px 160px auto;gap:12px;align-items:end;padding:14px 20px;border-bottom:1px solid var(--border)">
+          <div><label style="display:block;font-size:10px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);font-family:var(--font-head);font-weight:700;margin-bottom:6px">User Email</label><input type="email" id="assignUserEmail" placeholder="user@company.com" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-family:var(--font-body);font-size:13px;padding:9px 12px;outline:none;box-sizing:border-box"></div>
+          <div><label style="display:block;font-size:10px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);font-family:var(--font-head);font-weight:700;margin-bottom:6px">Process</label><select id="assignUserProcess" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-family:var(--font-body);font-size:13px;padding:9px 12px;outline:none;box-sizing:border-box"><option value="">Select...</option></select></div>
+          <div><label style="display:block;font-size:10px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);font-family:var(--font-head);font-weight:700;margin-bottom:6px">Role</label><select id="assignUserRole" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-family:var(--font-body);font-size:13px;padding:9px 12px;outline:none;box-sizing:border-box"><option value="qa">QA Auditor</option><option value="tl">Team Leader</option><option value="agent">Agent</option><option value="processAdmin">Process Admin</option></select></div>
+          <button class="btn btn-success" onclick="assignUserToProcess()" style="height:40px;white-space:nowrap;margin-top:22px">&#128273; Assign</button>
+        </div>
+        <div id="processUserList" style="padding:12px 20px;font-size:12px;color:var(--text-dim)">Loading...</div>
+      </div>
+
       <div class="card" style="margin-bottom:16px">
         <div class="card-hdr">
           <div class="card-title">📤 Bulk Upload Agents via Excel</div>
@@ -996,6 +1007,7 @@ window.applyUIForRole = function applyUIForRole(u){
     document.getElementById("clearBtn").style.display="inline-flex";
     document.getElementById("clearBtn2").style.display="inline-flex";
     const at=document.getElementById('agentsNavTab');if(at)at.style.display='flex';
+    const auc=document.getElementById('assignUserCard');if(auc)auc.style.display='block';
   }
   // Show process badge (always show if process is selected)
   if(window._currentProcess){
@@ -2424,6 +2436,74 @@ function populateProcessDropdowns(){
 
 
 
+
+window.assignUserToProcess=async function(){
+  const role=window.getUserRole();
+  if(!window.isSuperAdmin()&&role!=='admin'&&role!=='processAdmin'){showToast('Admin access required','e');return;}
+  const email=document.getElementById('assignUserEmail').value.trim().toLowerCase();
+  const proc=document.getElementById('assignUserProcess').value;
+  const userRole=document.getElementById('assignUserRole').value;
+  if(!email||!proc||!userRole){showToast('Fill all fields','e');return;}
+  if(!email.includes('@')){showToast('Enter a valid email','e');return;}
+  const key=email.replace(/[.@]/g,'_');
+  try{
+    await window.set(window.ref(window.db,'userProcesses/'+key+'/'+proc),userRole);
+    showToast('✅ '+email+' assigned to '+proc+' as '+userRole,'s');
+    document.getElementById('assignUserEmail').value='';
+    renderProcessUserList();
+  }catch(e){showToast('Error: '+e.message,'e');}
+};
+
+window.revokeProcessUser=async function(emailKey,proc){
+  if(!confirm('Remove user from '+proc+'?'))return;
+  try{
+    await window.remove(window.ref(window.db,'userProcesses/'+emailKey+'/'+proc));
+    showToast('Access revoked','s');
+    renderProcessUserList();
+  }catch(e){showToast('Error: '+e.message,'e');}
+};
+
+async function renderProcessUserList(){
+  const el=document.getElementById('processUserList');if(!el)return;
+  try{
+    const snap=await window.get(window.ref(window.db,'userProcesses'));
+    if(!snap.exists()){el.innerHTML='<div style="color:var(--muted);padding:10px 0;font-size:12px">No users assigned yet.</div>';return;}
+    const rows=[];
+    const roleColor={admin:'var(--accent)',qa:'var(--purple)',tl:'var(--success)',agent:'var(--muted)',processAdmin:'var(--accent2)'};
+    snap.forEach(userSnap=>{
+      const keyEmail=userSnap.key;
+      const displayEmail=keyEmail.replace(/_([^_@]+)_/g,'.$1.').replace(/_com$/,'.com');
+      userSnap.forEach(procSnap=>{
+        if(window.isSuperAdmin()||procSnap.key===window._currentProcess){
+          rows.push({keyEmail,displayEmail,process:procSnap.key,role:procSnap.val()});
+        }
+      });
+    });
+    if(!rows.length){el.innerHTML='<div style="color:var(--muted);padding:10px 0;font-size:12px">No users assigned yet.</div>';return;}
+    el.innerHTML=`<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px">
+      <thead><tr>
+        <th style="text-align:left;padding:8px 12px;color:var(--muted);font-size:9.5px;text-transform:uppercase;letter-spacing:1.2px;font-family:var(--font-head);border-bottom:1px solid var(--border)">Email</th>
+        <th style="text-align:left;padding:8px 12px;color:var(--muted);font-size:9.5px;text-transform:uppercase;letter-spacing:1.2px;font-family:var(--font-head);border-bottom:1px solid var(--border)">Process</th>
+        <th style="text-align:left;padding:8px 12px;color:var(--muted);font-size:9.5px;text-transform:uppercase;letter-spacing:1.2px;font-family:var(--font-head);border-bottom:1px solid var(--border)">Role</th>
+        <th style="border-bottom:1px solid var(--border)"></th>
+      </tr></thead>
+      <tbody>${rows.map(r=>`<tr>
+        <td style="padding:8px 12px;border-bottom:1px solid rgba(28,38,64,0.5);font-size:11px;color:var(--text-dim)">${r.displayEmail}</td>
+        <td style="padding:8px 12px;border-bottom:1px solid rgba(28,38,64,0.5)"><span style="font-family:var(--font-head);font-weight:900;color:var(--accent);letter-spacing:1px">${r.process}</span></td>
+        <td style="padding:8px 12px;border-bottom:1px solid rgba(28,38,64,0.5)"><span style="color:${roleColor[r.role]||'var(--muted)'};font-weight:700;font-family:var(--font-head);font-size:11px">${r.role}</span></td>
+        <td style="padding:8px 12px;border-bottom:1px solid rgba(28,38,64,0.5)"><button class="btn btn-danger btn-sm" onclick="revokeProcessUser('${r.keyEmail}','${r.process}')">&#128465;</button></td>
+      </tr>`).join('')}</tbody>
+    </table></div>`;
+  }catch(e){el.innerHTML='<div style="color:var(--critical);font-size:12px">Error loading user list: '+e.message+'</div>';}
+}
+
+
+function populateProcessDropdowns(){
+  const sel=document.getElementById('assignUserProcess');if(!sel)return;
+  const cur=sel.value;
+  sel.innerHTML='<option value="">Select process...</option>'+window._processList.map(p=>`<option value="${p.id}">${p.id}</option>`).join('');
+  if(cur)sel.value=cur;
+}
 </script>
 </body>
 </html>
