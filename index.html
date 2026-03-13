@@ -858,7 +858,7 @@ tbody td{padding:11px 16px;font-size:13px;color:var(--text);}
       <div class="card" style="margin-bottom:16px">
         <div class="card-hdr"><div class="card-title">&#128101; Assign User Access</div><span style="font-size:11px;color:var(--muted)">Grant process-specific roles</span></div>
         <div style="display:grid;grid-template-columns:1fr 160px 160px auto;gap:12px;align-items:end;padding:14px 20px;border-bottom:1px solid var(--border)">
-          <div><label style="display:block;font-size:10px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);font-family:var(--font-head);font-weight:700;margin-bottom:6px">User Email</label><input type="email" id="assignUserEmail" placeholder="user@company.com" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-family:var(--font-body);font-size:13px;padding:9px 12px;outline:none;box-sizing:border-box" oninput="const k=this.value.replace(/[.@]/g,'_');document.getElementById('assignKeyPreview').textContent=this.value?'Firebase key: '+k:''">
+          <div><label style="display:block;font-size:10px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);font-family:var(--font-head);font-weight:700;margin-bottom:6px">User Email</label><input type="email" id="assignUserEmail" placeholder="user@company.com" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-family:var(--font-body);font-size:13px;padding:9px 12px;outline:none;box-sizing:border-box" oninput="const k=this.value.replace(/\./g,'_');document.getElementById('assignKeyPreview').textContent=this.value?'Firebase key: '+k:''">
           <div id="assignKeyPreview" style="font-size:10px;color:var(--muted);margin-top:4px;font-family:monospace"></div></div>
           <div><label style="display:block;font-size:10px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);font-family:var(--font-head);font-weight:700;margin-bottom:6px">Process</label><select id="assignUserProcess" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-family:var(--font-body);font-size:13px;padding:9px 12px;outline:none;box-sizing:border-box"><option value="">Select...</option></select></div>
           <div><label style="display:block;font-size:10px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);font-family:var(--font-head);font-weight:700;margin-bottom:6px">Role</label><select id="assignUserRole" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-family:var(--font-body);font-size:13px;padding:9px 12px;outline:none;box-sizing:border-box"><option value="qa">QA Auditor</option><option value="tl">Team Leader</option><option value="agent">Agent</option><option value="processAdmin">Process Admin</option></select></div>
@@ -1038,10 +1038,23 @@ window._showLogin = function _showLogin() {
 }
 
 async function _initApp(u) {
+  // Safety: if app doesn't show within 6s, restore login screen
+  const _safetyTimer = setTimeout(()=>{
+    const ma = document.getElementById('mainApp');
+    const ps = document.getElementById('processSelector');
+    const ls = document.getElementById('loginScreen');
+    const appVisible = (ma&&ma.style.display!=='none')||(ps&&ps.style.display==='flex');
+    if(!appVisible){ console.warn('[QAHub] Safety timer: restoring login'); ls.style.display='flex'; }
+  }, 6000);
   // STEP 1: Hide login immediately — never leave user on blank login after auth
   document.getElementById('loginScreen').style.display = 'none';
 
-  // STEP 2: Load admins (non-fatal)
+  // STEP 2: Register this user's uid↔email mapping for admin use
+  try {
+    await window.set(window.ref(window.db,'userIndex/'+u.uid), {email:u.email, lastLogin:Date.now()});
+  } catch(e) { console.warn('[QAHub] userIndex write failed:',e.message); }
+
+  // STEP 3 (was 2): Load admins (non-fatal)
   try { await loadGrantedAdmins(); }
   catch(e) { console.warn('[QAHub] loadGrantedAdmins:', e.message); }
 
@@ -2284,14 +2297,17 @@ window.loadUserProcesses = async function loadUserProcesses(u){
     return all;
   }
   try{
-    const key=u.email.replace(/[.@]/g,'_');
-    console.log('[QAHub] Looking up userProcesses for key:',key,'(email:',u.email,')');
-    const snap=await window.get(window.ref(window.db,'userProcesses/'+key));
-    console.log('[QAHub] userProcesses found:',snap.exists(),snap.exists()?snap.val():'none');
-    window._userProcesses=snap.exists()?snap.val():{};
-    return window._userProcesses;
+    // Primary: look up by Firebase UID (set by app when assigning)
+    const uid = u.uid;
+    const snap=await window.get(window.ref(window.db,'userProcesses/'+uid));
+    if(snap.exists()){
+      window._userProcesses=snap.val();
+      return window._userProcesses;
+    }
+    window._userProcesses={};
+    return{};
   }catch(e){
-    console.error('[QAHub] loadUserProcesses error:',e.message,'— check Firebase rules!');
+    console.error('[QAHub] loadUserProcesses error:',e.message);
     window._userProcesses={};return{};
   }
 }
@@ -2413,7 +2429,7 @@ async function renderProcessManagement(){
 }
 
 window.assignUserToProcess = async function(){
-  if(!isSuperAdmin() && window.getUserRole()!=='processAdmin' && window.getUserRole()!=='admin'){
+  if(!window.isSuperAdmin() && window.getUserRole()!=='processAdmin' && window.getUserRole()!=='admin'){
     showToast('No permission','e'); return;
   }
   const email = (document.getElementById('assignUserEmail')||{}).value.trim().toLowerCase();
@@ -2422,11 +2438,20 @@ window.assignUserToProcess = async function(){
   if(!email||!process||!role){ showToast('Fill in all fields','e'); return; }
   if(!email.includes('@')){ showToast('Enter a valid email','e'); return; }
   try{
-    const key = email.replace(/[.@]/g,'_');
-    await window.set(window.ref(window.db,'userProcesses/'+key+'/'+process), role);
-    const generatedKey=key;
-    showToast('✅ Assigned to '+process+' as '+role,'s');
-    console.log('[QAHub] Stored under key:',generatedKey);
+    // Look up user UID from userIndex (populated when user first logs in)
+    const indexSnap = await window.get(window.ref(window.db,'userIndex'));
+    let uid = null;
+    if(indexSnap.exists()){
+      indexSnap.forEach(s=>{
+        if((s.val().email||'').toLowerCase()===email) uid=s.key;
+      });
+    }
+    if(!uid){
+      showToast('⚠️ User has never logged in — ask them to log in first, then assign.','e');
+      return;
+    }
+    await window.set(window.ref(window.db,'userProcesses/'+uid+'/'+process), role);
+    showToast('✅ '+email+' assigned to '+process+' as '+role,'s');
     document.getElementById('assignUserEmail').value='';
     document.getElementById('assignUserProcess').value='';
     document.getElementById('assignUserRole').value='';
@@ -2438,7 +2463,7 @@ window.revokeProcessUser = async function(emailOrKey, process, isKey){
   if(!window.isSuperAdmin() && window.getUserRole()!=='admin'){ showToast('No permission','e'); return; }
   if(!confirm('Remove access to '+process+'?')) return;
   try{
-    const key = isKey ? emailOrKey : emailOrKey.replace(/[.@]/g,'_');
+    const key = isKey ? emailOrKey : emailOrKey.replace(/\./g,'_');
     await window.remove(window.ref(window.db,'userProcesses/'+key+'/'+process));
     showToast('Access revoked from '+process,'s');
     renderProcessUserList();
@@ -2474,7 +2499,7 @@ window.assignUserToProcess=async function(){
   const userRole=document.getElementById('assignUserRole').value;
   if(!email||!proc||!userRole){showToast('Fill all fields','e');return;}
   if(!email.includes('@')){showToast('Enter a valid email','e');return;}
-  const key=email.replace(/[.@]/g,'_');
+  const key=email.replace(/\./g,'_');
   try{
     await window.set(window.ref(window.db,'userProcesses/'+key+'/'+proc),userRole);
     showToast('✅ '+email+' assigned to '+proc+' as '+userRole,'s');
@@ -2491,13 +2516,18 @@ async function renderProcessUserList(){
     // Read all users under userProcesses - requires admin Firebase rules
     const snap=await window.get(window.ref(window.db,'userProcesses'));
     if(!snap.exists()){el.innerHTML='<div style="color:var(--muted);padding:10px 0;font-size:12px">No users assigned yet.</div>';return;}
+    // Also load userIndex to map uid→email
+    let uidEmailMap={};
+    try{
+      const idxSnap=await window.get(window.ref(window.db,'userIndex'));
+      if(idxSnap.exists()) idxSnap.forEach(s=>{ uidEmailMap[s.key]=(s.val().email||s.key); });
+    }catch(e){}
     snap.forEach(userSnap=>{
-      // Key format: dots and @ replaced with _
-      // Reverse: replace _ with . but we stored original email separately
-      const keyEmail=userSnap.key;
+      const uid=userSnap.key;
+      const displayEmail=uidEmailMap[uid]||uid;
       userSnap.forEach(procSnap=>{
         if(window.isSuperAdmin()||procSnap.key===window._currentProcess){
-          rows.push({keyEmail,process:procSnap.key,role:procSnap.val()});
+          rows.push({keyEmail:uid,displayEmail,process:procSnap.key,role:procSnap.val()});
         }
       });
     });
@@ -2510,7 +2540,7 @@ async function renderProcessUserList(){
       +'<th style="border-bottom:1px solid var(--border)"></th>'
       +'</tr></thead><tbody>'
       +rows.map(r=>'<tr>'
-        +'<td style="padding:8px 12px;border-bottom:1px solid rgba(28,38,64,0.5);font-size:11px;color:var(--muted)">'+r.keyEmail+'</td>'
+        +'<td style="padding:8px 12px;border-bottom:1px solid rgba(28,38,64,0.5);font-size:11px">'+r.displayEmail+'</td>'
         +'<td style="padding:8px 12px;border-bottom:1px solid rgba(28,38,64,0.5)"><span style="font-family:var(--font-head);font-weight:900;color:var(--accent);letter-spacing:1px">'+r.process+'</span></td>'
         +'<td style="padding:8px 12px;border-bottom:1px solid rgba(28,38,64,0.5)"><span style="color:'+(roleColor[r.role]||'var(--muted)')+';font-weight:700;font-family:var(--font-head);font-size:11px">'+r.role+'</span></td>'
         +'<td style="padding:8px 12px;border-bottom:1px solid rgba(28,38,64,0.5)"><button class="btn btn-danger btn-sm" onclick="revokeProcessUser(''+r.keyEmail+'',''+r.process+'',true)">&#128465;</button></td>'
@@ -2524,7 +2554,7 @@ async function renderProcessUserList(){
 
 window.revokeProcessUser=async function(email,proc){
   if(!confirm('Remove '+email+' from '+proc+'?'))return;
-  const key=email.replace(/[.@]/g,'_');
+  const key=email.replace(/\./g,'_');
   try{
     await window.remove(window.ref(window.db,'userProcesses/'+key+'/'+proc));
     showToast('Access revoked','s');
