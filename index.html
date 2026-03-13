@@ -936,25 +936,26 @@ async function loadGrantedAdmins(){
   window._adminListReady=true;
 }
 
-// ── MULTI-PROCESS GLOBALS ─────────────────────────────────────────────────────
-let _currentProcess = null;
-let _processList = [];
-let _userProcesses = {};   // { processId: role }
+// ── MULTI-PROCESS GLOBALS — on window so all scripts share them ──────────────
+window._currentProcess = null;
+window._processList = [];
+window._userProcesses = {};
 
 const SUPER_ADMINS = ["gaurabhi834@gmail.com"];
+window.SUPER_ADMINS = SUPER_ADMINS;
 
 window.getUserRole = function(proc) {
   const u = auth.currentUser; if(!u) return null;
   const e = u.email;
   if(SUPER_ADMINS.includes(e) || window._grantedAdmins.includes(e)) return 'admin';
-  const p = proc || _currentProcess;
+  const p = proc || window._currentProcess;
   if(!p) return null;
-  return _userProcesses[p] || null;
+  return window._userProcesses[p] || null;
 };
 
 function isSuperAdmin() {
   const u = auth.currentUser; if(!u) return false;
-  return SUPER_ADMINS.includes(u.email) || window._grantedAdmins.includes(u.email);
+  return SUPER_ADMINS.includes(u.email) || (window._grantedAdmins||[]).includes(u.email);
 }
 
 function applyUIForRole(u){
@@ -973,11 +974,11 @@ function applyUIForRole(u){
   const nameParts=displayName.trim().split(' ').filter(Boolean);
   const initials=(nameParts.length>=2?nameParts[0][0]+nameParts[nameParts.length-1][0]:displayName.slice(0,2)).toUpperCase();
   // Update process badge
-  if(_currentProcess){
+  if(window._currentProcess){
     const pb=document.getElementById('currentProcBadge');
     const pl=document.getElementById('currentProcLabel');
     if(pb)pb.style.display='inline-flex';
-    if(pl)pl.textContent=_currentProcess;
+    if(pl)pl.textContent=window._currentProcess;
   }
   document.getElementById("profileAvatar").textContent=initials;
   document.getElementById("profileName").textContent=displayName;
@@ -1004,14 +1005,14 @@ function applyUIForRole(u){
     const at=document.getElementById('agentsNavTab');if(at)at.style.display='flex';
   }
   // Show process badge (always show if process is selected)
-  if(_currentProcess){
+  if(window._currentProcess){
     const pb=document.getElementById('currentProcBadge');if(pb)pb.style.display='inline-flex';
-    const pl=document.getElementById('currentProcLabel');if(pl)pl.textContent=_currentProcess;
+    const pl=document.getElementById('currentProcLabel');if(pl)pl.textContent=window._currentProcess;
   }
   // Show switch process button only if user has >1 process
-  const procCount=Object.keys(_userProcesses).length;
+  const procCount=Object.keys(window._userProcesses).length;
   const pb=document.getElementById('currentProcBadge');
-  if(pb)pb.title=procCount>1?'Click to switch process':'Current process: '+_currentProcess;
+  if(pb)pb.title=procCount>1?'Click to switch process':'Current process: '+window._currentProcess;
 }
 
 onAuthStateChanged(auth, u => {
@@ -1028,7 +1029,7 @@ function _showLogin() {
   document.getElementById('mainApp').style.display = 'none';
   const ps = document.getElementById('processSelector');
   if(ps) ps.style.display='none';
-  _currentProcess = null;
+  window._currentProcess = null;
 }
 
 async function _initApp(u) {
@@ -1039,22 +1040,23 @@ async function _initApp(u) {
   try { await loadGrantedAdmins(); }
   catch(e) { console.warn('[QAHub] loadGrantedAdmins:', e.message); }
 
-  const superAdmin = isSuperAdmin();
+  const superAdmin = SUPER_ADMINS.includes(u.email) || (window._grantedAdmins||[]).includes(u.email);
+  console.log('[QAHub] email:', u.email, 'superAdmin:', superAdmin);
 
   // STEP 3: Super admin path
   if(superAdmin) {
     try { await loadProcessList(); } catch(e) { console.warn('[QAHub] loadProcessList:', e.message); }
-    if(!_processList || _processList.length === 0) {
+    if(!window._processList || window._processList.length === 0) {
       try { await seedDefaultProcesses(); } catch(e) {
         console.warn('[QAHub] seed failed:', e.message);
-        _processList = [{id:'CX',createdBy:'system'},{id:'CS',createdBy:'system'},{id:'LQ',createdBy:'system'}];
+        window._processList = [{id:'CX',createdBy:'system'},{id:'CS',createdBy:'system'},{id:'LQ',createdBy:'system'}];
       }
     }
     // Show process selector if multiple processes, else go straight in
-    if(_processList.length > 1) {
+    if(window._processList.length > 1) {
       showProcessSelector(u);
     } else {
-      const firstId = (_processList[0] && _processList[0].id) ? _processList[0].id : 'CX';
+      const firstId = (window._processList[0] && window._processList[0].id) ? window._processList[0].id : 'CX';
       selectProcess(firstId);
     }
     return;
@@ -1066,6 +1068,10 @@ async function _initApp(u) {
 
   const procKeys = Object.keys(procs || {});
   if(procKeys.length === 0) {
+    // Double-check they aren't super admin (safety net)
+    if(SUPER_ADMINS.includes(u.email)) {
+      selectProcess('CX'); return;
+    }
     showToast('No process assigned to your account. Contact admin.', 'e');
     setTimeout(() => { signOut(auth); }, 3000);
     document.getElementById('loginScreen').style.display = 'flex';
@@ -1078,28 +1084,12 @@ async function _initApp(u) {
   }
 }
 window.loginUser=function(){const e=document.getElementById("loginEmail").value.trim(),p=document.getElementById("loginPassword").value.trim();if(!e||!p){showToast("Enter email and password","e");return;}signInWithEmailAndPassword(auth,e,p).then(()=>showToast("Login successful","s")).catch(er=>showToast(er.message,"e"));};
-window.logoutUser=function(){signOut(auth).then(()=>{showToast("Logged out","s");_currentProcess=null;_processList=[];_userProcesses={};});};
+window.logoutUser=function(){signOut(auth).then(()=>{showToast("Logged out","s");window._currentProcess=null;window._processList=[];window._userProcesses={};});};
 </script>
 
 
 
 <!-- APP LOGIC -->
-<script>
-// Global error safety net — if JS crashes, show login instead of blank screen
-window.onerror = function(msg, src, line, col, err) {
-  console.error('QA.Hub error:', msg, 'at', src, line+':'+col, err);
-  var ls = document.getElementById('loginScreen');
-  var ma = document.getElementById('mainApp');
-  var ps = document.getElementById('processSelector');
-  if(ls && ls.style.display === 'none') { ls.style.display = 'flex'; }
-  if(ma) ma.style.display = 'none';
-  if(ps) ps.classList.remove('show');
-  return false;
-};
-window.onunhandledrejection = function(e) {
-  console.error('Unhandled promise rejection:', e.reason);
-};
-</script>
 <script>
 // ── PARAMETER METADATA with points ──────────────────────────────────────────
 const PM={
@@ -1136,7 +1126,7 @@ const GROUPS={'Call Opening/Closing':['nc1','nc2','nc3','nc4'],'Issue Identifica
 let _agentList=[];
 async function loadAgents(){
   try{
-    const snap=await window.get(window.ref(window.db,`processes/${_currentProcess}/agents`));
+    const snap=await window.get(window.ref(window.db,`processes/${window._currentProcess}/agents`));
     _agentList=[];
     if(snap.exists()) Object.entries(snap.val()).forEach(([id,d])=>_agentList.push({id,...d}));
     _agentList.sort((a,b)=>a.name.localeCompare(b.name));
@@ -1162,7 +1152,7 @@ async function saveAgent(){
   const tenure=parseInt(document.getElementById('newAgentTenure').value)||0;
   if(!name||!empId){showToast('Name and Emp ID are required','e');return;}
   try{
-    await window.set(window.ref(window.db,`processes/${_currentProcess}/agents/${empId.trim()}`),{name,empId:empId.trim(),tl,team,tenure});
+    await window.set(window.ref(window.db,`processes/${window._currentProcess}/agents/${empId.trim()}`),{name,empId:empId.trim(),tl,team,tenure});
     showToast('✅ Agent saved: '+name,'s');
     ['newAgentName','newAgentEmpId','newAgentTL','newAgentTeam','newAgentTenure'].forEach(id=>document.getElementById(id).value='');
     await loadAgents();populateAgentDropdown();renderAgentList();
@@ -1171,7 +1161,7 @@ async function saveAgent(){
 async function deleteAgent(empId){
   if(getUserRole()!=='admin'){showToast('Admin only','e');return;}
   if(!confirm('Delete this agent?'))return;
-  try{await window.remove(window.ref(window.db,`processes/${_currentProcess}/agents/${empId}`));showToast('Agent removed','s');await loadAgents();populateAgentDropdown();renderAgentList();}
+  try{await window.remove(window.ref(window.db,`processes/${window._currentProcess}/agents/${empId}`));showToast('Agent removed','s');await loadAgents();populateAgentDropdown();renderAgentList();}
   catch(e){showToast('Error: '+e.message,'e');}
 }
 function renderAgentList(){
@@ -1200,7 +1190,7 @@ async function importAgentsExcel(input){
       const team=(row['Team']||row['team']||'').toString().trim();
       const tenure=parseInt(row['Tenure']||row['tenure']||0)||0;
       if(!name||!empId){skipped++;continue;}
-      await window.set(window.ref(window.db,`processes/${_currentProcess}/agents/${empId}`),{name,empId,tl,team,tenure});
+      await window.set(window.ref(window.db,`processes/${window._currentProcess}/agents/${empId}`),{name,empId,tl,team,tenure});
       saved++;
     }
     statusEl.textContent=`✅ ${saved} agents imported${skipped?' ('+skipped+' skipped)':''}`;
@@ -1395,7 +1385,7 @@ function stag(p){return p===null?'–':p>=85?'<span class="tag tp">Pass</span>':
 // ── SAVE AUDIT ───────────────────────────────────────────────────────────────
 async function saveAudit(){
   if(!auth.currentUser){showToast('Please login first','e');return;}
-  if(!_currentProcess){showToast('No process selected','e');return;}
+  if(!window._currentProcess){showToast('No process selected','e');return;}
   const agent=document.getElementById('agentName').value.trim();
   const reviewer=auth.currentUser.email;
   if(!agent){showToast('Please select an agent.','e');return;}
@@ -1433,7 +1423,7 @@ async function saveAudit(){
     coachingRequired:fatal||(tot!==null&&tot<85)
   };
   try{
-    const r=await push(ref(db,`processes/${_currentProcess}/audits`));await set(r,audit);
+    const r=await push(ref(db,`processes/${window._currentProcess}/audits`));await set(r,audit);
     showToast('✅ Audit saved for '+agent,'s');
     _auditsCacheTime=0; // invalidate cache
     updateBadge();resetForm(true);
@@ -1445,7 +1435,7 @@ async function loadAudits(forceRefresh=false){
   if(!auth.currentUser)return[];
   // ★ FIX: Cache audits for 30s to avoid repeated Firebase fetches on tab switches
   if(!forceRefresh&&Date.now()-_auditsCacheTime<30000&&_allAudits.length>0) return _allAudits;
-  const snap=await get(ref(db,`processes/${_currentProcess}/audits`));const a=[];
+  const snap=await get(ref(db,`processes/${window._currentProcess}/audits`));const a=[];
   if(snap.exists())Object.entries(snap.val()).forEach(([id,d])=>a.push({id,...d}));
   _allAudits=a.sort((a,b)=>b.timestamp-a.timestamp);
   _auditsCacheTime=Date.now();
@@ -1459,7 +1449,7 @@ function populateAgentDropdown(){
 function setReviewerName(){const el=document.getElementById('reviewerName');if(el&&auth.currentUser)el.textContent=auth.currentUser.email;}
 async function loadCoachingSessions(){
   if(!auth.currentUser)return[];
-  const snap=await get(ref(db,`processes/${_currentProcess}/coaching`));const s=[];
+  const snap=await get(ref(db,`processes/${window._currentProcess}/coaching`));const s=[];
   if(snap.exists())Object.entries(snap.val()).forEach(([id,d])=>s.push({id,...d}));
   return s.sort((a,b)=>b.timestamp-a.timestamp);
 }
@@ -1519,13 +1509,13 @@ async function delAudit(e,id){
   e.stopPropagation();
   if(getUserRole()!=="admin"){showToast("Admin only","e");return;}
   if(!confirm('Delete?'))return;
-  try{await remove(ref(db,`processes/${_currentProcess}/audits/${id}`));_auditsCacheTime=0;showToast('Deleted','s');renderAuditLog();}
+  try{await remove(ref(db,`processes/${window._currentProcess}/audits/${id}`));_auditsCacheTime=0;showToast('Deleted','s');renderAuditLog();}
   catch(er){showToast('Error','e');}
 }
 async function clearAllAudits(){
   if(getUserRole()!=="admin"){showToast("Admin only","e");return;}
   if(!confirm('Delete ALL audits?'))return;
-  try{await remove(ref(db,`processes/${_currentProcess}/audits`));_auditsCacheTime=0;showToast('All cleared','s');renderAuditLog();updateBadge();}
+  try{await remove(ref(db,`processes/${window._currentProcess}/audits`));_auditsCacheTime=0;showToast('All cleared','s');renderAuditLog();updateBadge();}
   catch(er){showToast('Error','e');}
 }
 
@@ -2033,7 +2023,7 @@ async function saveCoachingSession(){
   const notes=document.getElementById('coachNotes').value.trim();
   if(!agent||!date){showToast('Agent name and date are required','e');return;}
   try{
-    const r=await push(ref(db,`processes/${_currentProcess}/coaching`));
+    const r=await push(ref(db,`processes/${window._currentProcess}/coaching`));
     await set(r,{agent,date,notes,timestamp:Date.now(),createdBy:auth.currentUser.email});
     showToast('✅ Coaching session saved for '+agent,'s');
     document.getElementById('coachAgent').value='';document.getElementById('coachDate').value='';document.getElementById('coachNotes').value='';
@@ -2044,7 +2034,7 @@ async function saveCoachingSession(){
 async function deleteCoaching(id){
   if(getUserRole()!=='admin'){showToast('Admin only','e');return;}
   if(!confirm('Delete this coaching session?'))return;
-  try{await remove(ref(db,`processes/${_currentProcess}/coaching/${id}`));showToast('Deleted','s');renderCoaching();}
+  try{await remove(ref(db,`processes/${window._currentProcess}/coaching/${id}`));showToast('Deleted','s');renderCoaching();}
   catch(e){showToast('Error','e');}
 }
 
@@ -2214,27 +2204,27 @@ async function seedDefaultProcesses(){
 async function loadProcessList(){
   try{
     const snap=await window.get(window.ref(window.db,'processList'));
-    _processList=[];
-    if(snap.exists())snap.forEach(c=>{_processList.push({id:c.key,...c.val()});});
-    return _processList;
+    window._processList=[];
+    if(snap.exists())snap.forEach(c=>{window._processList.push({id:c.key,...c.val()});});
+    return window._processList;
   }catch(e){console.warn('loadProcessList',e);return[];}
 }
 
 async function loadUserProcesses(u){
-  if(!u){_userProcesses={};return{};}
+  if(!u){window._userProcesses={};return{};}
   if(isSuperAdmin()){
     await loadProcessList();
     const all={};
-    _processList.forEach(p=>{all[p.id]='admin';});
-    _userProcesses=all;
+    window._processList.forEach(p=>{all[p.id]='admin';});
+    window._userProcesses=all;
     return all;
   }
   try{
     const key=u.email.replace(/\./g,'_');
     const snap=await window.get(window.ref(window.db,'userProcesses/'+key));
-    _userProcesses=snap.exists()?snap.val():{};
-    return _userProcesses;
-  }catch(e){_userProcesses={};return{};}
+    window._userProcesses=snap.exists()?snap.val():{};
+    return window._userProcesses;
+  }catch(e){window._userProcesses={};return{};}
 }
 
 function showProcessSelector(u){
@@ -2242,22 +2232,22 @@ function showProcessSelector(u){
   const list=document.getElementById('processBtnList');
   if(!sel||!list){
     // Fallback: if selector element missing, go straight to first process
-    const procs=isSuperAdmin()?_processList:Object.keys(_userProcesses);
+    const procs=isSuperAdmin()?window._processList:Object.keys(window._userProcesses);
     if(procs.length>0){
       const firstId=isSuperAdmin()?procs[0].id:procs[0];
       selectProcess(firstId);
     }
     return;
   }
-  const rawList = (_processList||[]).filter(p=>p&&p.id);
+  const rawList = (window._processList||[]).filter(p=>p&&p.id);
   const procs=isSuperAdmin()
     ?rawList.map(p=>({id:p.id,role:'admin'}))
-    :Object.entries(_userProcesses||{}).map(([id,role])=>({id,role}));
+    :Object.entries(window._userProcesses||{}).map(([id,role])=>({id,role}));
   if(!procs.length){
     if(isSuperAdmin()){
       // Super admin with no processes — seed defaults and show them
       const defaults=['CX','CS','LQ'];
-      defaults.forEach(id=>{_processList.push({id,role:'admin'});});
+      defaults.forEach(id=>{window._processList.push({id,role:'admin'});});
       procs.push(...defaults.map(id=>({id,role:'admin'})));
     } else {
       showToast('No processes available. Contact admin.','e');
@@ -2287,7 +2277,7 @@ window.switchProcess=function(){
 };
 
 window.selectProcess=function(processId){
-  _currentProcess=processId;
+  window._currentProcess=processId;
   _auditsCacheTime=0; _allAudits=[];
   // Hide selector and login, show app
   const ps=document.getElementById('processSelector'); if(ps)ps.style.display='none';
@@ -2326,7 +2316,7 @@ window.addNewProcess=async function(){
   if(!isSuperAdmin()&&getUserRole()!=='processAdmin'){showToast('Admin only','e');return;}
   const name=document.getElementById('newProcessName').value.trim().toUpperCase().replace(/[^A-Z]/g,'').slice(0,6);
   if(!name||name.length<2){showToast('Enter 2–6 letters','e');return;}
-  if(_processList.find(p=>p.id===name)){showToast('Process "'+name+'" already exists','e');return;}
+  if(window._processList.find(p=>p.id===name)){showToast('Process "'+name+'" already exists','e');return;}
   try{
     await window.set(window.ref(window.db,'processList/'+name),{id:name,createdAt:Date.now(),createdBy:auth.currentUser.email});
     document.getElementById('newProcessName').value='';
@@ -2341,9 +2331,9 @@ async function renderProcessManagement(){
   const section=document.getElementById('processMgmtSection');
   if(section)section.style.display='block';
   const badge=document.getElementById('processCountBadge');
-  if(badge)badge.textContent=_processList.length+' process'+(_processList.length!==1?'es':'');
+  if(badge)badge.textContent=window._processList.length+' process'+(window._processList.length!==1?'es':'');
   const tbody=document.getElementById('processListBody');if(!tbody)return;
-  tbody.innerHTML=_processList.map(p=>`<tr>
+  tbody.innerHTML=window._processList.map(p=>`<tr>
     <td><span style="font-family:var(--font-head);font-weight:900;font-size:15px;color:var(--accent);letter-spacing:2px">${p.id}</span></td>
     <td style="color:var(--muted);font-size:11px">${p.createdAt?new Date(p.createdAt).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}):'—'}</td>
     <td style="color:var(--muted);font-size:11px">${p.createdBy==='system'?'<span style="font-size:9px;padding:2px 8px;background:rgba(61,126,245,0.12);color:var(--accent);border-radius:10px;font-family:var(--font-head);font-weight:700">DEFAULT</span>':p.createdBy||'—'}</td>
@@ -2368,7 +2358,7 @@ window.deleteProcess=async function(id){
 function populateProcessDropdowns(){
   const sel=document.getElementById('assignUserProcess');if(!sel)return;
   const cur=sel.value;
-  sel.innerHTML='<option value="">Select process...</option>'+_processList.map(p=>`<option value="${p.id}">${p.id}</option>`).join('');
+  sel.innerHTML='<option value="">Select process...</option>'+window._processList.map(p=>`<option value="${p.id}">${p.id}</option>`).join('');
   if(cur)sel.value=cur;
 }
 
@@ -2398,7 +2388,7 @@ async function renderProcessUserList(){
     snap.forEach(userSnap=>{
       const email=userSnap.key.replace(/_/g,'.');
       userSnap.forEach(procSnap=>{
-        if(isSuperAdmin()||procSnap.key===_currentProcess){
+        if(isSuperAdmin()||procSnap.key===window._currentProcess){
           rows.push({email,process:procSnap.key,role:procSnap.val()});
         }
       });
