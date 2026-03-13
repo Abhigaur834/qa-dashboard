@@ -1032,74 +1032,50 @@ function _showLogin() {
 }
 
 async function _initApp(u) {
-  console.log('[QAHub] _initApp start', u.email);
+  // STEP 1: Hide login immediately — never leave user on blank login after auth
+  document.getElementById('loginScreen').style.display = 'none';
 
-  // Step 1: load granted admins (non-fatal)
-  try { await loadGrantedAdmins(); console.log('[QAHub] admins loaded', window._grantedAdmins); }
-  catch(e) { console.warn('[QAHub] loadGrantedAdmins failed:', e.message); }
+  // STEP 2: Load admins (non-fatal)
+  try { await loadGrantedAdmins(); }
+  catch(e) { console.warn('[QAHub] loadGrantedAdmins:', e.message); }
 
   const superAdmin = isSuperAdmin();
-  console.log('[QAHub] isSuperAdmin:', superAdmin);
 
-  // Step 2: load user processes
-  let procs = {};
-  try { procs = await loadUserProcesses(u); console.log('[QAHub] userProcesses:', procs); }
-  catch(e) { console.warn('[QAHub] loadUserProcesses failed:', e.message); }
-
-  // Step 3: branch by role
+  // STEP 3: Super admin path
   if(superAdmin) {
-    console.log('[QAHub] super admin path');
-    try {
-      await loadProcessList();
-      console.log('[QAHub] processList:', _processList);
-      if(_processList.length === 0) {
-        console.log('[QAHub] seeding defaults');
-        await seedDefaultProcesses();
-        console.log('[QAHub] seeded');
-      }
-    } catch(e) { console.warn('[QAHub] loadProcessList/seed failed:', e.message); }
-
-    try {
-      document.getElementById('loginScreen').style.display = 'none';
-      showProcessSelector(u);
-    } catch(e) {
-      console.error('[QAHub] showProcessSelector failed:', e.message);
-      // Fallback: go straight to first process
-      if(_processList.length > 0) {
-        document.getElementById('loginScreen').style.display = 'none';
-        selectProcess(_processList[0].id);
-      } else {
-        // No processes yet — just enter with a default
-        _processList = [{id:'CX'},{id:'CS'},{id:'LQ'}];
-        document.getElementById('loginScreen').style.display = 'none';
-        selectProcess('CX');
+    try { await loadProcessList(); } catch(e) { console.warn('[QAHub] loadProcessList:', e.message); }
+    if(!_processList || _processList.length === 0) {
+      try { await seedDefaultProcesses(); } catch(e) {
+        console.warn('[QAHub] seed failed:', e.message);
+        _processList = [{id:'CX',createdBy:'system'},{id:'CS',createdBy:'system'},{id:'LQ',createdBy:'system'}];
       }
     }
-
-  } else if(Object.keys(procs).length === 0) {
-    console.log('[QAHub] no processes assigned');
-    showToast('No process assigned to your account. Contact admin.', 'e');
-    setTimeout(() => signOut(auth), 3000);
-
-  } else if(Object.keys(procs).length === 1) {
-    console.log('[QAHub] single process, entering:', Object.keys(procs)[0]);
-    try {
-      document.getElementById('loginScreen').style.display = 'none';
-      selectProcess(Object.keys(procs)[0]);
-    } catch(e) { console.error('[QAHub] selectProcess failed:', e.message); }
-
-  } else {
-    console.log('[QAHub] multiple processes, showing selector');
-    try {
-      document.getElementById('loginScreen').style.display = 'none';
+    // Show process selector if multiple processes, else go straight in
+    if(_processList.length > 1) {
       showProcessSelector(u);
-    } catch(e) {
-      console.error('[QAHub] showProcessSelector multi failed:', e.message);
-      document.getElementById('loginScreen').style.display = 'none';
-      selectProcess(Object.keys(procs)[0]);
+    } else {
+      const firstId = (_processList[0] && _processList[0].id) ? _processList[0].id : 'CX';
+      selectProcess(firstId);
     }
+    return;
   }
-  console.log('[QAHub] _initApp done. currentProcess:', _currentProcess);
+
+  // STEP 4: Regular user — load their processes
+  let procs = {};
+  try { procs = await loadUserProcesses(u); } catch(e) { console.warn('[QAHub] loadUserProcesses:', e.message); }
+
+  const procKeys = Object.keys(procs || {});
+  if(procKeys.length === 0) {
+    showToast('No process assigned to your account. Contact admin.', 'e');
+    setTimeout(() => { signOut(auth); }, 3000);
+    document.getElementById('loginScreen').style.display = 'flex';
+    return;
+  }
+  if(procKeys.length === 1) {
+    selectProcess(procKeys[0]);
+  } else {
+    showProcessSelector(u);
+  }
 }
 window.loginUser=function(){const e=document.getElementById("loginEmail").value.trim(),p=document.getElementById("loginPassword").value.trim();if(!e||!p){showToast("Enter email and password","e");return;}signInWithEmailAndPassword(auth,e,p).then(()=>showToast("Login successful","s")).catch(er=>showToast(er.message,"e"));};
 window.logoutUser=function(){signOut(auth).then(()=>{showToast("Logged out","s");_currentProcess=null;_processList=[];_userProcesses={};});};
