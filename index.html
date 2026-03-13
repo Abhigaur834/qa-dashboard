@@ -953,12 +953,12 @@ window.getUserRole = function(proc) {
   return window._userProcesses[p] || null;
 };
 
-function isSuperAdmin() {
+window.isSuperAdmin = function isSuperAdmin() {
   const u = auth.currentUser; if(!u) return false;
   return SUPER_ADMINS.includes(u.email) || (window._grantedAdmins||[]).includes(u.email);
 }
 
-function applyUIForRole(u){
+window.applyUIForRole = function applyUIForRole(u){
   const role=getUserRole();
   // Show process management for super admin and process admin
   try{
@@ -1024,7 +1024,7 @@ onAuthStateChanged(auth, u => {
   }
 });
 
-function _showLogin() {
+window._showLogin = function _showLogin() {
   document.getElementById('loginScreen').style.display = 'flex';
   document.getElementById('mainApp').style.display = 'none';
   const ps = document.getElementById('processSelector');
@@ -2191,7 +2191,7 @@ function showToast(msg,type=''){
 <script>
 const DEFAULT_PROCESSES=['CX','CS','LQ'];
 
-async function seedDefaultProcesses(){
+window.seedDefaultProcesses = async function seedDefaultProcesses(){
   try{
     for(const p of DEFAULT_PROCESSES){
       await window.set(window.ref(window.db,'processList/'+p),{id:p,createdAt:Date.now(),createdBy:'system'});
@@ -2200,7 +2200,7 @@ async function seedDefaultProcesses(){
   }catch(e){console.warn('seed error',e);}
 }
 
-async function loadProcessList(){
+window.loadProcessList = async function loadProcessList(){
   try{
     const snap=await window.get(window.ref(window.db,'processList'));
     window._processList=[];
@@ -2209,7 +2209,7 @@ async function loadProcessList(){
   }catch(e){console.warn('loadProcessList',e);return[];}
 }
 
-async function loadUserProcesses(u){
+window.loadUserProcesses = async function loadUserProcesses(u){
   if(!u){window._userProcesses={};return{};}
   if(isSuperAdmin()){
     await loadProcessList();
@@ -2219,14 +2219,14 @@ async function loadUserProcesses(u){
     return all;
   }
   try{
-    const key=u.email.replace(/\./g,'_');
+    const key=u.email.replace(/[.@]/g,'_');
     const snap=await window.get(window.ref(window.db,'userProcesses/'+key));
     window._userProcesses=snap.exists()?snap.val():{};
     return window._userProcesses;
   }catch(e){window._userProcesses={};return{};}
 }
 
-function showProcessSelector(u){
+window.showProcessSelector = function showProcessSelector(u){
   const sel=document.getElementById('processSelector');
   const list=document.getElementById('processBtnList');
   if(!sel||!list){
@@ -2288,11 +2288,11 @@ window.selectProcess=function(processId){
   if(badge)badge.style.display='inline-flex';
   if(label)label.textContent=processId;
   // Load everything — each call isolated so one failure doesn't block others
-  const u=auth.currentUser; if(!u)return;
+  const u=window.auth&&window.auth.currentUser; if(!u)return;
   try{updateBadge();}catch(e){console.warn('updateBadge',e);}
   try{applyUIForRole(u);}catch(e){console.warn('applyUIForRole',e);}
   // Re-run after short delay to ensure all async data is loaded
-  setTimeout(()=>{ try{if(auth.currentUser)applyUIForRole(auth.currentUser);}catch(e){} }, 800);
+  setTimeout(()=>{ try{if(auth.currentUser)applyUIForRole(window.auth.currentUser);}catch(e){} }, 800);
   try{setReviewerName();}catch(e){console.warn('setReviewerName',e);}
   try{populateAgentDropdown();}catch(e){console.warn('populateAgentDropdown',e);}
   loadAgents().then(()=>{
@@ -2342,6 +2342,37 @@ async function renderProcessManagement(){
   </tr>`).join('');
 }
 
+window.assignUserToProcess = async function(){
+  if(!isSuperAdmin() && window.getUserRole()!=='processAdmin' && window.getUserRole()!=='admin'){
+    showToast('No permission','e'); return;
+  }
+  const email = (document.getElementById('assignUserEmail')||{}).value.trim().toLowerCase();
+  const process = (document.getElementById('assignUserProcess')||{}).value.trim().toUpperCase();
+  const role = (document.getElementById('assignUserRole')||{}).value;
+  if(!email||!process||!role){ showToast('Fill in all fields','e'); return; }
+  if(!email.includes('@')){ showToast('Enter a valid email','e'); return; }
+  try{
+    const key = email.replace(/[.@]/g,'_');
+    await window.set(window.ref(window.db,'userProcesses/'+key+'/'+process), role);
+    showToast('✅ '+email+' assigned to '+process+' as '+role,'s');
+    document.getElementById('assignUserEmail').value='';
+    document.getElementById('assignUserProcess').value='';
+    document.getElementById('assignUserRole').value='';
+    renderProcessUserList();
+  }catch(e){ showToast('Error: '+e.message,'e'); }
+};
+
+window.revokeProcessUser = async function(email, process){
+  if(!isSuperAdmin() && window.getUserRole()!=='admin'){ showToast('No permission','e'); return; }
+  if(!confirm('Remove '+email+' from '+process+'?')) return;
+  try{
+    const key = email.replace(/[.@]/g,'_');
+    await window.remove(window.ref(window.db,'userProcesses/'+key+'/'+process));
+    showToast('Removed '+email+' from '+process,'s');
+    renderProcessUserList();
+  }catch(e){ showToast('Error: '+e.message,'e'); }
+};
+
 window.deleteProcess=async function(id){
   if(!isSuperAdmin()){showToast('Super Admin only','e');return;}
   if(DEFAULT_PROCESSES.includes(id)){showToast('Default processes cannot be deleted','e');return;}
@@ -2371,7 +2402,7 @@ window.assignUserToProcess=async function(){
   const userRole=document.getElementById('assignUserRole').value;
   if(!email||!proc||!userRole){showToast('Fill all fields','e');return;}
   if(!email.includes('@')){showToast('Enter a valid email','e');return;}
-  const key=email.replace(/\./g,'_');
+  const key=email.replace(/[.@]/g,'_');
   try{
     await window.set(window.ref(window.db,'userProcesses/'+key+'/'+proc),userRole);
     showToast('✅ '+email+' assigned to '+proc+' as '+userRole,'s');
@@ -2415,7 +2446,7 @@ async function renderProcessUserList(){
 
 window.revokeProcessUser=async function(email,proc){
   if(!confirm('Remove '+email+' from '+proc+'?'))return;
-  const key=email.replace(/\./g,'_');
+  const key=email.replace(/[.@]/g,'_');
   try{
     await window.remove(window.ref(window.db,'userProcesses/'+key+'/'+proc));
     showToast('Access revoked','s');
