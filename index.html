@@ -960,13 +960,13 @@ function isSuperAdmin() {
 function applyUIForRole(u){
   const role=getUserRole();
   // Show process management for super admin and process admin
-  const procSec=document.getElementById('processMgmtSection');
-  if(procSec){
-    if(isSuperAdmin()||role==='processAdmin'||role==='admin'){
+  try{
+    const procSec=document.getElementById('processMgmtSection');
+    if(procSec&&(isSuperAdmin()||role==='processAdmin'||role==='admin')){
       procSec.style.display='block';
-      renderProcessManagement();
+      setTimeout(()=>{try{renderProcessManagement();}catch(e){console.warn('renderProcessManagement',e);}},500);
     }
-  }
+  }catch(e){console.warn('procSec block',e);}
   const p=UP[u.email];
   const displayName=p?p.name:u.email.split('@')[0].replace(/[._]/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
   const designation=p?p.designation:(window._grantedAdminData[u.email]?'Admin (Granted Access)':'QA User');
@@ -2290,15 +2290,19 @@ function showProcessSelector(u){
     }
   }
   const roleLabel={admin:'Admin',qa:'QA Auditor',tl:'Team Leader',agent:'Agent',processAdmin:'Process Admin'};
-  list.innerHTML=procs.map(p=>`
-    <button onclick="selectProcess('${p.id}')" style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border:1px solid rgba(255,255,255,0.08);border-radius:12px;cursor:pointer;background:rgba(255,255,255,0.03);width:100%;text-align:left;margin-bottom:10px;transition:all .2s;color:#fff;font-family:var(--font-head)" onmouseover="this.style.borderColor='rgba(61,126,245,0.5)';this.style.background='rgba(61,126,245,0.08)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.08)';this.style.background='rgba(255,255,255,0.03)'">
-      <div>
-        <div style="font-weight:900;font-size:16px;letter-spacing:1px">${p.id}</div>
-        <div style="font-size:11px;color:var(--muted);margin-top:3px">Role: ${roleLabel[p.role]||p.role}</div>
-      </div>
-      <div style="font-size:20px;color:#3d7ef5;opacity:0.8">&#8594;</div>
-    </button>`).join('');
+  list.innerHTML=procs.map(p=>{
+    const roleLabel2={admin:'Admin',qa:'QA Auditor',tl:'Team Leader',agent:'Agent',processAdmin:'Process Admin'};
+    return '<button data-pid="'+p.id+'" class="proc-sel-btn" style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border:1px solid rgba(255,255,255,0.1);border-radius:12px;cursor:pointer;background:rgba(255,255,255,0.03);width:100%;text-align:left;margin-bottom:10px;color:#fff;font-family:var(--font-head)">'
+      +'<div><div style="font-weight:900;font-size:16px;letter-spacing:1px">'+p.id+'</div>'
+      +'<div style="font-size:11px;color:#666;margin-top:3px">Role: '+(roleLabel2[p.role]||p.role)+'</div></div>'
+      +'<div style="font-size:20px;color:#3d7ef5">&#8594;</div></button>';
+  }).join('')
   sel.style.display='flex';
+  // Event delegation - avoids inline onclick quote issues
+  list.onclick=function(e){
+    const btn=e.target.closest('.proc-sel-btn');
+    if(btn&&btn.dataset.pid) selectProcess(btn.dataset.pid);
+  };
 }
 
 window.switchProcess=function(){
@@ -2307,36 +2311,39 @@ window.switchProcess=function(){
 };
 
 window.selectProcess=function(processId){
-  try {
-    _currentProcess=processId;
-    _auditsCacheTime=0;_allAudits=[];
-    const ps=document.getElementById('processSelector');if(ps)ps.style.display='none';
-    document.getElementById('mainApp').style.display='block';
-    document.getElementById('loginScreen').style.display='none';
-    const badge=document.getElementById('currentProcBadge');
-    const label=document.getElementById('currentProcLabel');
-    if(badge)badge.style.display='inline-flex';
-    if(label)label.textContent=processId;
-    const u=auth.currentUser;
-    if(u){
-      try{updateBadge();}catch(e){}
-      try{applyUIForRole(u);}catch(e){console.warn('applyUIForRole',e);}
-      try{loadAgents().then(()=>{populateAgentDropdown();renderAgentList();});}catch(e){}
-      try{renderAdminList();}catch(e){}
-      try{setReviewerName();}catch(e){}
-      try{renderProcessUserList();}catch(e){}
-      try{populateProcessDropdowns();}catch(e){}
-      if(isSuperAdmin()||getUserRole()==='processAdmin'||getUserRole()==='admin'){
-        try{
-          document.getElementById('processMgmtSection').style.display='block';
-          renderProcessManagement();
-        }catch(e){}
-      }
+  _currentProcess=processId;
+  _auditsCacheTime=0; _allAudits=[];
+  // Hide selector and login, show app
+  const ps=document.getElementById('processSelector'); if(ps)ps.style.display='none';
+  document.getElementById('mainApp').style.display='block';
+  document.getElementById('loginScreen').style.display='none';
+  // Update process badge
+  const badge=document.getElementById('currentProcBadge');
+  const label=document.getElementById('currentProcLabel');
+  if(badge)badge.style.display='inline-flex';
+  if(label)label.textContent=processId;
+  // Load everything — each call isolated so one failure doesn't block others
+  const u=auth.currentUser; if(!u)return;
+  try{updateBadge();}catch(e){console.warn('updateBadge',e);}
+  try{applyUIForRole(u);}catch(e){console.warn('applyUIForRole',e);}
+  try{setReviewerName();}catch(e){console.warn('setReviewerName',e);}
+  try{populateAgentDropdown();}catch(e){console.warn('populateAgentDropdown',e);}
+  loadAgents().then(()=>{
+    try{populateAgentDropdown();}catch(e){}
+    try{renderAgentList();}catch(e){}
+  }).catch(e=>console.warn('loadAgents',e));
+  try{renderAdminList();}catch(e){console.warn('renderAdminList',e);}
+  try{populateProcessDropdowns();}catch(e){console.warn('populateProcessDropdowns',e);}
+  setTimeout(()=>{
+    try{renderProcessUserList();}catch(e){console.warn('renderProcessUserList',e);}
+    if(isSuperAdmin()||getUserRole()==='processAdmin'||getUserRole()==='admin'){
+      try{
+        const sec=document.getElementById('processMgmtSection');
+        if(sec)sec.style.display='block';
+        renderProcessManagement();
+      }catch(e){console.warn('renderProcessManagement',e);}
     }
-  } catch(e) {
-    console.error('selectProcess error:', e);
-    showToast('Error loading process. Please refresh.','e');
-  }
+  },300);
 };
 
 window.addNewProcess=async function(){
