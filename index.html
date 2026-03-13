@@ -930,7 +930,7 @@ import { getDatabase, ref, push, get, remove, set } from "https://www.gstatic.co
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 const fc={apiKey:"AIzaSyCifkNrq_PA8FtW7devgVsaNGXW-Tce0n8",authDomain:"qa-dashboard-system.firebaseapp.com",databaseURL:"https://qa-dashboard-system-default-rtdb.asia-southeast1.firebasedatabase.app",projectId:"qa-dashboard-system",storageBucket:"qa-dashboard-system.appspot.com",messagingSenderId:"373240224146",appId:"1:373240224146:web:80576d03fea68b3583894b"};
 const app=initializeApp(fc),db=getDatabase(app),auth=getAuth(app);
-window.db=db;window.ref=ref;window.push=push;window.get=get;window.remove=remove;window.set=set;window.auth=auth;
+window.db=db;window.ref=ref;window.push=push;window.get=get;window.remove=remove;window.set=set;window.auth=auth;window.signInWithEmailAndPassword=signInWithEmailAndPassword;window.signOut=signOut;
 const UP={"gaurabhi834@gmail.com":{name:"Abhishek Gaur",designation:"Deputy Manager – QA"},"tl.pinki@ocubeservices.com":{name:"Pinki Kumari",designation:"Team Leader – Sales"},"tl.shahid@ocubeservices.com":{name:"Md Shahid",designation:"Team Leader – Support"},"qa.prince@ocubeservices.com":{name:"Prince Kumar",designation:"Quality Analyst"}};
 window._grantedAdmins=[];window._grantedAdminData={};window._adminListReady=false;
 
@@ -1090,7 +1090,7 @@ async function _initApp(u) {
       selectProcess('CX'); return;
     }
     showToast('No process assigned to your account. Contact admin.', 'e');
-    setTimeout(() => { signOut(auth); }, 3000);
+    setTimeout(() => { window.signOut(window.auth); }, 3000);
     document.getElementById('loginScreen').style.display = 'flex';
     return;
   }
@@ -1100,8 +1100,8 @@ async function _initApp(u) {
     showProcessSelector(u);
   }
 }
-window.loginUser=function(){const e=document.getElementById("loginEmail").value.trim(),p=document.getElementById("loginPassword").value.trim();if(!e||!p){showToast("Enter email and password","e");return;}signInWithEmailAndPassword(auth,e,p).then(()=>showToast("Login successful","s")).catch(er=>showToast(er.message,"e"));};
-window.logoutUser=function(){signOut(auth).then(()=>{showToast("Logged out","s");window._currentProcess=null;window._processList=[];window._userProcesses={};});};
+window.loginUser=function(){const e=document.getElementById("loginEmail").value.trim(),p=document.getElementById("loginPassword").value.trim();if(!e||!p){showToast("Enter email and password","e");return;}window.signInWithEmailAndPassword(window.auth,e,p).then(()=>showToast("Login successful","s")).catch(er=>showToast(er.message,"e"));};
+window.logoutUser=function(){window.signOut(window.auth).then(()=>{showToast("Logged out","s");window._currentProcess=null;window._processList=[];window._userProcesses={};});};
 </script>
 
 
@@ -2336,7 +2336,7 @@ window.showProcessSelector = function showProcessSelector(u){
       procs.push(...defaults.map(id=>({id,role:'admin'})));
     } else {
       showToast('No processes available. Contact admin.','e');
-      setTimeout(()=>signOut(auth),2500);
+      setTimeout(()=>window.signOut(window.auth),2500);
       return;
     }
   }
