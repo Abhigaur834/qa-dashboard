@@ -1038,66 +1038,61 @@ window._showLogin = function _showLogin() {
 }
 
 async function _initApp(u) {
-  // Safety: if app doesn't show within 6s, restore login screen
-  const _safetyTimer = setTimeout(()=>{
-    const ma = document.getElementById('mainApp');
-    const ps = document.getElementById('processSelector');
-    const ls = document.getElementById('loginScreen');
-    const appVisible = (ma&&ma.style.display!=='none')||(ps&&ps.style.display==='flex');
-    if(!appVisible){ console.warn('[QAHub] Safety timer: restoring login'); ls.style.display='flex'; }
-  }, 6000);
-  // STEP 1: Hide login immediately — never leave user on blank login after auth
+  // Step 1: Hide login IMMEDIATELY - no waiting
   document.getElementById('loginScreen').style.display = 'none';
 
-  // STEP 2: Register this user's uid↔email mapping for admin use
-  try {
-    await window.set(window.ref(window.db,'userIndex/'+u.uid), {email:u.email, lastLogin:Date.now()});
-  } catch(e) { console.warn('[QAHub] userIndex write failed:',e.message); }
+  // Step 2: If super admin, show process selector right away with defaults
+  // then load real data in background
+  const isSA = SUPER_ADMINS.includes(u.email) || (window._grantedAdmins||[]).includes(u.email);
 
-  // STEP 3 (was 2): Load admins (non-fatal)
-  try { await loadGrantedAdmins(); }
-  catch(e) { console.warn('[QAHub] loadGrantedAdmins:', e.message); }
-
-  const superAdmin = SUPER_ADMINS.includes(u.email) || (window._grantedAdmins||[]).includes(u.email);
-  console.log('[QAHub] email:', u.email, 'superAdmin:', superAdmin);
-
-  // STEP 3: Super admin path
-  if(superAdmin) {
-    try { await loadProcessList(); } catch(e) { console.warn('[QAHub] loadProcessList:', e.message); }
+  if(isSA) {
+    // Show selector immediately with at least the 3 default processes
     if(!window._processList || window._processList.length === 0) {
-      try { await seedDefaultProcesses(); } catch(e) {
-        console.warn('[QAHub] seed failed:', e.message);
-        window._processList = [{id:'CX',createdBy:'system'},{id:'CS',createdBy:'system'},{id:'LQ',createdBy:'system'}];
+      window._processList = [{id:'CX',createdBy:'system'},{id:'CS',createdBy:'system'},{id:'LQ',createdBy:'system'}];
+    }
+    window.showProcessSelector(u);
+    // Load real data in background (don't block UI)
+    Promise.all([
+      loadGrantedAdmins().catch(e=>console.warn('admins:',e.message)),
+      loadProcessList().catch(e=>console.warn('processList:',e.message)),
+      window.set(window.ref(window.db,'userIndex/'+u.uid),{email:u.email,lastLogin:Date.now()}).catch(e=>console.warn('userIndex:',e.message))
+    ]).then(()=>{
+      if(window._processList && window._processList.length > 0) {
+        window.showProcessSelector(u); // refresh selector with real data
       }
-    }
-    // Always show process selector for super admin
-    if(window._processList.length >= 1) {
-      showProcessSelector(u);
-    } else {
-      selectProcess('CX');
-    }
+    });
     return;
   }
 
-  // STEP 4: Regular user — load their processes
-  let procs = {};
-  try { procs = await loadUserProcesses(u); } catch(e) { console.warn('[QAHub] loadUserProcesses:', e.message); }
+  // Step 3: Regular user - register index and load processes
+  window.set(window.ref(window.db,'userIndex/'+u.uid),{email:u.email,lastLogin:Date.now()}).catch(()=>{});
+  await loadGrantedAdmins().catch(()=>{});
 
-  const procKeys = Object.keys(procs || {});
+  // Re-check super admin after loading granted admins
+  const isSA2 = SUPER_ADMINS.includes(u.email) || (window._grantedAdmins||[]).includes(u.email);
+  if(isSA2) {
+    await loadProcessList().catch(()=>{
+      window._processList=[{id:'CX',createdBy:'system'},{id:'CS',createdBy:'system'},{id:'LQ',createdBy:'system'}];
+    });
+    window.showProcessSelector(u);
+    return;
+  }
+
+  // Step 4: Look up processes for regular user
+  let procs = {};
+  try { procs = await loadUserProcesses(u); } catch(e) {}
+
+  const procKeys = Object.keys(procs||{});
   if(procKeys.length === 0) {
-    // Double-check they aren't super admin (safety net)
-    if(SUPER_ADMINS.includes(u.email)) {
-      selectProcess('CX'); return;
-    }
-    showToast('No process assigned to your account. Contact admin.', 'e');
-    setTimeout(() => { window.signOut(window.auth); }, 3000);
     document.getElementById('loginScreen').style.display = 'flex';
+    showToast('No process assigned. Contact your admin.','e');
+    setTimeout(()=>window.signOut(window.auth), 3000);
     return;
   }
   if(procKeys.length === 1) {
     selectProcess(procKeys[0]);
   } else {
-    showProcessSelector(u);
+    window.showProcessSelector(u);
   }
 }
 window.loginUser=function(){const e=document.getElementById("loginEmail").value.trim(),p=document.getElementById("loginPassword").value.trim();if(!e||!p){showToast("Enter email and password","e");return;}window.signInWithEmailAndPassword(window.auth,e,p).then(()=>showToast("Login successful","s")).catch(er=>showToast(er.message,"e"));};
