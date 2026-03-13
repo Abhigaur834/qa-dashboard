@@ -1052,12 +1052,11 @@ async function _initApp(u) {
         window._processList = [{id:'CX',createdBy:'system'},{id:'CS',createdBy:'system'},{id:'LQ',createdBy:'system'}];
       }
     }
-    // Show process selector if multiple processes, else go straight in
-    if(window._processList.length > 1) {
+    // Always show process selector for super admin
+    if(window._processList.length >= 1) {
       showProcessSelector(u);
     } else {
-      const firstId = (window._processList[0] && window._processList[0].id) ? window._processList[0].id : 'CX';
-      selectProcess(firstId);
+      selectProcess('CX');
     }
     return;
   }
@@ -2292,6 +2291,8 @@ window.selectProcess=function(processId){
   const u=auth.currentUser; if(!u)return;
   try{updateBadge();}catch(e){console.warn('updateBadge',e);}
   try{applyUIForRole(u);}catch(e){console.warn('applyUIForRole',e);}
+  // Re-run after short delay to ensure all async data is loaded
+  setTimeout(()=>{ try{if(auth.currentUser)applyUIForRole(auth.currentUser);}catch(e){} }, 800);
   try{setReviewerName();}catch(e){console.warn('setReviewerName',e);}
   try{populateAgentDropdown();}catch(e){console.warn('populateAgentDropdown',e);}
   loadAgents().then(()=>{
