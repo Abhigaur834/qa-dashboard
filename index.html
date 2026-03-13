@@ -1037,206 +1037,7 @@ window.loginUser=function(){const e=document.getElementById("loginEmail").value.
 window.logoutUser=function(){signOut(auth).then(()=>{showToast("Logged out","s");_currentProcess=null;_processList=[];_userProcesses={};});};
 </script>
 
-<!-- PROCESS MANAGEMENT LOGIC -->
-<script>
-const DEFAULT_PROCESSES=['CX','CS','LQ'];
 
-async function seedDefaultProcesses(){
-  try{
-    for(const p of DEFAULT_PROCESSES){
-      await window.set(window.ref(window.db,'processList/'+p),{id:p,createdAt:Date.now(),createdBy:'system'});
-    }
-    await loadProcessList();
-  }catch(e){console.warn('seed error',e);}
-}
-
-async function loadProcessList(){
-  try{
-    const snap=await window.get(window.ref(window.db,'processList'));
-    _processList=[];
-    if(snap.exists())snap.forEach(c=>{_processList.push({id:c.key,...c.val()});});
-    return _processList;
-  }catch(e){console.warn('loadProcessList',e);return[];}
-}
-
-async function loadUserProcesses(u){
-  if(!u){_userProcesses={};return{};}
-  if(isSuperAdmin()){
-    await loadProcessList();
-    const all={};
-    _processList.forEach(p=>{all[p.id]='admin';});
-    _userProcesses=all;
-    return all;
-  }
-  try{
-    const key=u.email.replace(/\./g,'_');
-    const snap=await window.get(window.ref(window.db,'userProcesses/'+key));
-    _userProcesses=snap.exists()?snap.val():{};
-    return _userProcesses;
-  }catch(e){_userProcesses={};return{};}
-}
-
-function showProcessSelector(u){
-  const sel=document.getElementById('processSelector');
-  const list=document.getElementById('processBtnList');
-  if(!sel||!list)return;
-  const procs=isSuperAdmin()
-    ?_processList.map(p=>({id:p.id,role:'admin'}))
-    :Object.entries(_userProcesses).map(([id,role])=>({id,role}));
-  if(!procs.length){showToast('No processes available. Contact admin.','e');signOut(auth);return;}
-  const roleLabel={admin:'Admin',qa:'QA Auditor',tl:'Team Leader',agent:'Agent',processAdmin:'Process Admin'};
-  list.innerHTML=procs.map(p=>`
-    <button class="proc-btn" onclick="selectProcess('${p.id}')">
-      <div>
-        <div class="proc-btn-name">${p.id}</div>
-        <div class="proc-btn-meta">Your role: ${roleLabel[p.role]||p.role}</div>
-      </div>
-      <div class="proc-btn-arrow">&#8594;</div>
-    </button>`).join('');
-  sel.classList.add('show');
-}
-
-window.switchProcess=function(){
-  document.getElementById('mainApp').style.display='none';
-  showProcessSelector(auth.currentUser);
-};
-
-window.selectProcess=function(processId){
-  _currentProcess=processId;
-  _auditsCacheTime=0;_allAudits=[];
-  document.getElementById('processSelector').classList.remove('show');
-  document.getElementById('mainApp').style.display='block';
-  const badge=document.getElementById('currentProcBadge');
-  const label=document.getElementById('currentProcLabel');
-  if(badge)badge.style.display='inline-flex';
-  if(label)label.textContent=processId;
-  const u=auth.currentUser;
-  if(u){
-    updateBadge();
-    applyUIForRole(u);
-    loadAgents().then(()=>{populateAgentDropdown();renderAgentList();});
-    renderAdminList();
-    setReviewerName();
-    renderProcessUserList();
-    populateProcessDropdowns();
-    if(isSuperAdmin()||getUserRole()==='processAdmin'){
-      renderProcessManagement();
-      document.getElementById('processMgmtSection').style.display='block';
-    }
-    populateProcessDropdowns();
-  }
-};
-
-window.addNewProcess=async function(){
-  if(!isSuperAdmin()&&getUserRole()!=='processAdmin'){showToast('Admin only','e');return;}
-  const name=document.getElementById('newProcessName').value.trim().toUpperCase().replace(/[^A-Z]/g,'').slice(0,6);
-  if(!name||name.length<2){showToast('Enter 2–6 letters','e');return;}
-  if(_processList.find(p=>p.id===name)){showToast('Process "'+name+'" already exists','e');return;}
-  try{
-    await window.set(window.ref(window.db,'processList/'+name),{id:name,createdAt:Date.now(),createdBy:auth.currentUser.email});
-    document.getElementById('newProcessName').value='';
-    await loadProcessList();
-    renderProcessManagement();
-    populateProcessDropdowns();
-    showToast('Process '+name+' created','s');
-  }catch(e){showToast('Error: '+e.message,'e');}
-};
-
-async function renderProcessManagement(){
-  const section=document.getElementById('processMgmtSection');
-  if(section)section.style.display='block';
-  const badge=document.getElementById('processCountBadge');
-  if(badge)badge.textContent=_processList.length+' process'+(_processList.length!==1?'es':'');
-  const tbody=document.getElementById('processListBody');if(!tbody)return;
-  tbody.innerHTML=_processList.map(p=>`<tr>
-    <td><span style="font-family:var(--font-head);font-weight:900;font-size:15px;color:var(--accent);letter-spacing:2px">${p.id}</span></td>
-    <td style="color:var(--muted);font-size:11px">${p.createdAt?new Date(p.createdAt).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}):'—'}</td>
-    <td style="color:var(--muted);font-size:11px">${p.createdBy==='system'?'<span style="font-size:9px;padding:2px 8px;background:rgba(61,126,245,0.12);color:var(--accent);border-radius:10px;font-family:var(--font-head);font-weight:700">DEFAULT</span>':p.createdBy||'—'}</td>
-    <td>${!DEFAULT_PROCESSES.includes(p.id)?`<button class="btn btn-danger btn-sm" onclick="deleteProcess('${p.id}')">&#128465; Delete</button>`:'<span style="font-size:10px;color:var(--muted);font-style:italic">Protected</span>'}</td>
-  </tr>`).join('');
-}
-
-window.deleteProcess=async function(id){
-  if(!isSuperAdmin()){showToast('Super Admin only','e');return;}
-  if(DEFAULT_PROCESSES.includes(id)){showToast('Default processes cannot be deleted','e');return;}
-  if(!confirm('Delete process "'+id+'"? ALL data (audits, agents, coaching) inside will be permanently lost. This cannot be undone.'))return;
-  try{
-    await window.remove(window.ref(window.db,'processList/'+id));
-    await window.remove(window.ref(window.db,'processes/'+id));
-    await loadProcessList();
-    renderProcessManagement();
-    populateProcessDropdowns();
-    showToast('Process '+id+' deleted','s');
-  }catch(e){showToast('Error: '+e.message,'e');}
-};
-
-function populateProcessDropdowns(){
-  const sel=document.getElementById('assignUserProcess');if(!sel)return;
-  const cur=sel.value;
-  sel.innerHTML='<option value="">Select process...</option>'+_processList.map(p=>`<option value="${p.id}">${p.id}</option>`).join('');
-  if(cur)sel.value=cur;
-}
-
-window.assignUserToProcess=async function(){
-  const role=getUserRole();
-  if(!isSuperAdmin()&&role!=='admin'&&role!=='processAdmin'){showToast('Admin access required','e');return;}
-  const email=document.getElementById('assignUserEmail').value.trim();
-  const proc=document.getElementById('assignUserProcess').value;
-  const userRole=document.getElementById('assignUserRole').value;
-  if(!email||!proc||!userRole){showToast('Fill all fields','e');return;}
-  if(!email.includes('@')){showToast('Enter a valid email','e');return;}
-  const key=email.replace(/\./g,'_');
-  try{
-    await window.set(window.ref(window.db,'userProcesses/'+key+'/'+proc),userRole);
-    showToast('✅ '+email+' assigned to '+proc+' as '+userRole,'s');
-    document.getElementById('assignUserEmail').value='';
-    renderProcessUserList();
-  }catch(e){showToast('Error: '+e.message,'e');}
-};
-
-async function renderProcessUserList(){
-  const el=document.getElementById('processUserList');if(!el)return;
-  try{
-    const snap=await window.get(window.ref(window.db,'userProcesses'));
-    if(!snap.exists()){el.innerHTML='<div style="color:var(--muted);padding:10px 0;font-size:12px">No users assigned yet.</div>';return;}
-    const rows=[];
-    snap.forEach(userSnap=>{
-      const email=userSnap.key.replace(/_/g,'.');
-      userSnap.forEach(procSnap=>{
-        if(isSuperAdmin()||procSnap.key===_currentProcess){
-          rows.push({email,process:procSnap.key,role:procSnap.val()});
-        }
-      });
-    });
-    if(!rows.length){el.innerHTML='<div style="color:var(--muted);padding:10px 0;font-size:12px">No users assigned to this process yet.</div>';return;}
-    const roleColor={admin:'var(--accent)',qa:'var(--purple)',tl:'var(--success)',agent:'var(--muted)',processAdmin:'var(--accent2)'};
-    el.innerHTML=`<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px">
-      <thead><tr>
-        <th style="text-align:left;padding:8px 12px;color:var(--muted);font-size:9.5px;text-transform:uppercase;letter-spacing:1.2px;font-family:var(--font-head);border-bottom:1px solid var(--border)">Email</th>
-        <th style="text-align:left;padding:8px 12px;color:var(--muted);font-size:9.5px;text-transform:uppercase;letter-spacing:1.2px;font-family:var(--font-head);border-bottom:1px solid var(--border)">Process</th>
-        <th style="text-align:left;padding:8px 12px;color:var(--muted);font-size:9.5px;text-transform:uppercase;letter-spacing:1.2px;font-family:var(--font-head);border-bottom:1px solid var(--border)">Role</th>
-        <th style="border-bottom:1px solid var(--border)"></th>
-      </tr></thead>
-      <tbody>${rows.map(r=>`<tr>
-        <td style="padding:8px 12px;border-bottom:1px solid rgba(28,38,64,0.5)">${r.email}</td>
-        <td style="padding:8px 12px;border-bottom:1px solid rgba(28,38,64,0.5)"><span style="font-family:var(--font-head);font-weight:900;color:var(--accent);letter-spacing:1px">${r.process}</span></td>
-        <td style="padding:8px 12px;border-bottom:1px solid rgba(28,38,64,0.5)"><span style="color:${roleColor[r.role]||'var(--muted)'};font-weight:700;font-family:var(--font-head);font-size:11px">${r.role}</span></td>
-        <td style="padding:8px 12px;border-bottom:1px solid rgba(28,38,64,0.5)"><button class="btn btn-danger btn-sm" onclick="revokeProcessUser('${r.email.replace(/'/g,"\\'")}','${r.process}')">&#128465;</button></td>
-      </tr>`).join('')}</tbody>
-    </table></div>`;
-  }catch(e){el.innerHTML='<div style="color:var(--critical);font-size:12px">Error loading user list</div>';}
-}
-
-window.revokeProcessUser=async function(email,proc){
-  if(!confirm('Remove '+email+' from '+proc+'?'))return;
-  const key=email.replace(/\./g,'_');
-  try{
-    await window.remove(window.ref(window.db,'userProcesses/'+key+'/'+proc));
-    showToast('Access revoked','s');
-    renderProcessUserList();
-  }catch(e){showToast('Error: '+e.message,'e');}
-};
-</script>
 
 <!-- APP LOGIC -->
 <script>
@@ -2335,6 +2136,207 @@ function showToast(msg,type=''){
   }
   draw();
 })();
+</script>
+
+<!-- PROCESS MANAGEMENT LOGIC -->
+<script>
+const DEFAULT_PROCESSES=['CX','CS','LQ'];
+
+async function seedDefaultProcesses(){
+  try{
+    for(const p of DEFAULT_PROCESSES){
+      await window.set(window.ref(window.db,'processList/'+p),{id:p,createdAt:Date.now(),createdBy:'system'});
+    }
+    await loadProcessList();
+  }catch(e){console.warn('seed error',e);}
+}
+
+async function loadProcessList(){
+  try{
+    const snap=await window.get(window.ref(window.db,'processList'));
+    _processList=[];
+    if(snap.exists())snap.forEach(c=>{_processList.push({id:c.key,...c.val()});});
+    return _processList;
+  }catch(e){console.warn('loadProcessList',e);return[];}
+}
+
+async function loadUserProcesses(u){
+  if(!u){_userProcesses={};return{};}
+  if(isSuperAdmin()){
+    await loadProcessList();
+    const all={};
+    _processList.forEach(p=>{all[p.id]='admin';});
+    _userProcesses=all;
+    return all;
+  }
+  try{
+    const key=u.email.replace(/\./g,'_');
+    const snap=await window.get(window.ref(window.db,'userProcesses/'+key));
+    _userProcesses=snap.exists()?snap.val():{};
+    return _userProcesses;
+  }catch(e){_userProcesses={};return{};}
+}
+
+function showProcessSelector(u){
+  const sel=document.getElementById('processSelector');
+  const list=document.getElementById('processBtnList');
+  if(!sel||!list)return;
+  const procs=isSuperAdmin()
+    ?_processList.map(p=>({id:p.id,role:'admin'}))
+    :Object.entries(_userProcesses).map(([id,role])=>({id,role}));
+  if(!procs.length){showToast('No processes available. Contact admin.','e');signOut(auth);return;}
+  const roleLabel={admin:'Admin',qa:'QA Auditor',tl:'Team Leader',agent:'Agent',processAdmin:'Process Admin'};
+  list.innerHTML=procs.map(p=>`
+    <button class="proc-btn" onclick="selectProcess('${p.id}')">
+      <div>
+        <div class="proc-btn-name">${p.id}</div>
+        <div class="proc-btn-meta">Your role: ${roleLabel[p.role]||p.role}</div>
+      </div>
+      <div class="proc-btn-arrow">&#8594;</div>
+    </button>`).join('');
+  sel.classList.add('show');
+}
+
+window.switchProcess=function(){
+  document.getElementById('mainApp').style.display='none';
+  showProcessSelector(auth.currentUser);
+};
+
+window.selectProcess=function(processId){
+  _currentProcess=processId;
+  _auditsCacheTime=0;_allAudits=[];
+  document.getElementById('processSelector').classList.remove('show');
+  document.getElementById('mainApp').style.display='block';
+  const badge=document.getElementById('currentProcBadge');
+  const label=document.getElementById('currentProcLabel');
+  if(badge)badge.style.display='inline-flex';
+  if(label)label.textContent=processId;
+  const u=auth.currentUser;
+  if(u){
+    updateBadge();
+    applyUIForRole(u);
+    loadAgents().then(()=>{populateAgentDropdown();renderAgentList();});
+    renderAdminList();
+    setReviewerName();
+    renderProcessUserList();
+    populateProcessDropdowns();
+    if(isSuperAdmin()||getUserRole()==='processAdmin'){
+      renderProcessManagement();
+      document.getElementById('processMgmtSection').style.display='block';
+    }
+    populateProcessDropdowns();
+  }
+};
+
+window.addNewProcess=async function(){
+  if(!isSuperAdmin()&&getUserRole()!=='processAdmin'){showToast('Admin only','e');return;}
+  const name=document.getElementById('newProcessName').value.trim().toUpperCase().replace(/[^A-Z]/g,'').slice(0,6);
+  if(!name||name.length<2){showToast('Enter 2–6 letters','e');return;}
+  if(_processList.find(p=>p.id===name)){showToast('Process "'+name+'" already exists','e');return;}
+  try{
+    await window.set(window.ref(window.db,'processList/'+name),{id:name,createdAt:Date.now(),createdBy:auth.currentUser.email});
+    document.getElementById('newProcessName').value='';
+    await loadProcessList();
+    renderProcessManagement();
+    populateProcessDropdowns();
+    showToast('Process '+name+' created','s');
+  }catch(e){showToast('Error: '+e.message,'e');}
+};
+
+async function renderProcessManagement(){
+  const section=document.getElementById('processMgmtSection');
+  if(section)section.style.display='block';
+  const badge=document.getElementById('processCountBadge');
+  if(badge)badge.textContent=_processList.length+' process'+(_processList.length!==1?'es':'');
+  const tbody=document.getElementById('processListBody');if(!tbody)return;
+  tbody.innerHTML=_processList.map(p=>`<tr>
+    <td><span style="font-family:var(--font-head);font-weight:900;font-size:15px;color:var(--accent);letter-spacing:2px">${p.id}</span></td>
+    <td style="color:var(--muted);font-size:11px">${p.createdAt?new Date(p.createdAt).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}):'—'}</td>
+    <td style="color:var(--muted);font-size:11px">${p.createdBy==='system'?'<span style="font-size:9px;padding:2px 8px;background:rgba(61,126,245,0.12);color:var(--accent);border-radius:10px;font-family:var(--font-head);font-weight:700">DEFAULT</span>':p.createdBy||'—'}</td>
+    <td>${!DEFAULT_PROCESSES.includes(p.id)?`<button class="btn btn-danger btn-sm" onclick="deleteProcess('${p.id}')">&#128465; Delete</button>`:'<span style="font-size:10px;color:var(--muted);font-style:italic">Protected</span>'}</td>
+  </tr>`).join('');
+}
+
+window.deleteProcess=async function(id){
+  if(!isSuperAdmin()){showToast('Super Admin only','e');return;}
+  if(DEFAULT_PROCESSES.includes(id)){showToast('Default processes cannot be deleted','e');return;}
+  if(!confirm('Delete process "'+id+'"? ALL data (audits, agents, coaching) inside will be permanently lost. This cannot be undone.'))return;
+  try{
+    await window.remove(window.ref(window.db,'processList/'+id));
+    await window.remove(window.ref(window.db,'processes/'+id));
+    await loadProcessList();
+    renderProcessManagement();
+    populateProcessDropdowns();
+    showToast('Process '+id+' deleted','s');
+  }catch(e){showToast('Error: '+e.message,'e');}
+};
+
+function populateProcessDropdowns(){
+  const sel=document.getElementById('assignUserProcess');if(!sel)return;
+  const cur=sel.value;
+  sel.innerHTML='<option value="">Select process...</option>'+_processList.map(p=>`<option value="${p.id}">${p.id}</option>`).join('');
+  if(cur)sel.value=cur;
+}
+
+window.assignUserToProcess=async function(){
+  const role=getUserRole();
+  if(!isSuperAdmin()&&role!=='admin'&&role!=='processAdmin'){showToast('Admin access required','e');return;}
+  const email=document.getElementById('assignUserEmail').value.trim();
+  const proc=document.getElementById('assignUserProcess').value;
+  const userRole=document.getElementById('assignUserRole').value;
+  if(!email||!proc||!userRole){showToast('Fill all fields','e');return;}
+  if(!email.includes('@')){showToast('Enter a valid email','e');return;}
+  const key=email.replace(/\./g,'_');
+  try{
+    await window.set(window.ref(window.db,'userProcesses/'+key+'/'+proc),userRole);
+    showToast('✅ '+email+' assigned to '+proc+' as '+userRole,'s');
+    document.getElementById('assignUserEmail').value='';
+    renderProcessUserList();
+  }catch(e){showToast('Error: '+e.message,'e');}
+};
+
+async function renderProcessUserList(){
+  const el=document.getElementById('processUserList');if(!el)return;
+  try{
+    const snap=await window.get(window.ref(window.db,'userProcesses'));
+    if(!snap.exists()){el.innerHTML='<div style="color:var(--muted);padding:10px 0;font-size:12px">No users assigned yet.</div>';return;}
+    const rows=[];
+    snap.forEach(userSnap=>{
+      const email=userSnap.key.replace(/_/g,'.');
+      userSnap.forEach(procSnap=>{
+        if(isSuperAdmin()||procSnap.key===_currentProcess){
+          rows.push({email,process:procSnap.key,role:procSnap.val()});
+        }
+      });
+    });
+    if(!rows.length){el.innerHTML='<div style="color:var(--muted);padding:10px 0;font-size:12px">No users assigned to this process yet.</div>';return;}
+    const roleColor={admin:'var(--accent)',qa:'var(--purple)',tl:'var(--success)',agent:'var(--muted)',processAdmin:'var(--accent2)'};
+    el.innerHTML=`<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px">
+      <thead><tr>
+        <th style="text-align:left;padding:8px 12px;color:var(--muted);font-size:9.5px;text-transform:uppercase;letter-spacing:1.2px;font-family:var(--font-head);border-bottom:1px solid var(--border)">Email</th>
+        <th style="text-align:left;padding:8px 12px;color:var(--muted);font-size:9.5px;text-transform:uppercase;letter-spacing:1.2px;font-family:var(--font-head);border-bottom:1px solid var(--border)">Process</th>
+        <th style="text-align:left;padding:8px 12px;color:var(--muted);font-size:9.5px;text-transform:uppercase;letter-spacing:1.2px;font-family:var(--font-head);border-bottom:1px solid var(--border)">Role</th>
+        <th style="border-bottom:1px solid var(--border)"></th>
+      </tr></thead>
+      <tbody>${rows.map(r=>`<tr>
+        <td style="padding:8px 12px;border-bottom:1px solid rgba(28,38,64,0.5)">${r.email}</td>
+        <td style="padding:8px 12px;border-bottom:1px solid rgba(28,38,64,0.5)"><span style="font-family:var(--font-head);font-weight:900;color:var(--accent);letter-spacing:1px">${r.process}</span></td>
+        <td style="padding:8px 12px;border-bottom:1px solid rgba(28,38,64,0.5)"><span style="color:${roleColor[r.role]||'var(--muted)'};font-weight:700;font-family:var(--font-head);font-size:11px">${r.role}</span></td>
+        <td style="padding:8px 12px;border-bottom:1px solid rgba(28,38,64,0.5)"><button class="btn btn-danger btn-sm" onclick="revokeProcessUser('${r.email.replace(/'/g,"\\'")}','${r.process}')">&#128465;</button></td>
+      </tr>`).join('')}</tbody>
+    </table></div>`;
+  }catch(e){el.innerHTML='<div style="color:var(--critical);font-size:12px">Error loading user list</div>';}
+}
+
+window.revokeProcessUser=async function(email,proc){
+  if(!confirm('Remove '+email+' from '+proc+'?'))return;
+  const key=email.replace(/\./g,'_');
+  try{
+    await window.remove(window.ref(window.db,'userProcesses/'+key+'/'+proc));
+    showToast('Access revoked','s');
+    renderProcessUserList();
+  }catch(e){showToast('Error: '+e.message,'e');}
+};
 </script>
 </body>
 </html>
