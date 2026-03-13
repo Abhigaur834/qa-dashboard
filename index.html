@@ -858,8 +858,7 @@ tbody td{padding:11px 16px;font-size:13px;color:var(--text);}
       <div class="card" style="margin-bottom:16px">
         <div class="card-hdr"><div class="card-title">&#128101; Assign User Access</div><span style="font-size:11px;color:var(--muted)">Grant process-specific roles</span></div>
         <div style="display:grid;grid-template-columns:1fr 160px 160px auto;gap:12px;align-items:end;padding:14px 20px;border-bottom:1px solid var(--border)">
-          <div><label style="display:block;font-size:10px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);font-family:var(--font-head);font-weight:700;margin-bottom:6px">User Email</label><input type="email" id="assignUserEmail" placeholder="user@company.com" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-family:var(--font-body);font-size:13px;padding:9px 12px;outline:none;box-sizing:border-box" oninput="const k=this.value.replace(/\./g,'_');document.getElementById('assignKeyPreview').textContent=this.value?'Firebase key: '+k:''">
-          <div id="assignKeyPreview" style="font-size:10px;color:var(--muted);margin-top:4px;font-family:monospace"></div></div>
+          <div><label style="display:block;font-size:10px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);font-family:var(--font-head);font-weight:700;margin-bottom:6px">User Email</label><input type="email" id="assignUserEmail" placeholder="user@company.com" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-family:var(--font-body);font-size:13px;padding:9px 12px;outline:none;box-sizing:border-box"></div>
           <div><label style="display:block;font-size:10px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);font-family:var(--font-head);font-weight:700;margin-bottom:6px">Process</label><select id="assignUserProcess" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-family:var(--font-body);font-size:13px;padding:9px 12px;outline:none;box-sizing:border-box"><option value="">Select...</option></select></div>
           <div><label style="display:block;font-size:10px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);font-family:var(--font-head);font-weight:700;margin-bottom:6px">Role</label><select id="assignUserRole" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-family:var(--font-body);font-size:13px;padding:9px 12px;outline:none;box-sizing:border-box"><option value="qa">QA Auditor</option><option value="tl">Team Leader</option><option value="agent">Agent</option><option value="processAdmin">Process Admin</option></select></div>
           <button class="btn btn-success" onclick="assignUserToProcess()" style="height:40px;white-space:nowrap;margin-top:22px">&#128273; Assign</button>
@@ -930,7 +929,7 @@ import { getDatabase, ref, push, get, remove, set } from "https://www.gstatic.co
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 const fc={apiKey:"AIzaSyCifkNrq_PA8FtW7devgVsaNGXW-Tce0n8",authDomain:"qa-dashboard-system.firebaseapp.com",databaseURL:"https://qa-dashboard-system-default-rtdb.asia-southeast1.firebasedatabase.app",projectId:"qa-dashboard-system",storageBucket:"qa-dashboard-system.appspot.com",messagingSenderId:"373240224146",appId:"1:373240224146:web:80576d03fea68b3583894b"};
 const app=initializeApp(fc),db=getDatabase(app),auth=getAuth(app);
-window.db=db;window.ref=ref;window.push=push;window.get=get;window.remove=remove;window.set=set;window.auth=auth;window.signInWithEmailAndPassword=signInWithEmailAndPassword;window.signOut=signOut;
+window.db=db;window.ref=ref;window.push=push;window.get=get;window.remove=remove;window.set=set;window.auth=auth;
 const UP={"gaurabhi834@gmail.com":{name:"Abhishek Gaur",designation:"Deputy Manager – QA"},"tl.pinki@ocubeservices.com":{name:"Pinki Kumari",designation:"Team Leader – Sales"},"tl.shahid@ocubeservices.com":{name:"Md Shahid",designation:"Team Leader – Support"},"qa.prince@ocubeservices.com":{name:"Prince Kumar",designation:"Quality Analyst"}};
 window._grantedAdmins=[];window._grantedAdminData={};window._adminListReady=false;
 
@@ -1008,6 +1007,8 @@ window.applyUIForRole = function applyUIForRole(u){
     document.getElementById("clearBtn").style.display="inline-flex";
     document.getElementById("clearBtn2").style.display="inline-flex";
     const at=document.getElementById('agentsNavTab');if(at)at.style.display='flex';
+  } else if(role==="qa"||role==="tl"){
+    const at=document.getElementById('agentsNavTab');if(at)at.style.display='flex';
   }
   // Show process badge (always show if process is selected)
   if(window._currentProcess){
@@ -1038,65 +1039,57 @@ window._showLogin = function _showLogin() {
 }
 
 async function _initApp(u) {
-  // Step 1: Hide login IMMEDIATELY - no waiting
+  // STEP 1: Hide login immediately — never leave user on blank login after auth
   document.getElementById('loginScreen').style.display = 'none';
 
-  // Step 2: If super admin, show process selector right away with defaults
-  // then load real data in background
-  const isSA = SUPER_ADMINS.includes(u.email) || (window._grantedAdmins||[]).includes(u.email);
+  // STEP 2: Load admins (non-fatal)
+  try { await loadGrantedAdmins(); }
+  catch(e) { console.warn('[QAHub] loadGrantedAdmins:', e.message); }
 
-  if(isSA) {
-    // Show selector immediately with at least the 3 default processes
+  const superAdmin = SUPER_ADMINS.includes(u.email) || (window._grantedAdmins||[]).includes(u.email);
+  console.log('[QAHub] email:', u.email, 'superAdmin:', superAdmin);
+
+  // STEP 3: Super admin path
+  if(superAdmin) {
+    try { await loadProcessList(); } catch(e) { console.warn('[QAHub] loadProcessList:', e.message); }
     if(!window._processList || window._processList.length === 0) {
-      window._processList = [{id:'CX',createdBy:'system'},{id:'CS',createdBy:'system'},{id:'LQ',createdBy:'system'}];
-    }
-    window.showProcessSelector(u);
-    // Load real data in background (don't block UI)
-    Promise.all([
-      loadGrantedAdmins().catch(e=>console.warn('admins:',e.message)),
-      loadProcessList().catch(e=>console.warn('processList:',e.message)),
-      window.set(window.ref(window.db,'userIndex/'+u.uid),{email:u.email,lastLogin:Date.now()}).catch(e=>console.warn('userIndex:',e.message))
-    ]).then(()=>{
-      if(window._processList && window._processList.length > 0) {
-        window.showProcessSelector(u); // refresh selector with real data
+      try { await seedDefaultProcesses(); } catch(e) {
+        console.warn('[QAHub] seed failed:', e.message);
+        window._processList = [{id:'CX',createdBy:'system'},{id:'CS',createdBy:'system'},{id:'LQ',createdBy:'system'}];
       }
-    });
+    }
+    // Always show process selector for super admin
+    if(window._processList.length >= 1) {
+      showProcessSelector(u);
+    } else {
+      selectProcess('CX');
+    }
     return;
   }
 
-  // Step 3: Regular user - register index and load processes
-  window.set(window.ref(window.db,'userIndex/'+u.uid),{email:u.email,lastLogin:Date.now()}).catch(()=>{});
-  await loadGrantedAdmins().catch(()=>{});
-
-  // Re-check super admin after loading granted admins
-  const isSA2 = SUPER_ADMINS.includes(u.email) || (window._grantedAdmins||[]).includes(u.email);
-  if(isSA2) {
-    await loadProcessList().catch(()=>{
-      window._processList=[{id:'CX',createdBy:'system'},{id:'CS',createdBy:'system'},{id:'LQ',createdBy:'system'}];
-    });
-    window.showProcessSelector(u);
-    return;
-  }
-
-  // Step 4: Look up processes for regular user
+  // STEP 4: Regular user — load their processes
   let procs = {};
-  try { procs = await loadUserProcesses(u); } catch(e) {}
+  try { procs = await loadUserProcesses(u); } catch(e) { console.warn('[QAHub] loadUserProcesses:', e.message); }
 
-  const procKeys = Object.keys(procs||{});
+  const procKeys = Object.keys(procs || {});
   if(procKeys.length === 0) {
+    // Double-check they aren't super admin (safety net)
+    if(SUPER_ADMINS.includes(u.email)) {
+      selectProcess('CX'); return;
+    }
+    showToast('No process assigned to your account. Contact admin.', 'e');
+    setTimeout(() => { signOut(auth); }, 3000);
     document.getElementById('loginScreen').style.display = 'flex';
-    showToast('No process assigned. Contact your admin.','e');
-    setTimeout(()=>window.signOut(window.auth), 3000);
     return;
   }
   if(procKeys.length === 1) {
     selectProcess(procKeys[0]);
   } else {
-    window.showProcessSelector(u);
+    showProcessSelector(u);
   }
 }
-window.loginUser=function(){const e=document.getElementById("loginEmail").value.trim(),p=document.getElementById("loginPassword").value.trim();if(!e||!p){showToast("Enter email and password","e");return;}window.signInWithEmailAndPassword(window.auth,e,p).then(()=>showToast("Login successful","s")).catch(er=>showToast(er.message,"e"));};
-window.logoutUser=function(){window.signOut(window.auth).then(()=>{showToast("Logged out","s");window._currentProcess=null;window._processList=[];window._userProcesses={};});};
+window.loginUser=function(){const e=document.getElementById("loginEmail").value.trim(),p=document.getElementById("loginPassword").value.trim();if(!e||!p){showToast("Enter email and password","e");return;}signInWithEmailAndPassword(auth,e,p).then(()=>showToast("Login successful","s")).catch(er=>showToast(er.message,"e"));};
+window.logoutUser=function(){signOut(auth).then(()=>{showToast("Logged out","s");window._currentProcess=null;window._processList=[];window._userProcesses={};});};
 </script>
 
 
@@ -1138,21 +1131,10 @@ const GROUPS={'Call Opening/Closing':['nc1','nc2','nc3','nc4'],'Issue Identifica
 let _agentList=[];
 async function loadAgents(){
   try{
-    _agentList=[];
-    const seen=new Set();
-    // New path: processes/{process}/agents
     const snap=await window.get(window.ref(window.db,`processes/${window._currentProcess}/agents`));
-    if(snap.exists()) Object.entries(snap.val()).forEach(([id,d])=>{seen.add(id);_agentList.push({id,...d});});
-    // Legacy path: agents/ (data from before multi-process)
-    // Only pull if current process is LQ (where all old data lived)
-    const oldSnap=await window.get(window.ref(window.db,'agents'));
-    if(oldSnap.exists()) Object.entries(oldSnap.val()).forEach(([id,d])=>{
-      if(!seen.has(id)){
-        const proc=(d.process||d.processId||'LQ').toUpperCase();
-        if(proc===window._currentProcess.toUpperCase()){seen.add(id);_agentList.push({id,...d});}
-      }
-    });
-    _agentList.sort((a,b)=>(a.name||'').localeCompare(b.name||''));
+    _agentList=[];
+    if(snap.exists()) Object.entries(snap.val()).forEach(([id,d])=>_agentList.push({id,...d}));
+    _agentList.sort((a,b)=>a.name.localeCompare(b.name));
   }catch(e){console.warn('loadAgents error',e);}
   return _agentList;
 }
@@ -1486,30 +1468,19 @@ async function loadAudits(forceRefresh=false){
 // Migrate legacy audits from flat 'audits/' to 'processes/{proc}/audits'
 window.migrateLegacyAudits = async function(){
   if(!window.isSuperAdmin()){showToast('Super Admin only','e');return;}
-  showToast('Migrating legacy data...','s');
-  let auditCount=0, agentCount=0;
+  showToast('Migrating legacy audits...','s');
   try{
-    // Migrate audits
-    const oldAudits=await get(ref(db,'audits'));
-    if(oldAudits.exists()){
-      for(const [id,d] of Object.entries(oldAudits.val())){
-        const proc=(d.process||d.processId||'LQ').toUpperCase();
-        await set(ref(db,`processes/${proc}/audits/${id}`),d);
-        auditCount++;
-      }
-    }
-    // Migrate agents
-    const oldAgents=await get(ref(db,'agents'));
-    if(oldAgents.exists()){
-      for(const [id,d] of Object.entries(oldAgents.val())){
-        const proc=(d.process||d.processId||'LQ').toUpperCase();
-        await set(ref(db,`processes/${proc}/agents/${id}`),d);
-        agentCount++;
-      }
+    const oldSnap=await get(ref(db,'audits'));
+    if(!oldSnap.exists()){showToast('No legacy audits found','s');return;}
+    let count=0;
+    const entries=Object.entries(oldSnap.val());
+    for(const [id,d] of entries){
+      const proc=(d.process||d.processId||'LQ').toUpperCase();
+      await set(ref(db,`processes/${proc}/audits/${id}`),d);
+      count++;
     }
     _auditsCacheTime=0;
-    showToast('✅ Migrated '+auditCount+' audits + '+agentCount+' agents','s');
-    loadAgents().then(()=>{populateAgentDropdown();renderAgentList();});
+    showToast('✅ Migrated '+count+' audits to new paths','s');
   }catch(e){showToast('Migration error: '+e.message,'e');}
 };
 
@@ -2292,19 +2263,11 @@ window.loadUserProcesses = async function loadUserProcesses(u){
     return all;
   }
   try{
-    // Primary: look up by Firebase UID (set by app when assigning)
-    const uid = u.uid;
-    const snap=await window.get(window.ref(window.db,'userProcesses/'+uid));
-    if(snap.exists()){
-      window._userProcesses=snap.val();
-      return window._userProcesses;
-    }
-    window._userProcesses={};
-    return{};
-  }catch(e){
-    console.error('[QAHub] loadUserProcesses error:',e.message);
-    window._userProcesses={};return{};
-  }
+    const key=u.email.replace(/[.@]/g,'_');
+    const snap=await window.get(window.ref(window.db,'userProcesses/'+key));
+    window._userProcesses=snap.exists()?snap.val():{};
+    return window._userProcesses;
+  }catch(e){window._userProcesses={};return{};}
 }
 
 window.showProcessSelector = function showProcessSelector(u){
@@ -2331,7 +2294,7 @@ window.showProcessSelector = function showProcessSelector(u){
       procs.push(...defaults.map(id=>({id,role:'admin'})));
     } else {
       showToast('No processes available. Contact admin.','e');
-      setTimeout(()=>window.signOut(window.auth),2500);
+      setTimeout(()=>signOut(auth),2500);
       return;
     }
   }
@@ -2424,7 +2387,7 @@ async function renderProcessManagement(){
 }
 
 window.assignUserToProcess = async function(){
-  if(!window.isSuperAdmin() && window.getUserRole()!=='processAdmin' && window.getUserRole()!=='admin'){
+  if(!isSuperAdmin() && window.getUserRole()!=='processAdmin' && window.getUserRole()!=='admin'){
     showToast('No permission','e'); return;
   }
   const email = (document.getElementById('assignUserEmail')||{}).value.trim().toLowerCase();
@@ -2433,19 +2396,8 @@ window.assignUserToProcess = async function(){
   if(!email||!process||!role){ showToast('Fill in all fields','e'); return; }
   if(!email.includes('@')){ showToast('Enter a valid email','e'); return; }
   try{
-    // Look up user UID from userIndex (populated when user first logs in)
-    const indexSnap = await window.get(window.ref(window.db,'userIndex'));
-    let uid = null;
-    if(indexSnap.exists()){
-      indexSnap.forEach(s=>{
-        if((s.val().email||'').toLowerCase()===email) uid=s.key;
-      });
-    }
-    if(!uid){
-      showToast('⚠️ User has never logged in — ask them to log in first, then assign.','e');
-      return;
-    }
-    await window.set(window.ref(window.db,'userProcesses/'+uid+'/'+process), role);
+    const key = email.replace(/[.@]/g,'_');
+    await window.set(window.ref(window.db,'userProcesses/'+key+'/'+process), role);
     showToast('✅ '+email+' assigned to '+process+' as '+role,'s');
     document.getElementById('assignUserEmail').value='';
     document.getElementById('assignUserProcess').value='';
@@ -2454,13 +2406,13 @@ window.assignUserToProcess = async function(){
   }catch(e){ showToast('Error: '+e.message,'e'); }
 };
 
-window.revokeProcessUser = async function(emailOrKey, process, isKey){
-  if(!window.isSuperAdmin() && window.getUserRole()!=='admin'){ showToast('No permission','e'); return; }
-  if(!confirm('Remove access to '+process+'?')) return;
+window.revokeProcessUser = async function(email, process){
+  if(!isSuperAdmin() && window.getUserRole()!=='admin'){ showToast('No permission','e'); return; }
+  if(!confirm('Remove '+email+' from '+process+'?')) return;
   try{
-    const key = isKey ? emailOrKey : emailOrKey.replace(/\./g,'_');
+    const key = email.replace(/[.@]/g,'_');
     await window.remove(window.ref(window.db,'userProcesses/'+key+'/'+process));
-    showToast('Access revoked from '+process,'s');
+    showToast('Removed '+email+' from '+process,'s');
     renderProcessUserList();
   }catch(e){ showToast('Error: '+e.message,'e'); }
 };
@@ -2494,7 +2446,7 @@ window.assignUserToProcess=async function(){
   const userRole=document.getElementById('assignUserRole').value;
   if(!email||!proc||!userRole){showToast('Fill all fields','e');return;}
   if(!email.includes('@')){showToast('Enter a valid email','e');return;}
-  const key=email.replace(/\./g,'_');
+  const key=email.replace(/[.@]/g,'_');
   try{
     await window.set(window.ref(window.db,'userProcesses/'+key+'/'+proc),userRole);
     showToast('✅ '+email+' assigned to '+proc+' as '+userRole,'s');
@@ -2506,50 +2458,39 @@ window.assignUserToProcess=async function(){
 async function renderProcessUserList(){
   const el=document.getElementById('processUserList');if(!el)return;
   try{
-    const rows=[];
-    const roleColor={admin:'var(--accent)',qa:'var(--purple)',tl:'var(--success)',agent:'var(--muted)',processAdmin:'var(--orange)'};
-    // Read all users under userProcesses - requires admin Firebase rules
     const snap=await window.get(window.ref(window.db,'userProcesses'));
     if(!snap.exists()){el.innerHTML='<div style="color:var(--muted);padding:10px 0;font-size:12px">No users assigned yet.</div>';return;}
-    // Also load userIndex to map uid→email
-    let uidEmailMap={};
-    try{
-      const idxSnap=await window.get(window.ref(window.db,'userIndex'));
-      if(idxSnap.exists()) idxSnap.forEach(s=>{ uidEmailMap[s.key]=(s.val().email||s.key); });
-    }catch(e){}
+    const rows=[];
     snap.forEach(userSnap=>{
-      const uid=userSnap.key;
-      const displayEmail=uidEmailMap[uid]||uid;
+      const email=userSnap.key.replace(/_/g,'.');
       userSnap.forEach(procSnap=>{
-        if(window.isSuperAdmin()||procSnap.key===window._currentProcess){
-          rows.push({keyEmail:uid,displayEmail,process:procSnap.key,role:procSnap.val()});
+        if(isSuperAdmin()||procSnap.key===window._currentProcess){
+          rows.push({email,process:procSnap.key,role:procSnap.val()});
         }
       });
     });
     if(!rows.length){el.innerHTML='<div style="color:var(--muted);padding:10px 0;font-size:12px">No users assigned to this process yet.</div>';return;}
-    el.innerHTML='<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px">'
-      +'<thead><tr>'
-      +'<th style="text-align:left;padding:8px 12px;color:var(--muted);font-size:9.5px;text-transform:uppercase;letter-spacing:1.2px;font-family:var(--font-head);border-bottom:1px solid var(--border)">Firebase Key</th>'
-      +'<th style="text-align:left;padding:8px 12px;color:var(--muted);font-size:9.5px;text-transform:uppercase;letter-spacing:1.2px;font-family:var(--font-head);border-bottom:1px solid var(--border)">Process</th>'
-      +'<th style="text-align:left;padding:8px 12px;color:var(--muted);font-size:9.5px;text-transform:uppercase;letter-spacing:1.2px;font-family:var(--font-head);border-bottom:1px solid var(--border)">Role</th>'
-      +'<th style="border-bottom:1px solid var(--border)"></th>'
-      +'</tr></thead><tbody>'
-      +rows.map(r=>'<tr>'
-        +'<td style="padding:8px 12px;border-bottom:1px solid rgba(28,38,64,0.5);font-size:11px">'+r.displayEmail+'</td>'
-        +'<td style="padding:8px 12px;border-bottom:1px solid rgba(28,38,64,0.5)"><span style="font-family:var(--font-head);font-weight:900;color:var(--accent);letter-spacing:1px">'+r.process+'</span></td>'
-        +'<td style="padding:8px 12px;border-bottom:1px solid rgba(28,38,64,0.5)"><span style="color:'+(roleColor[r.role]||'var(--muted)')+';font-weight:700;font-family:var(--font-head);font-size:11px">'+r.role+'</span></td>'
-        +'<td style="padding:8px 12px;border-bottom:1px solid rgba(28,38,64,0.5)"><button class="btn btn-danger btn-sm" onclick="revokeProcessUser(''+r.keyEmail+'',''+r.process+'',true)">&#128465;</button></td>'
-        +'</tr>').join('')
-      +'</tbody></table></div>';
-  }catch(e){
-    console.warn('renderProcessUserList error:',e.message);
-    el.innerHTML='<div style="color:var(--muted);font-size:12px;padding:8px">Unable to load user list — check Firebase rules (see instructions below).</div>';
-  }
+    const roleColor={admin:'var(--accent)',qa:'var(--purple)',tl:'var(--success)',agent:'var(--muted)',processAdmin:'var(--accent2)'};
+    el.innerHTML=`<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px">
+      <thead><tr>
+        <th style="text-align:left;padding:8px 12px;color:var(--muted);font-size:9.5px;text-transform:uppercase;letter-spacing:1.2px;font-family:var(--font-head);border-bottom:1px solid var(--border)">Email</th>
+        <th style="text-align:left;padding:8px 12px;color:var(--muted);font-size:9.5px;text-transform:uppercase;letter-spacing:1.2px;font-family:var(--font-head);border-bottom:1px solid var(--border)">Process</th>
+        <th style="text-align:left;padding:8px 12px;color:var(--muted);font-size:9.5px;text-transform:uppercase;letter-spacing:1.2px;font-family:var(--font-head);border-bottom:1px solid var(--border)">Role</th>
+        <th style="border-bottom:1px solid var(--border)"></th>
+      </tr></thead>
+      <tbody>${rows.map(r=>`<tr>
+        <td style="padding:8px 12px;border-bottom:1px solid rgba(28,38,64,0.5)">${r.email}</td>
+        <td style="padding:8px 12px;border-bottom:1px solid rgba(28,38,64,0.5)"><span style="font-family:var(--font-head);font-weight:900;color:var(--accent);letter-spacing:1px">${r.process}</span></td>
+        <td style="padding:8px 12px;border-bottom:1px solid rgba(28,38,64,0.5)"><span style="color:${roleColor[r.role]||'var(--muted)'};font-weight:700;font-family:var(--font-head);font-size:11px">${r.role}</span></td>
+        <td style="padding:8px 12px;border-bottom:1px solid rgba(28,38,64,0.5)"><button class="btn btn-danger btn-sm" onclick="revokeProcessUser('${r.email.replace(/'/g,"\\'")}','${r.process}')">&#128465;</button></td>
+      </tr>`).join('')}</tbody>
+    </table></div>`;
+  }catch(e){el.innerHTML='<div style="color:var(--critical);font-size:12px">Error loading user list</div>';}
 }
 
 window.revokeProcessUser=async function(email,proc){
   if(!confirm('Remove '+email+' from '+proc+'?'))return;
-  const key=email.replace(/\./g,'_');
+  const key=email.replace(/[.@]/g,'_');
   try{
     await window.remove(window.ref(window.db,'userProcesses/'+key+'/'+proc));
     showToast('Access revoked','s');
