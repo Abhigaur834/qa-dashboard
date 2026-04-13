@@ -852,7 +852,6 @@ tbody td{padding:11px 16px;font-size:13px;color:var(--text);}
 
     <!-- ══ AI AUDIT TAB ══ -->
     <div id="tab-aireview" class="tab-panel">
-
       <style>
         .ai-queue{width:280px;flex-shrink:0;border-right:1px solid var(--border);display:flex;flex-direction:column;background:var(--bg);height:calc(100vh - 120px);overflow:hidden;border-radius:var(--r-lg) 0 0 var(--r-lg);}
         .ai-queue-hdr{padding:12px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
@@ -873,8 +872,7 @@ tbody td{padding:11px 16px;font-size:13px;color:var(--text);}
         .ai-utt-spk{font-size:9.5px;font-family:var(--font-head);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;}
         .ai-utt-agent{color:var(--accent);}  .ai-utt-cust{color:var(--success);}
         .ai-utt-txt{font-size:12.5px;line-height:1.6;color:var(--text);background:var(--surface);border-radius:7px;padding:7px 11px;border:1px solid var(--border);}
-        .ai-utt-agent .ai-utt-txt{border-color:rgba(61,126,245,.15);}
-        .ai-utt-cust  .ai-utt-txt{border-color:rgba(34,211,138,.12);}
+        .ai-utt-agent .ai-utt-txt{border-color:rgba(61,126,245,.15);} .ai-utt-cust .ai-utt-txt{border-color:rgba(34,211,138,.12);}
         .ai-utt-time{font-size:9px;color:var(--muted);margin-top:2px;font-family:var(--font-head);}
         .ai-summary-box{background:rgba(139,108,245,.06);border:1px solid rgba(139,108,245,.2);border-radius:var(--r-md);padding:12px 14px;margin-bottom:12px;}
         .ai-param-row{display:flex;align-items:center;gap:10px;padding:9px 12px;border-bottom:1px solid var(--border);transition:background .12s;}
@@ -888,8 +886,7 @@ tbody td{padding:11px 16px;font-size:13px;color:var(--text);}
         .ai-br.ay{background:var(--success-dim);border-color:rgba(34,211,138,.4);color:var(--success);}
         .ai-br.an{background:var(--critical-dim);border-color:rgba(240,64,96,.4);color:var(--critical);}
         .ai-br.ana{background:rgba(74,88,120,.15);border-color:rgba(74,88,120,.35);color:var(--text-dim);}
-        .ai-cr-row{background:rgba(240,64,96,.03);}
-        .ai-cr-row:hover{background:rgba(240,64,96,.06) !important;}
+        .ai-cr-row{background:rgba(240,64,96,.03);} .ai-cr-row:hover{background:rgba(240,64,96,.06) !important;}
         .ai-coaching-box{background:rgba(240,168,48,.05);border:1px solid rgba(240,168,48,.2);border-radius:var(--r-md);padding:12px 14px;margin-top:10px;}
         .ai-footer{background:var(--surface);border-top:1px solid var(--border);padding:12px 20px;display:flex;align-items:center;gap:14px;flex-shrink:0;}
         .ai-upload-btn{background:rgba(139,108,245,.1);border:1px solid rgba(139,108,245,.25);color:var(--purple);padding:6px 14px;border-radius:var(--r-sm);font-family:var(--font-head);font-size:11px;font-weight:700;cursor:pointer;transition:all .2s;}
@@ -902,7 +899,6 @@ tbody td{padding:11px 16px;font-size:13px;color:var(--text);}
         .sp-error{background:var(--critical-dim);color:var(--critical);border:1px solid rgba(240,64,96,.25);}
       </style>
 
-      <!-- UPLOAD MODAL -->
       <div id="aiUploadModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;backdrop-filter:blur(4px);justify-content:center;align-items:center;">
         <div style="background:var(--surface);border:1px solid rgba(139,108,245,.25);border-radius:var(--r-lg);padding:32px;width:460px;max-width:90vw;position:relative">
           <div style="position:absolute;top:0;left:0;right:0;height:2px;border-radius:16px 16px 0 0;background:linear-gradient(90deg,var(--accent),var(--purple))"></div>
@@ -916,20 +912,17 @@ tbody td{padding:11px 16px;font-size:13px;color:var(--text);}
           <div style="margin-bottom:12px"><label style="display:block;font-size:9.5px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);font-family:var(--font-head);font-weight:700;margin-bottom:6px">Notes (optional)</label><input id="aiUpNotes" placeholder="Any context about this call" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-family:var(--font-body);font-size:13px;padding:9px 12px;outline:none;box-sizing:border-box"></div>
           <div style="display:flex;gap:10px;margin-top:20px">
             <button onclick="aiHideUpload()" style="flex:1;padding:10px;border-radius:var(--r-sm);border:1px solid var(--border);background:transparent;color:var(--muted);font-family:var(--font-head);font-size:12px;font-weight:700;cursor:pointer">Cancel</button>
-            <button onclick="aiSubmitUpload()" style="flex:2;padding:10px;border-radius:var(--r-sm);border:none;background:var(--accent);color:#fff;font-family:var(--font-head);font-size:12px;font-weight:700;cursor:pointer">Upload & Score →</button>
+            <button onclick="aiSubmitUpload()" style="flex:2;padding:10px;border-radius:var(--r-sm);border:none;background:var(--accent);color:#fff;font-family:var(--font-head);font-size:12px;font-weight:700;cursor:pointer">Upload & Score &rarr;</button>
           </div>
         </div>
       </div>
 
-      <!-- TAB BODY -->
       <div style="display:flex;gap:0;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;height:calc(100vh - 140px);">
-
-        <!-- LEFT: QUEUE -->
         <div class="ai-queue">
           <div class="ai-queue-hdr">
             <div>
               <div style="font-family:var(--font-head);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted)">Call Queue</div>
-              <div id="aiQueueCount" style="font-size:11px;color:var(--purple);margin-top:2px">Loading…</div>
+              <div id="aiQueueCount" style="font-size:11px;color:var(--purple);margin-top:2px">Loading&hellip;</div>
             </div>
             <button class="ai-upload-btn" onclick="aiShowUpload()">+ Upload</button>
           </div>
@@ -939,19 +932,16 @@ tbody td{padding:11px 16px;font-size:13px;color:var(--text);}
             <button class="ai-br" id="aiF-all" onclick="aiSetFilter('all',this)" style="font-size:9.5px">All</button>
           </div>
           <div class="ai-queue-list" id="aiQueueList">
-            <div style="text-align:center;padding:28px 12px;color:var(--muted);font-size:12px">Loading calls…</div>
+            <div style="text-align:center;padding:28px 12px;color:var(--muted);font-size:12px">Loading calls&hellip;</div>
           </div>
         </div>
-
-        <!-- RIGHT: MAIN -->
         <div class="ai-main" id="aiMainPanel">
           <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:var(--muted)">
-            <div style="font-size:40px;opacity:.3">🤖</div>
+            <div style="font-size:40px;opacity:.3">&#129302;</div>
             <div style="font-family:var(--font-head);font-size:15px;font-weight:700;color:var(--text-dim)">Select a call to review</div>
             <div style="font-size:12px;text-align:center;max-width:280px;line-height:1.6">AI auto-scores each call from the transcript. You review, adjust any parameter, then submit as the final audit.</div>
           </div>
         </div>
-
       </div>
     </div>
 
@@ -2687,443 +2677,230 @@ function populateProcessDropdowns(){
   sel.innerHTML='<option value="">Select process...</option>'+window._processList.map(p=>`<option value="${p.id}">${p.id}</option>`).join('');
   if(cur)sel.value=cur;
 }
-
+</script>
 <script>
 // ════════════════════════════════════════════════════════════════════════════
 //  QA.Hub — AI AUDIT TAB LOGIC
-//  Set AI_API_BASE to your Vercel deployment URL
+//  IMPORTANT: Update AI_API_BASE to your actual Vercel URL after deployment
 // ════════════════════════════════════════════════════════════════════════════
 const AI_API_BASE = 'https://api.qahub.online';
 
-// ── Parameter metadata (mirrors your PM object exactly) ──────────────────────
 const AI_NC_POINTS = {nc1:10,nc2:10,nc3:5,nc4:10,nc5:10,nc6:10,nc7:10,nc8:10,nc9:5,nc10:5,nc11:10,nc12:5};
 const AI_NCK = Object.keys(AI_NC_POINTS);
 const AI_CRK = ['cr1','cr2','cr3','cr4','cr5','cr6','cr7','cr8','cr9','cr10'];
 const AI_NC_GROUPS = {
-  'Call Opening / Closing': ['nc1','nc2','nc3','nc4'],
-  'Issue Identification':   ['nc5','nc6','nc7'],
-  'Customer Experience':    ['nc8','nc9','nc10','nc11','nc12'],
+  'Call Opening / Closing':['nc1','nc2','nc3','nc4'],
+  'Issue Identification':['nc5','nc6','nc7'],
+  'Customer Experience':['nc8','nc9','nc10','nc11','nc12']
 };
 const AI_PM = {
-  nc1:'Standard opening & name confirmation', nc2:'Summarization',
-  nc3:'Further assistance offered',           nc4:'Prescribed call closing',
-  nc5:'Paraphrasing for alignment',           nc6:'Customer VOC acknowledged',
-  nc7:'Relevant probing questions',           nc8:'Active Listening / Reading',
-  nc9:'Hold & Dead Air SLA',                  nc10:'Apologies, Empathy & Politeness',
-  nc11:'No Overlapping / Interruptions',      nc12:'Accurate Email to Client',
-  cr1:'Professional & polite throughout',     cr2:'Called within timeframe & TZ',
-  cr3:'Complete & accurate information',      cr4:'Timely queries + right disposition',
-  cr5:'Qualifying questions + notes updated', cr6:'Opportunity created post-call',
-  cr7:'Special requirements noted',           cr8:'Non-sales queries redirected',
-  cr9:'All client questions answered',        cr10:'Lead converted without pushing',
+  nc1:'Standard opening & name confirmation',nc2:'Summarization',nc3:'Further assistance offered',nc4:'Prescribed call closing',
+  nc5:'Paraphrasing for alignment',nc6:'Customer VOC acknowledged',nc7:'Relevant probing questions',
+  nc8:'Active Listening / Reading',nc9:'Hold & Dead Air SLA',nc10:'Apologies, Empathy & Politeness',
+  nc11:'No Overlapping / Interruptions',nc12:'Accurate Email to Client',
+  cr1:'Professional & polite throughout',cr2:'Called within timeframe & TZ',cr3:'Complete & accurate information',
+  cr4:'Timely queries + right disposition',cr5:'Qualifying questions + notes updated',cr6:'Opportunity created post-call',
+  cr7:'Special requirements noted',cr8:'Non-sales queries redirected',cr9:'All client questions answered',cr10:'Lead converted without pushing'
 };
 
-// ── State ────────────────────────────────────────────────────────────────────
-let _aiCalls        = [];
-let _aiSelectedCall = null;
-let _aiFilter       = 'pending_review';
-let _aiCS           = {};
-let _aiQueueTimer   = null;
+let _aiCalls=[],_aiSelectedCall=null,_aiFilter='pending_review',_aiCS={},_aiQueueTimer=null;
 
-// ── Filter ───────────────────────────────────────────────────────────────────
-function aiSetFilter(filter, btn) {
-  _aiFilter = filter;
-  document.querySelectorAll('[id^="aiF-"]').forEach(b => b.classList.remove('ay'));
+function aiSetFilter(filter,btn){
+  _aiFilter=filter;
+  document.querySelectorAll('[id^="aiF-"]').forEach(b=>b.classList.remove('ay'));
   btn.classList.add('ay');
   aiLoadQueue();
 }
 
-// ── Load queue from RTDB ─────────────────────────────────────────────────────
-async function aiLoadQueue() {
-  if (!window._currentProcess) return;
-  try {
-    const snap = await window.get(window.ref(window.db, `processes/${window._currentProcess}/calls`));
-    _aiCalls = [];
-    if (snap.exists()) snap.forEach(c => _aiCalls.push({ key: c.key, ...c.val() }));
-    _aiCalls.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-
-    const filtered = _aiFilter === 'all' ? _aiCalls : _aiCalls.filter(c => {
-      if (_aiFilter === 'pending_review') return ['pending_review','pending_transcription','transcribing','ai_scoring','transcription_failed','ai_scoring_failed'].includes(c.status);
-      if (_aiFilter === 'submitted')      return c.status === 'submitted';
+async function aiLoadQueue(){
+  if(!window._currentProcess)return;
+  try{
+    const snap=await window.get(window.ref(window.db,`processes/${window._currentProcess}/calls`));
+    _aiCalls=[];
+    if(snap.exists())snap.forEach(c=>_aiCalls.push({key:c.key,...c.val()}));
+    _aiCalls.sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
+    const filtered=_aiFilter==='all'?_aiCalls:_aiCalls.filter(c=>{
+      if(_aiFilter==='pending_review')return['pending_review','pending_transcription','transcribing','ai_scoring','transcription_failed','ai_scoring_failed'].includes(c.status);
+      if(_aiFilter==='submitted')return c.status==='submitted';
       return true;
     });
-
-    const pending = _aiCalls.filter(c => c.status === 'pending_review').length;
-    const badge = document.getElementById('aiAuditBadge');
-    if (badge) badge.textContent = pending;
-    const countEl = document.getElementById('aiQueueCount');
-    if (countEl) countEl.textContent = filtered.length + ' call' + (filtered.length !== 1 ? 's' : '');
-
+    const pending=_aiCalls.filter(c=>c.status==='pending_review').length;
+    const badge=document.getElementById('aiAuditBadge');if(badge)badge.textContent=pending;
+    const countEl=document.getElementById('aiQueueCount');if(countEl)countEl.textContent=filtered.length+' call'+(filtered.length!==1?'s':'');
     aiRenderQueue(filtered);
-  } catch(e) { console.warn('aiLoadQueue:', e); }
+  }catch(e){console.warn('aiLoadQueue:',e);}
 }
 
-// ── Render queue cards ────────────────────────────────────────────────────────
-function aiRenderQueue(calls) {
-  const el = document.getElementById('aiQueueList');
-  if (!el) return;
-  if (!calls.length) {
-    el.innerHTML = '<div style="text-align:center;padding:24px 10px;color:var(--muted);font-size:12px">No calls in this view</div>';
-    return;
-  }
-  el.innerHTML = calls.map(c => {
-    const ai    = c.aiSuggestions;
-    const badge = aiStatusBadge(c.status, ai);
-    const score = ai?.totalScore ?? null;
-    const sc    = score === null ? 'var(--muted)' : score >= 85 ? 'var(--success)' : score >= 70 ? 'var(--warning)' : 'var(--critical)';
-    const time  = c.createdAt ? new Date(c.createdAt).toLocaleTimeString('en-IN', {hour:'2-digit',minute:'2-digit'}) : '';
-    const isActive = _aiSelectedCall?.key === c.key;
-    return `<div class="ai-call-card${isActive?' active':''}" onclick="aiSelectCall('${c.key}')">
+function aiRenderQueue(calls){
+  const el=document.getElementById('aiQueueList');if(!el)return;
+  if(!calls.length){el.innerHTML='<div style="text-align:center;padding:24px 10px;color:var(--muted);font-size:12px">No calls in this view</div>';return;}
+  el.innerHTML=calls.map(c=>{
+    const ai=c.aiSuggestions,badge=aiStatusBadge(c.status,ai);
+    const score=ai?.totalScore??null;
+    const sc=score===null?'var(--muted)':score>=85?'var(--success)':score>=70?'var(--warning)':'var(--critical)';
+    const time=c.createdAt?new Date(c.createdAt).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'}):'';
+    const isActive=_aiSelectedCall?.key===c.key;
+    return`<div class="ai-call-card${isActive?' active':''}" onclick="aiSelectCall('${c.key}')">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
         <div style="font-family:var(--font-head);font-weight:700;font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:150px">${c.agentName||c.agentNumber||'Unknown Agent'}</div>
         <div class="ai-status-pill ${badge.cls}">${badge.label}</div>
       </div>
-      <div style="display:flex;gap:8px;font-size:10px;color:var(--muted)">
-        <span>${c.dialerSource||'upload'}</span><span>${time}</span>
-        ${c.duration ? `<span>${Math.round(c.duration/60)}m</span>` : ''}
-      </div>
-      ${score !== null ? `<div style="font-family:var(--font-head);font-weight:800;font-size:14px;color:${sc};margin-top:4px">${score}%</div>` : ''}
+      <div style="display:flex;gap:8px;font-size:10px;color:var(--muted)"><span>${c.dialerSource||'upload'}</span><span>${time}</span>${c.duration?`<span>${Math.round(c.duration/60)}m</span>`:''}</div>
+      ${score!==null?`<div style="font-family:var(--font-head);font-weight:800;font-size:14px;color:${sc};margin-top:4px">${score}%</div>`:''}
     </div>`;
   }).join('');
 }
 
-function aiStatusBadge(status, ai) {
-  const map = {
-    pending_transcription: {cls:'sp-pending',    label:'Queued'},
-    transcribing:          {cls:'sp-processing', label:'Transcribing'},
-    ai_scoring:            {cls:'sp-processing', label:'AI Scoring'},
-    pending_review:        {cls:'sp-review',     label:'Review'},
-    submitted:             {cls:'sp-done',       label:'Done'},
-    transcription_failed:  {cls:'sp-error',      label:'Error'},
-    ai_scoring_failed:     {cls:'sp-error',      label:'AI Error'},
-  };
-  if (status === 'pending_review' && ai) {
-    if (ai.result === 'Pass')   return {cls:'sp-done',   label:'AI Pass'};
-    if (ai.result === 'Review') return {cls:'sp-review',  label:'AI Review'};
-    if (ai.result === 'Fail')   return {cls:'sp-error',   label:'AI Fail'};
-  }
-  return map[status] || {cls:'sp-pending', label:status};
+function aiStatusBadge(status,ai){
+  const map={pending_transcription:{cls:'sp-pending',label:'Queued'},transcribing:{cls:'sp-processing',label:'Transcribing'},ai_scoring:{cls:'sp-processing',label:'AI Scoring'},pending_review:{cls:'sp-review',label:'Review'},submitted:{cls:'sp-done',label:'Done'},transcription_failed:{cls:'sp-error',label:'Error'},ai_scoring_failed:{cls:'sp-error',label:'AI Error'}};
+  if(status==='pending_review'&&ai){if(ai.result==='Pass')return{cls:'sp-done',label:'AI Pass'};if(ai.result==='Review')return{cls:'sp-review',label:'AI Review'};if(ai.result==='Fail')return{cls:'sp-error',label:'AI Fail'};}
+  return map[status]||{cls:'sp-pending',label:status};
 }
 
-// ── Select a call ─────────────────────────────────────────────────────────────
-async function aiSelectCall(key) {
-  try {
-    const snap = await window.get(window.ref(window.db, `processes/${window._currentProcess}/calls/${key}`));
-    if (!snap.exists()) return;
-    _aiSelectedCall = {key, ...snap.val()};
-    _aiCS = {};
+async function aiSelectCall(key){
+  try{
+    const snap=await window.get(window.ref(window.db,`processes/${window._currentProcess}/calls/${key}`));
+    if(!snap.exists())return;
+    _aiSelectedCall={key,...snap.val()};_aiCS={};
     aiRenderMain(_aiSelectedCall);
-    const filtered = _aiFilter === 'all' ? _aiCalls : _aiCalls.filter(c => {
-      if (_aiFilter === 'pending_review') return ['pending_review','pending_transcription','transcribing','ai_scoring','transcription_failed','ai_scoring_failed'].includes(c.status);
-      if (_aiFilter === 'submitted')      return c.status === 'submitted';
+    const filtered=_aiFilter==='all'?_aiCalls:_aiCalls.filter(c=>{
+      if(_aiFilter==='pending_review')return['pending_review','pending_transcription','transcribing','ai_scoring','transcription_failed','ai_scoring_failed'].includes(c.status);
+      if(_aiFilter==='submitted')return c.status==='submitted';
       return true;
     });
     aiRenderQueue(filtered);
-  } catch(e) { console.warn('aiSelectCall:', e); }
+  }catch(e){console.warn('aiSelectCall:',e);}
 }
 
-// ── Score helpers (mirrors your calcNCData / checkCRStatus exactly) ───────────
-function aiCalcNCData(cs) {
-  let earned = 0, total = 0;
-  AI_NCK.forEach(k => {
-    if (!(k in cs)) return;
-    const pts = AI_NC_POINTS[k];
-    if (cs[k] === 'yes')  { earned += pts; total += pts; }
-    else if (cs[k] === 'no') { total += pts; }
-  });
-  return total > 0 ? {pct: Math.round(earned/total*100), earned, total} : null;
+function aiCalcNCData(cs){
+  let earned=0,total=0;
+  AI_NCK.forEach(k=>{if(!(k in cs))return;const pts=AI_NC_POINTS[k];if(cs[k]==='yes'){earned+=pts;total+=pts;}else if(cs[k]==='no'){total+=pts;}});
+  return total>0?{pct:Math.round(earned/total*100),earned,total}:null;
 }
-function aiCheckCR(cs) { return AI_CRK.some(k => cs[k] === 'no'); }
-function aiCalcResult(cs) {
-  const nc = aiCalcNCData(cs), fatal = aiCheckCR(cs);
-  const tot = fatal ? 0 : (nc ? nc.pct : null);
-  const res = tot === null ? '—' : fatal ? 'Fail' : tot >= 85 ? 'Pass' : tot >= 70 ? 'Review' : 'Fail';
-  return {nc, fatal, tot, res};
-}
-function aiScoreColor(score, result) {
-  if (result === 'Fail' || score === 0) return 'var(--critical)';
-  if (score >= 85) return 'var(--success)';
-  if (score >= 70) return 'var(--warning)';
-  return 'var(--critical)';
-}
+function aiCheckCR(cs){return AI_CRK.some(k=>cs[k]==='no');}
+function aiCalcResult(cs){const nc=aiCalcNCData(cs),fatal=aiCheckCR(cs),tot=fatal?0:(nc?nc.pct:null),res=tot===null?'--':fatal?'Fail':tot>=85?'Pass':tot>=70?'Review':'Fail';return{nc,fatal,tot,res};}
+function aiScoreColor(score,result){if(result==='Fail'||score===0)return'var(--critical)';if(score>=85)return'var(--success)';if(score>=70)return'var(--warning)';return'var(--critical)';}
 
-// ── Rating buttons ────────────────────────────────────────────────────────────
-function aiRate(btn, val, key) {
-  const rg = btn.closest('.ai-rg');
-  rg.querySelectorAll('.ai-br').forEach(b => b.classList.remove('ay','an','ana'));
-  if (_aiCS[key] === val) { delete _aiCS[key]; }
-  else { _aiCS[key] = val; btn.classList.add(val==='yes'?'ay':val==='no'?'an':'ana'); }
+function aiRate(btn,val,key){
+  const rg=btn.closest('.ai-rg');
+  rg.querySelectorAll('.ai-br').forEach(b=>b.classList.remove('ay','an','ana'));
+  if(_aiCS[key]===val){delete _aiCS[key];}else{_aiCS[key]=val;btn.classList.add(val==='yes'?'ay':val==='no'?'an':'ana');}
   aiUpdateFooter();
 }
-function aiPreFillButton(key, val, rg) {
-  rg.querySelectorAll('.ai-br').forEach(b => b.classList.remove('ay','an','ana'));
-  if (val === 'yes') rg.querySelectorAll('.ai-br')[0]?.classList.add('ay');
-  if (val === 'no')  rg.querySelectorAll('.ai-br')[1]?.classList.add('an');
-  if (val === 'na')  rg.querySelectorAll('.ai-br')[2]?.classList.add('ana');
+function aiPreFillButton(key,val,rg){
+  rg.querySelectorAll('.ai-br').forEach(b=>b.classList.remove('ay','an','ana'));
+  if(val==='yes')rg.querySelectorAll('.ai-br')[0]?.classList.add('ay');
+  if(val==='no')rg.querySelectorAll('.ai-br')[1]?.classList.add('an');
+  if(val==='na')rg.querySelectorAll('.ai-br')[2]?.classList.add('ana');
 }
-function aiUpdateFooter() {
-  const {nc, fatal, tot, res} = aiCalcResult(_aiCS);
-  const el = document.getElementById('aiFooterScore');
-  if (!el) return;
-  const c = aiScoreColor(tot, res);
-  el.innerHTML = `<div style="font-family:var(--font-head);font-size:20px;font-weight:800;color:${c}">${tot !== null ? tot+'%' : '—'}</div><div style="font-size:10px;color:${c};font-family:var(--font-head);font-weight:700;text-transform:uppercase;letter-spacing:1px">${res}</div>`;
+function aiUpdateFooter(){
+  const{nc,fatal,tot,res}=aiCalcResult(_aiCS);
+  const el=document.getElementById('aiFooterScore');if(!el)return;
+  const c=aiScoreColor(tot,res);
+  el.innerHTML=`<div style="font-family:var(--font-head);font-size:20px;font-weight:800;color:${c}">${tot!==null?tot+'%':'--'}</div><div style="font-size:10px;color:${c};font-family:var(--font-head);font-weight:700;text-transform:uppercase;letter-spacing:1px">${res}</div>`;
 }
 
-// ── Render main review panel ──────────────────────────────────────────────────
-function aiRenderMain(call) {
-  const ai   = call.aiSuggestions;
-  const done = call.status === 'submitted';
-  const main = document.getElementById('aiMainPanel');
-  if (!main) return;
-
-  if (!ai && !done) {
-    main.innerHTML = `<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:var(--muted)"><div style="font-size:32px;opacity:.4">⏳</div><div style="font-family:var(--font-head);font-size:14px;font-weight:700;color:var(--text-dim)">AI is working…</div><div style="font-size:12px">Status: <strong style="color:var(--accent)">${call.status}</strong></div></div>`;
-    return;
-  }
-
-  const aiScores = ai?.scores || {};
-  const segments = call.transcript?.segments || [];
-  const reasons  = ai?.reasons || {};
-  const tips     = ai?.coachingTips || [];
-  const initials = (call.agentName||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
-  const sc       = aiScoreColor(ai?.totalScore??0, ai?.result||'');
-
-  if (!done) _aiCS = {...aiScores};
-
-  main.innerHTML = `
+function aiRenderMain(call){
+  const ai=call.aiSuggestions,done=call.status==='submitted';
+  const main=document.getElementById('aiMainPanel');if(!main)return;
+  if(!ai&&!done){main.innerHTML=`<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:var(--muted)"><div style="font-size:32px;opacity:.4">&#9203;</div><div style="font-family:var(--font-head);font-size:14px;font-weight:700;color:var(--text-dim)">AI is working&hellip;</div><div style="font-size:12px">Status: <strong style="color:var(--accent)">${call.status}</strong></div></div>`;return;}
+  const aiScores=ai?.scores||{},segments=call.transcript?.segments||[],reasons=ai?.reasons||{},tips=ai?.coachingTips||[];
+  const initials=(call.agentName||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+  const sc=aiScoreColor(ai?.totalScore??0,ai?.result||'');
+  if(!done)_aiCS={...aiScores};
+  main.innerHTML=`
     <div class="ai-call-hdr">
       <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--purple));display:flex;align-items:center;justify-content:center;font-family:var(--font-head);font-weight:800;font-size:13px;color:#fff;flex-shrink:0">${initials}</div>
       <div style="flex:1">
         <div style="font-family:var(--font-head);font-weight:700;font-size:14px">${call.agentName||call.agentNumber||'Unknown Agent'}</div>
-        <div style="font-size:11px;color:var(--muted)">${call.dialerSource||'manual'} · ${call.callerNumber||''} · ${call.createdAt?new Date(call.createdAt).toLocaleString('en-IN',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}):''}</div>
+        <div style="font-size:11px;color:var(--muted)">${call.dialerSource||'manual'} &middot; ${call.callerNumber||''} &middot; ${call.createdAt?new Date(call.createdAt).toLocaleString('en-IN',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}):''}</div>
       </div>
       <div style="text-align:right">
-        <div style="font-family:var(--font-head);font-weight:800;font-size:22px;color:${sc}">${ai?.totalScore??'—'}%</div>
-        <div style="font-size:10px;color:${sc};font-family:var(--font-head);font-weight:700">${ai?.result||'—'} · AI scored</div>
+        <div style="font-family:var(--font-head);font-weight:800;font-size:22px;color:${sc}">${ai?.totalScore??'--'}%</div>
+        <div style="font-size:10px;color:${sc};font-family:var(--font-head);font-weight:700">${ai?.result||'--'} &middot; AI scored</div>
       </div>
-      ${ai?.confidence ? `<div style="text-align:right;font-size:10px;color:var(--muted)">Confidence<br><strong style="color:var(--text-dim)">${Math.round(ai.confidence*100)}%</strong></div>` : ''}
+      ${ai?.confidence?`<div style="text-align:right;font-size:10px;color:var(--muted)">Confidence<br><strong style="color:var(--text-dim)">${Math.round(ai.confidence*100)}%</strong></div>`:''}
     </div>
     <div class="ai-body">
       <div class="ai-transcript">
-        <div class="ai-panel-hdr">
-          <span>Transcript</span>
-          <span style="font-size:10px;color:var(--muted)">${segments.length} utterances ${call.transcript?.stats?'· Agent: '+call.transcript.stats.talkRatio+'%':''}</span>
-        </div>
+        <div class="ai-panel-hdr"><span>Transcript</span><span style="font-size:10px;color:var(--muted)">${segments.length} utterances ${call.transcript?.stats?'&middot; Agent: '+call.transcript.stats.talkRatio+'%':''}</span></div>
         <div class="ai-scroll">
-          ${segments.length
-            ? segments.map(s => {
-                const isAgent = s.speaker==='Agent';
-                const min = Math.floor(s.start/60), sec = Math.floor(s.start%60);
-                return `<div class="ai-utt ${isAgent?'ai-utt-agent':'ai-utt-cust'}">
-                  <div class="ai-utt-spk">${s.speaker}</div>
-                  <div class="ai-utt-txt">${s.text}</div>
-                  <div class="ai-utt-time">${min}:${String(sec).padStart(2,'0')}</div>
-                </div>`;
-              }).join('')
-            : '<div style="color:var(--muted);font-size:12px;text-align:center;padding:20px">No transcript available</div>'}
+          ${segments.length?segments.map(s=>{const isAgent=s.speaker==='Agent',min=Math.floor(s.start/60),sec=Math.floor(s.start%60);return`<div class="ai-utt ${isAgent?'ai-utt-agent':'ai-utt-cust'}"><div class="ai-utt-spk">${s.speaker}</div><div class="ai-utt-txt">${s.text}</div><div class="ai-utt-time">${min}:${String(sec).padStart(2,'0')}</div></div>`;}).join(''):'<div style="color:var(--muted);font-size:12px;text-align:center;padding:20px">No transcript available</div>'}
         </div>
       </div>
       <div class="ai-scoring">
-        <div class="ai-panel-hdr">
-          <span>AI Audit Review</span>
-          ${done ? '<span style="color:var(--success);font-size:10px">✓ Submitted</span>' : '<span style="color:var(--accent2);font-size:10px">Adjust AI scores → Submit</span>'}
-        </div>
+        <div class="ai-panel-hdr"><span>AI Audit Review</span>${done?'<span style="color:var(--success);font-size:10px">&#10003; Submitted</span>':'<span style="color:var(--accent2);font-size:10px">Adjust AI scores &rarr; Submit</span>'}</div>
         <div class="ai-scroll">
-          ${ai?.callSummary ? `<div class="ai-summary-box">
-            <div style="font-size:10px;font-family:var(--font-head);font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--purple);margin-bottom:6px">🤖 AI Summary</div>
-            <div style="font-size:12.5px;color:var(--text-dim);line-height:1.65">${ai.callSummary}</div>
-            ${ai.agentStrengths ? `<div style="font-size:11px;color:var(--success);margin-top:6px">✅ ${ai.agentStrengths}</div>` : ''}
-          </div>` : ''}
-
-          <div style="font-size:10px;font-family:var(--font-head);font-weight:700;text-transform:uppercase;letter-spacing:2px;color:var(--muted);padding:8px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px;background:rgba(240,64,96,.03)">
-            <span>⚡ Critical Parameters</span>
-            <span style="font-size:8.5px;color:rgba(240,64,96,.7);font-weight:400">Any N = FATAL FAIL</span>
-          </div>
-          ${AI_CRK.map(k => {
-            const aiVal = aiScores[k]||'yes';
-            const isN   = aiVal==='no';
-            return `<div class="ai-param-row ai-cr-row" style="${isN?'border-left:2px solid var(--critical);':''}">
-              <div class="ai-param-label" style="flex:1">
-                <div>${AI_PM[k]}</div>
-                ${reasons[k] ? `<div class="ai-param-reason">${reasons[k]}</div>` : ''}
-              </div>
-              <span class="ai-param-pts" style="background:var(--critical-dim);color:var(--critical);border-color:rgba(240,64,96,.2)">FATAL</span>
-              ${!done ? `<div class="ai-rg" id="airg-${k}">
-                <button class="ai-br" onclick="aiRate(this,'yes','${k}')">Y</button>
-                <button class="ai-br" onclick="aiRate(this,'no','${k}')">N</button>
-              </div>` : `<span class="ai-status-pill ${aiVal==='yes'?'sp-done':'sp-error'}">${aiVal==='yes'?'Pass':'FAIL'}</span>`}
-            </div>`;
-          }).join('')}
-
-          ${Object.entries(AI_NC_GROUPS).map(([grpName, keys]) => `
-            <div style="font-size:10px;font-family:var(--font-head);font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--accent);padding:8px 12px;border-bottom:1px solid var(--border);background:rgba(61,126,245,.03)">${grpName}</div>
-            ${keys.map(k => {
-              const aiVal = aiScores[k]||'na';
-              const c = aiVal==='yes'?'var(--success)':aiVal==='no'?'var(--critical)':'var(--muted)';
-              return `<div class="ai-param-row">
-                <div class="ai-param-label" style="flex:1">
-                  <div>${AI_PM[k]}</div>
-                  ${reasons[k] ? `<div class="ai-param-reason">${reasons[k]}</div>` : ''}
-                </div>
-                <span class="ai-param-pts">${AI_NC_POINTS[k]} pts</span>
-                ${!done ? `<div class="ai-rg" id="airg-${k}">
-                  <button class="ai-br" onclick="aiRate(this,'yes','${k}')">Y</button>
-                  <button class="ai-br" onclick="aiRate(this,'no','${k}')">N</button>
-                  <button class="ai-br" onclick="aiRate(this,'na','${k}')">N/A</button>
-                </div>` : `<span class="ai-status-pill ${aiVal==='yes'?'sp-done':aiVal==='no'?'sp-error':'sp-pending'}" style="font-size:9px">${aiVal.toUpperCase()}</span>`}
-              </div>`;
-            }).join('')}
-          `).join('')}
-
-          ${tips.length ? `<div class="ai-coaching-box">
-            <div style="font-size:10px;font-family:var(--font-head);font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--accent2);margin-bottom:8px">🎯 AI Coaching Suggestions</div>
-            ${tips.map(t => `<div style="font-size:12px;color:var(--text);line-height:1.6;padding:7px 10px;background:rgba(240,168,48,.06);border-radius:6px;margin-bottom:5px;border-left:2px solid var(--accent2)">${t}</div>`).join('')}
-          </div>` : ''}
+          ${ai?.callSummary?`<div class="ai-summary-box"><div style="font-size:10px;font-family:var(--font-head);font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--purple);margin-bottom:6px">&#129302; AI Summary</div><div style="font-size:12.5px;color:var(--text-dim);line-height:1.65">${ai.callSummary}</div>${ai.agentStrengths?`<div style="font-size:11px;color:var(--success);margin-top:6px">&#10003; ${ai.agentStrengths}</div>`:''}</div>`:''}
+          <div style="font-size:10px;font-family:var(--font-head);font-weight:700;text-transform:uppercase;letter-spacing:2px;color:var(--muted);padding:8px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px;background:rgba(240,64,96,.03)"><span>&#9889; Critical Parameters</span><span style="font-size:8.5px;color:rgba(240,64,96,.7);font-weight:400">Any N = FATAL FAIL</span></div>
+          ${AI_CRK.map(k=>{const aiVal=aiScores[k]||'yes',isN=aiVal==='no';return`<div class="ai-param-row ai-cr-row" style="${isN?'border-left:2px solid var(--critical);':''}"><div class="ai-param-label" style="flex:1"><div>${AI_PM[k]}</div>${reasons[k]?`<div class="ai-param-reason">${reasons[k]}</div>`:''}</div><span class="ai-param-pts" style="background:var(--critical-dim);color:var(--critical);border-color:rgba(240,64,96,.2)">FATAL</span>${!done?`<div class="ai-rg" id="airg-${k}"><button class="ai-br" onclick="aiRate(this,'yes','${k}')">Y</button><button class="ai-br" onclick="aiRate(this,'no','${k}')">N</button></div>`:`<span class="ai-status-pill ${aiVal==='yes'?'sp-done':'sp-error'}">${aiVal==='yes'?'Pass':'FAIL'}</span>`}</div>`;}).join('')}
+          ${Object.entries(AI_NC_GROUPS).map(([grpName,keys])=>`<div style="font-size:10px;font-family:var(--font-head);font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--accent);padding:8px 12px;border-bottom:1px solid var(--border);background:rgba(61,126,245,.03)">${grpName}</div>${keys.map(k=>{const aiVal=aiScores[k]||'na';return`<div class="ai-param-row"><div class="ai-param-label" style="flex:1"><div>${AI_PM[k]}</div>${reasons[k]?`<div class="ai-param-reason">${reasons[k]}</div>`:''}</div><span class="ai-param-pts">${AI_NC_POINTS[k]} pts</span>${!done?`<div class="ai-rg" id="airg-${k}"><button class="ai-br" onclick="aiRate(this,'yes','${k}')">Y</button><button class="ai-br" onclick="aiRate(this,'no','${k}')">N</button><button class="ai-br" onclick="aiRate(this,'na','${k}')">N/A</button></div>`:`<span class="ai-status-pill ${aiVal==='yes'?'sp-done':aiVal==='no'?'sp-error':'sp-pending'}" style="font-size:9px">${aiVal.toUpperCase()}</span>`}</div>`;}).join('')}`).join('')}
+          ${tips.length?`<div class="ai-coaching-box"><div style="font-size:10px;font-family:var(--font-head);font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--accent2);margin-bottom:8px">&#127919; AI Coaching Suggestions</div>${tips.map(t=>`<div style="font-size:12px;color:var(--text);line-height:1.6;padding:7px 10px;background:rgba(240,168,48,.06);border-radius:6px;margin-bottom:5px;border-left:2px solid var(--accent2)">${t}</div>`).join('')}</div>`:''}
           <div style="height:70px"></div>
         </div>
-
-        ${!done
-          ? `<div class="ai-footer">
-              <div id="aiFooterScore" style="min-width:80px">
-                <div style="font-family:var(--font-head);font-size:20px;font-weight:800;color:${sc}">${ai?.totalScore??'—'}%</div>
-                <div style="font-size:10px;color:${sc};font-family:var(--font-head);font-weight:700;text-transform:uppercase;letter-spacing:1px">${ai?.result||'—'} · AI</div>
-              </div>
-              <div style="flex:1;font-size:11px;color:var(--muted);line-height:1.5">Adjust any parameter if you disagree with the AI.<br>Submit creates the audit in your Audit Log.</div>
-              <button class="btn btn-success" onclick="aiSubmitAudit()" id="aiSubmitBtn">💾 Submit Final Audit</button>
-            </div>`
-          : `<div class="ai-footer" style="justify-content:center">
-              <div style="color:var(--success);font-family:var(--font-head);font-weight:700">✓ Submitted ${call.reviewedAt?'on '+new Date(call.reviewedAt).toLocaleDateString('en-IN'):''}</div>
-            </div>`}
+        ${!done?`<div class="ai-footer"><div id="aiFooterScore" style="min-width:80px"><div style="font-family:var(--font-head);font-size:20px;font-weight:800;color:${sc}">${ai?.totalScore??'--'}%</div><div style="font-size:10px;color:${sc};font-family:var(--font-head);font-weight:700;text-transform:uppercase;letter-spacing:1px">${ai?.result||'--'} &middot; AI</div></div><div style="flex:1;font-size:11px;color:var(--muted);line-height:1.5">Adjust any parameter if you disagree with the AI.<br>Submit creates the audit in your Audit Log.</div><button class="btn btn-success" onclick="aiSubmitAudit()" id="aiSubmitBtn">&#128190; Submit Final Audit</button></div>`:`<div class="ai-footer" style="justify-content:center"><div style="color:var(--success);font-family:var(--font-head);font-weight:700">&#10003; Submitted ${call.reviewedAt?'on '+new Date(call.reviewedAt).toLocaleDateString('en-IN'):''}</div></div>`}
       </div>
     </div>`;
-
-  if (!done) {
-    setTimeout(() => {
-      [...AI_CRK, ...AI_NCK].forEach(k => {
-        const rg = document.getElementById(`airg-${k}`);
-        const v  = aiScores[k];
-        if (rg && v) aiPreFillButton(k, v, rg);
-      });
-    }, 50);
-  }
+  if(!done){setTimeout(()=>{[...AI_CRK,...AI_NCK].forEach(k=>{const rg=document.getElementById(`airg-${k}`),v=aiScores[k];if(rg&&v)aiPreFillButton(k,v,rg);});},50);}
 }
 
-// ── Submit final audit ────────────────────────────────────────────────────────
-async function aiSubmitAudit() {
-  if (!_aiSelectedCall || !window.auth?.currentUser) return;
-  const btn = document.getElementById('aiSubmitBtn');
-  if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
-
-  const nc    = aiCalcNCData(_aiCS);
-  const fatal = aiCheckCR(_aiCS);
-  const tot   = fatal ? 0 : (nc ? nc.pct : null);
-  const result = tot === null ? null : fatal ? 'Fail' : tot >= 85 ? 'Pass' : tot >= 70 ? 'Review' : 'Fail';
-  const ai    = _aiSelectedCall.aiSuggestions || {};
-
-  const audit = {
-    timestamp:        Date.now(),
-    createdBy:        window.auth.currentUser.email,
-    callDate:         _aiSelectedCall.createdAt?.slice(0,10) || '',
-    date:             new Date().toISOString().slice(0,10),
-    agent:            _aiSelectedCall.agentName || _aiSelectedCall.agentNumber || 'Unknown',
-    reviewer:         window.auth.currentUser.email,
-    empId:            '',
-    tlName:           '',
-    callId:           _aiSelectedCall.callId || _aiSelectedCall.key,
-    channel:          'Inbound Call',
-    team:             '',
-    tenure:           0,
-    auditType:        'AI',
-    leadStatus:       '',
-    country:          '',
-    language:         '',
-    converted:        'na',
-    summary:          ai.callSummary || '',
-    observations:     (ai.coachingTips||[]).join(' | '),
-    recommendation:   ai.agentStrengths || '',
-    scores:           {..._aiCS},
-    ncScore:          nc ? nc.pct   : null,
-    ncEarned:         nc ? nc.earned : null,
-    ncTotal:          nc ? nc.total  : null,
-    crScore:          fatal ? 0 : 100,
-    crFatal:          fatal,
-    crFailCount:      AI_CRK.filter(k => _aiCS[k]==='no').length,
-    totalScore:       tot,
-    result,
-    coachingRequired: fatal || (tot !== null && tot < 85),
-    aiGenerated:      true,
-    aiConfidence:     ai.confidence || null,
-    sourceCallKey:    _aiSelectedCall.key,
-    aiAdjustments:    Object.keys(_aiCS).filter(k => _aiCS[k] !== (ai.scores||{})[k]).length,
+async function aiSubmitAudit(){
+  if(!_aiSelectedCall||!window.auth?.currentUser)return;
+  const btn=document.getElementById('aiSubmitBtn');
+  if(btn){btn.disabled=true;btn.textContent='Saving\u2026';}
+  const nc=aiCalcNCData(_aiCS),fatal=aiCheckCR(_aiCS),tot=fatal?0:(nc?nc.pct:null);
+  const result=tot===null?null:fatal?'Fail':tot>=85?'Pass':tot>=70?'Review':'Fail';
+  const ai=_aiSelectedCall.aiSuggestions||{};
+  const audit={
+    timestamp:Date.now(),createdBy:window.auth.currentUser.email,
+    callDate:_aiSelectedCall.createdAt?.slice(0,10)||'',date:new Date().toISOString().slice(0,10),
+    agent:_aiSelectedCall.agentName||_aiSelectedCall.agentNumber||'Unknown',
+    reviewer:window.auth.currentUser.email,empId:'',tlName:'',
+    callId:_aiSelectedCall.callId||_aiSelectedCall.key,channel:'Inbound Call',
+    team:'',tenure:0,auditType:'AI',leadStatus:'',country:'',language:'',converted:'na',
+    summary:ai.callSummary||'',observations:(ai.coachingTips||[]).join(' | '),recommendation:ai.agentStrengths||'',
+    scores:{..._aiCS},ncScore:nc?nc.pct:null,ncEarned:nc?nc.earned:null,ncTotal:nc?nc.total:null,
+    crScore:fatal?0:100,crFatal:fatal,crFailCount:AI_CRK.filter(k=>_aiCS[k]==='no').length,
+    totalScore:tot,result,coachingRequired:fatal||(tot!==null&&tot<85),
+    aiGenerated:true,aiConfidence:ai.confidence||null,sourceCallKey:_aiSelectedCall.key,
+    aiAdjustments:Object.keys(_aiCS).filter(k=>_aiCS[k]!==(ai.scores||{})[k]).length
   };
-
-  try {
-    const auditRef = await window.push(window.ref(window.db, `processes/${window._currentProcess}/audits`), audit);
-    await window.set(window.ref(window.db, `processes/${window._currentProcess}/calls/${_aiSelectedCall.key}/status`), 'submitted');
-    await window.set(window.ref(window.db, `processes/${window._currentProcess}/calls/${_aiSelectedCall.key}/finalAuditId`), auditRef.key);
-    await window.set(window.ref(window.db, `processes/${window._currentProcess}/calls/${_aiSelectedCall.key}/reviewedAt`), new Date().toISOString());
-
-    showToast('✅ AI Audit submitted for ' + audit.agent, 's');
-    _auditsCacheTime = 0;
+  try{
+    const auditRef=await window.push(window.ref(window.db,`processes/${window._currentProcess}/audits`),audit);
+    await window.set(window.ref(window.db,`processes/${window._currentProcess}/calls/${_aiSelectedCall.key}/status`),'submitted');
+    await window.set(window.ref(window.db,`processes/${window._currentProcess}/calls/${_aiSelectedCall.key}/finalAuditId`),auditRef.key);
+    await window.set(window.ref(window.db,`processes/${window._currentProcess}/calls/${_aiSelectedCall.key}/reviewedAt`),new Date().toISOString());
+    showToast('&#10003; AI Audit submitted for '+audit.agent,'s');
+    _auditsCacheTime=0;
     await aiSelectCall(_aiSelectedCall.key);
     aiLoadQueue();
-  } catch(e) {
-    showToast('Error: ' + e.message, 'e');
-    if (btn) { btn.disabled = false; btn.textContent = '💾 Submit Final Audit'; }
-  }
+  }catch(e){showToast('Error: '+e.message,'e');if(btn){btn.disabled=false;btn.textContent='&#128190; Submit Final Audit';}}
 }
 
-// ── Manual upload modal ───────────────────────────────────────────────────────
-function aiShowUpload() { document.getElementById('aiUploadModal').style.display='flex'; }
-function aiHideUpload() {
+function aiShowUpload(){document.getElementById('aiUploadModal').style.display='flex';}
+function aiHideUpload(){
   document.getElementById('aiUploadModal').style.display='none';
   ['aiUpAgent','aiUpCaller','aiUpUrl','aiUpNotes'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
 }
-async function aiSubmitUpload() {
-  const url = document.getElementById('aiUpUrl')?.value.trim();
-  if (!url) { showToast('Recording URL is required','e'); return; }
-  try {
-    const res = await fetch(AI_API_BASE + '/api/upload', {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({
-        processId:    window._currentProcess,
-        agentName:    document.getElementById('aiUpAgent')?.value.trim() || null,
-        callerNumber: document.getElementById('aiUpCaller')?.value.trim() || null,
-        recordingUrl: url,
-        notes:        document.getElementById('aiUpNotes')?.value.trim() || '',
-        uploadedBy:   window.auth.currentUser?.uid || null,
-      }),
-    });
-    const data = await res.json();
-    if (data.success) {
-      aiHideUpload();
-      showToast('✅ Uploaded! AI is scoring — check back in ~60 seconds.','s');
-      setTimeout(() => aiLoadQueue(), 3000);
-    } else {
-      showToast('Upload failed: ' + data.error, 'e');
-    }
-  } catch(e) { showToast('Upload error: ' + e.message, 'e'); }
+async function aiSubmitUpload(){
+  const url=document.getElementById('aiUpUrl')?.value.trim();
+  if(!url){showToast('Recording URL is required','e');return;}
+  try{
+    const res=await fetch(AI_API_BASE+'/api/upload',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({processId:window._currentProcess,agentName:document.getElementById('aiUpAgent')?.value.trim()||null,callerNumber:document.getElementById('aiUpCaller')?.value.trim()||null,recordingUrl:url,notes:document.getElementById('aiUpNotes')?.value.trim()||'',uploadedBy:window.auth.currentUser?.uid||null})});
+    const data=await res.json();
+    if(data.success){aiHideUpload();showToast('Uploaded! AI is scoring — check back in ~60 seconds.','s');setTimeout(()=>aiLoadQueue(),3000);}
+    else showToast('Upload failed: '+data.error,'e');
+  }catch(e){showToast('Upload error: '+e.message,'e');}
 }
 
-// ── Auto-refresh + tab hook ───────────────────────────────────────────────────
-const _origSwitchTab = window.switchTab || function(){};
-window.switchTab = function(name, btn) {
-  _origSwitchTab(name, btn);
-  if (name === 'aireview') {
-    aiLoadQueue();
-    clearInterval(_aiQueueTimer);
-    _aiQueueTimer = setInterval(aiLoadQueue, 15000);
-  } else {
-    clearInterval(_aiQueueTimer);
-  }
+const _origSwitchTab=window.switchTab||function(){};
+window.switchTab=function(name,btn){
+  _origSwitchTab(name,btn);
+  if(name==='aireview'){aiLoadQueue();clearInterval(_aiQueueTimer);_aiQueueTimer=setInterval(aiLoadQueue,15000);}
+  else clearInterval(_aiQueueTimer);
 };
-
-const _origSelectProcess = window.selectProcess;
-window.selectProcess = function(pid) {
-  _origSelectProcess(pid);
-  setTimeout(aiLoadQueue, 1500);
-};
+const _origSelectProcess=window.selectProcess;
+window.selectProcess=function(pid){_origSelectProcess(pid);setTimeout(aiLoadQueue,1500);};
 </script>
 </body>
 </html>
