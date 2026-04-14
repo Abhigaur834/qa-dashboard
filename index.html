@@ -909,6 +909,10 @@ tbody td{padding:11px 16px;font-size:13px;color:var(--text);}
             <div><label style="display:block;font-size:9.5px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);font-family:var(--font-head);font-weight:700;margin-bottom:6px">Caller Number</label><input id="aiUpCaller" placeholder="+91 9XXXXXXXXX" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-family:var(--font-body);font-size:13px;padding:9px 12px;outline:none;box-sizing:border-box"></div>
           </div>
           <div style="margin-bottom:12px"><label style="display:block;font-size:9.5px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);font-family:var(--font-head);font-weight:700;margin-bottom:6px">Recording URL *</label><input id="aiUpUrl" placeholder="https://…/recording.mp3" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-family:var(--font-body);font-size:13px;padding:9px 12px;outline:none;box-sizing:border-box"></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+            <div><label style="display:block;font-size:9.5px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);font-family:var(--font-head);font-weight:700;margin-bottom:6px">Assign To (Auditor) *</label><select id="aiUpAssignee" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-family:var(--font-body);font-size:13px;padding:9px 12px;outline:none;box-sizing:border-box"><option value="">&#8212; Select Auditor &#8212;</option></select></div>
+            <div><label style="display:block;font-size:9.5px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);font-family:var(--font-head);font-weight:700;margin-bottom:6px">Call Language</label><select id="aiUpLang" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-family:var(--font-body);font-size:13px;padding:9px 12px;outline:none;box-sizing:border-box"><option value="hi-en">Hindi + English (Default)</option><option value="en">English Only</option><option value="hi">Hindi Only</option><option value="ta">Tamil</option><option value="te">Telugu</option><option value="kn">Kannada</option><option value="mr">Marathi</option><option value="gu">Gujarati</option><option value="bn">Bengali</option><option value="ml">Malayalam</option></select></div>
+          </div>
           <div style="margin-bottom:12px"><label style="display:block;font-size:9.5px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);font-family:var(--font-head);font-weight:700;margin-bottom:6px">Notes (optional)</label><input id="aiUpNotes" placeholder="Any context about this call" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-family:var(--font-body);font-size:13px;padding:9px 12px;outline:none;box-sizing:border-box"></div>
           <div style="display:flex;gap:10px;margin-top:20px">
             <button onclick="aiHideUpload()" style="flex:1;padding:10px;border-radius:var(--r-sm);border:1px solid var(--border);background:transparent;color:var(--muted);font-family:var(--font-head);font-size:12px;font-weight:700;cursor:pointer">Cancel</button>
@@ -920,11 +924,14 @@ tbody td{padding:11px 16px;font-size:13px;color:var(--text);}
       <div style="display:flex;gap:0;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;height:calc(100vh - 140px);">
         <div class="ai-queue">
           <div class="ai-queue-hdr">
-            <div>
+            <div style="flex:1;min-width:0">
               <div style="font-family:var(--font-head);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted)">Call Queue</div>
               <div id="aiQueueCount" style="font-size:11px;color:var(--purple);margin-top:2px">Loading&hellip;</div>
             </div>
-            <button class="ai-upload-btn" onclick="aiShowUpload()">+ Upload</button>
+            <div style="display:flex;gap:6px;align-items:center;flex-shrink:0">
+              <button id="aiAdminViewBtn" onclick="aiToggleAdminView(this)" style="display:none;background:rgba(139,108,245,.1);border:1px solid rgba(139,108,245,.25);color:var(--purple);padding:4px 8px;border-radius:var(--r-sm);font-family:var(--font-head);font-size:9px;font-weight:700;cursor:pointer;white-space:nowrap">&#128101; My Calls</button>
+              <button class="ai-upload-btn" onclick="aiShowUpload()">+ Upload</button>
+            </div>
           </div>
           <div style="padding:8px 10px;border-bottom:1px solid var(--border);display:flex;gap:5px;flex-shrink:0;">
             <button class="ai-br ay" id="aiF-pending_review" onclick="aiSetFilter('pending_review',this)" style="font-size:9.5px">Pending</button>
@@ -2683,7 +2690,7 @@ function populateProcessDropdowns(){
 //  QA.Hub — AI AUDIT TAB LOGIC
 //  IMPORTANT: Update AI_API_BASE to your actual Vercel URL after deployment
 // ════════════════════════════════════════════════════════════════════════════
-const AI_API_BASE = 'https://api.qahub.online';
+const AI_API_BASE = 'https://YOUR-VERCEL-APP.vercel.app'; // ← REPLACE THIS
 
 const AI_NC_POINTS = {nc1:10,nc2:10,nc3:5,nc4:10,nc5:10,nc6:10,nc7:10,nc8:10,nc9:5,nc10:5,nc11:10,nc12:5};
 const AI_NCK = Object.keys(AI_NC_POINTS);
@@ -2703,7 +2710,14 @@ const AI_PM = {
   cr7:'Special requirements noted',cr8:'Non-sales queries redirected',cr9:'All client questions answered',cr10:'Lead converted without pushing'
 };
 
-let _aiCalls=[],_aiSelectedCall=null,_aiFilter='pending_review',_aiCS={},_aiQueueTimer=null;
+let _aiCalls=[],_aiSelectedCall=null,_aiFilter='pending_review',_aiCS={},_aiQueueTimer=null,_aiShowAllCalls=false;
+
+function aiToggleAdminView(btn){
+  _aiShowAllCalls=!_aiShowAllCalls;
+  btn.textContent=_aiShowAllCalls?'&#128101; All Calls':'&#128101; My Calls Only';
+  btn.style.background=_aiShowAllCalls?'rgba(139,108,245,.25)':'rgba(139,108,245,.1)';
+  aiLoadQueue();
+}
 
 function aiSetFilter(filter,btn){
   _aiFilter=filter;
@@ -2719,13 +2733,33 @@ async function aiLoadQueue(){
     _aiCalls=[];
     if(snap.exists())snap.forEach(c=>_aiCalls.push({key:c.key,...c.val()}));
     _aiCalls.sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
-    const filtered=_aiFilter==='all'?_aiCalls:_aiCalls.filter(c=>{
+
+    // ── ASSIGNMENT FILTER: non-admins only see their assigned calls ──────────
+    const isAdmin=window.isSuperAdmin()||window.getUserRole()==='admin'||window.getUserRole()==='processAdmin';
+    const myEmail=window.auth?.currentUser?.email||'';
+    // Admin default: see ALL calls. Toggle btn switches to "My Calls only"
+    // Non-admin: always see only their assigned calls (or unassigned)
+    let myVisible;
+    if(isAdmin){
+      myVisible=_aiShowAllCalls
+        ?_aiCalls.filter(c=>!c.assignedTo||c.assignedTo===myEmail)  // "My Calls" mode
+        :_aiCalls;  // default: all calls
+    }else{
+      myVisible=_aiCalls.filter(c=>!c.assignedTo||c.assignedTo===myEmail);
+    }
+    // Show admin toggle button only for admins
+    const toggleBtn=document.getElementById('aiAdminViewBtn');
+    if(toggleBtn)toggleBtn.style.display=isAdmin?'block':'none';
+
+    const filtered=_aiFilter==='all'?myVisible:myVisible.filter(c=>{
       if(_aiFilter==='pending_review')return['pending_review','pending_transcription','transcribing','ai_scoring','transcription_failed','ai_scoring_failed'].includes(c.status);
       if(_aiFilter==='submitted')return c.status==='submitted';
       return true;
     });
-    const pending=_aiCalls.filter(c=>c.status==='pending_review').length;
-    const badge=document.getElementById('aiAuditBadge');if(badge)badge.textContent=pending;
+
+    // Badge shows only MY pending calls
+    const myPending=myVisible.filter(c=>c.status==='pending_review').length;
+    const badge=document.getElementById('aiAuditBadge');if(badge)badge.textContent=myPending;
     const countEl=document.getElementById('aiQueueCount');if(countEl)countEl.textContent=filtered.length+' call'+(filtered.length!==1?'s':'');
     aiRenderQueue(filtered);
   }catch(e){console.warn('aiLoadQueue:',e);}
@@ -2733,19 +2767,28 @@ async function aiLoadQueue(){
 
 function aiRenderQueue(calls){
   const el=document.getElementById('aiQueueList');if(!el)return;
-  if(!calls.length){el.innerHTML='<div style="text-align:center;padding:24px 10px;color:var(--muted);font-size:12px">No calls in this view</div>';return;}
+  const isAdmin=window.isSuperAdmin()||window.getUserRole()==='admin'||window.getUserRole()==='processAdmin';
+  if(!calls.length){
+    const myEmail=window.auth?.currentUser?.email||'';
+    el.innerHTML='<div style="text-align:center;padding:24px 10px;color:var(--muted);font-size:12px">'+(isAdmin?'No calls in this view':'No calls assigned to you yet.<br><span style="font-size:10px;color:var(--muted)">'+myEmail+'</span>')+'</div>';
+    return;
+  }
   el.innerHTML=calls.map(c=>{
     const ai=c.aiSuggestions,badge=aiStatusBadge(c.status,ai);
     const score=ai?.totalScore??null;
     const sc=score===null?'var(--muted)':score>=85?'var(--success)':score>=70?'var(--warning)':'var(--critical)';
     const time=c.createdAt?new Date(c.createdAt).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'}):'';
     const isActive=_aiSelectedCall?.key===c.key;
+    // Show assignee badge only for admins (so they know who it's for)
+    const assigneeBadge=isAdmin&&c.assignedTo?`<div style="font-size:9px;color:var(--purple);margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">&#128101; ${c.assignedTo.split('@')[0]}</div>`:'';
+    const langBadge=c.language&&c.language!=='hi-en'?`<span style="font-size:9px;background:rgba(139,108,245,.12);color:var(--purple);padding:1px 5px;border-radius:8px;border:1px solid rgba(139,108,245,.2)">${c.language}</span>`:'';
     return`<div class="ai-call-card${isActive?' active':''}" onclick="aiSelectCall('${c.key}')">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
-        <div style="font-family:var(--font-head);font-weight:700;font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:150px">${c.agentName||c.agentNumber||'Unknown Agent'}</div>
+        <div style="font-family:var(--font-head);font-weight:700;font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:140px">${c.agentName||c.agentNumber||'Unknown Agent'}</div>
         <div class="ai-status-pill ${badge.cls}">${badge.label}</div>
       </div>
-      <div style="display:flex;gap:8px;font-size:10px;color:var(--muted)"><span>${c.dialerSource||'upload'}</span><span>${time}</span>${c.duration?`<span>${Math.round(c.duration/60)}m</span>`:''}</div>
+      <div style="display:flex;gap:6px;font-size:10px;color:var(--muted);align-items:center;flex-wrap:wrap"><span>${c.dialerSource||'upload'}</span><span>${time}</span>${c.duration?`<span>${Math.round(c.duration/60)}m</span>`:''} ${langBadge}</div>
+      ${assigneeBadge}
       ${score!==null?`<div style="font-family:var(--font-head);font-weight:800;font-size:14px;color:${sc};margin-top:4px">${score}%</div>`:''}
     </div>`;
   }).join('');
@@ -2820,6 +2863,8 @@ function aiRenderMain(call){
         <div style="font-size:10px;color:${sc};font-family:var(--font-head);font-weight:700">${ai?.result||'--'} &middot; AI scored</div>
       </div>
       ${ai?.confidence?`<div style="text-align:right;font-size:10px;color:var(--muted)">Confidence<br><strong style="color:var(--text-dim)">${Math.round(ai.confidence*100)}%</strong></div>`:''}
+      ${(window.isSuperAdmin()||window.getUserRole()==='admin')&&call.assignedTo?`<div style="background:rgba(139,108,245,.1);border:1px solid rgba(139,108,245,.25);border-radius:20px;padding:3px 10px;font-size:10px;color:var(--purple);font-family:var(--font-head);font-weight:700;white-space:nowrap">&#128101; ${call.assignedTo.split('@')[0]}</div>`:''}
+      ${call.language&&call.language!=='hi-en'?`<div style="background:rgba(61,126,245,.1);border:1px solid rgba(61,126,245,.25);border-radius:20px;padding:3px 10px;font-size:10px;color:var(--accent);font-family:var(--font-head);font-weight:700">&#127908; ${call.language}</div>`:''}
     </div>
     <div class="ai-body">
       <div class="ai-transcript">
@@ -2877,16 +2922,60 @@ async function aiSubmitAudit(){
   }catch(e){showToast('Error: '+e.message,'e');if(btn){btn.disabled=false;btn.textContent='&#128190; Submit Final Audit';}}
 }
 
-function aiShowUpload(){document.getElementById('aiUploadModal').style.display='flex';}
+function aiShowUpload(){
+  // Populate assignee dropdown from process users list
+  aiPopulateAssigneeDropdown();
+  document.getElementById('aiUploadModal').style.display='flex';
+}
+
+async function aiPopulateAssigneeDropdown(){
+  const sel=document.getElementById('aiUpAssignee');if(!sel)return;
+  sel.innerHTML='<option value="">&#8212; Select Auditor &#8212;</option>';
+  try{
+    // Load from userProcesses - find all users assigned to current process
+    const snap=await window.get(window.ref(window.db,'userProcesses'));
+    const users=[];
+    if(snap.exists()){
+      snap.forEach(userSnap=>{
+        userSnap.forEach(procSnap=>{
+          if(procSnap.key===window._currentProcess){
+            const role=procSnap.val();
+            // Include qa, tl, admin roles (not agent)
+            if(['qa','tl','admin','processAdmin'].includes(role)){
+              const emailKey=userSnap.key;
+              // Reverse the key encoding: _ -> . and @ reconstruction
+              const email=emailKey.replace(/_at_/g,'@').replace(/_dot_/g,'.').replace(/([^_]+)_([^_]+)$/,(m,a,b)=>a+'.'+b).replace(/__/g,'@');
+              users.push({emailKey,email,role});
+            }
+          }
+        });
+      });
+    }
+    // Also add current user if they're admin
+    const me=window.auth?.currentUser?.email;
+    if(me&&!users.find(u=>u.email===me)){users.push({email:me,role:'admin'});}
+    users.forEach(u=>{
+      const opt=document.createElement('option');
+      opt.value=u.email;
+      opt.textContent=u.email.split('@')[0].replace(/[._]/g,' ').replace(/\b\w/g,c=>c.toUpperCase())+' ('+u.role+')';
+      sel.appendChild(opt);
+    });
+    if(!users.length){
+      const opt=document.createElement('option');
+      opt.value='';opt.textContent='No auditors found — assign users in Agents tab first';
+      sel.appendChild(opt);
+    }
+  }catch(e){console.warn('aiPopulateAssigneeDropdown:',e);}
+}
 function aiHideUpload(){
   document.getElementById('aiUploadModal').style.display='none';
-  ['aiUpAgent','aiUpCaller','aiUpUrl','aiUpNotes'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['aiUpAgent','aiUpCaller','aiUpUrl','aiUpNotes'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';}); const assignSel=document.getElementById('aiUpAssignee');if(assignSel)assignSel.value=''; const langSel=document.getElementById('aiUpLang');if(langSel)langSel.value='hi-en';;
 }
 async function aiSubmitUpload(){
   const url=document.getElementById('aiUpUrl')?.value.trim();
   if(!url){showToast('Recording URL is required','e');return;}
   try{
-    const res=await fetch(AI_API_BASE+'/api/upload',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({processId:window._currentProcess,agentName:document.getElementById('aiUpAgent')?.value.trim()||null,callerNumber:document.getElementById('aiUpCaller')?.value.trim()||null,recordingUrl:url,notes:document.getElementById('aiUpNotes')?.value.trim()||'',uploadedBy:window.auth.currentUser?.uid||null})});
+    const res=await fetch(AI_API_BASE+'/api/upload',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({processId:window._currentProcess,agentName:document.getElementById('aiUpAgent')?.value.trim()||null,callerNumber:document.getElementById('aiUpCaller')?.value.trim()||null,recordingUrl:url,notes:document.getElementById('aiUpNotes')?.value.trim()||'',uploadedBy:window.auth.currentUser?.uid||null,assignedTo:document.getElementById('aiUpAssignee')?.value||null,language:document.getElementById('aiUpLang')?.value||'hi-en'})});
     const data=await res.json();
     if(data.success){aiHideUpload();showToast('Uploaded! AI is scoring — check back in ~60 seconds.','s');setTimeout(()=>aiLoadQueue(),3000);}
     else showToast('Upload failed: '+data.error,'e');
