@@ -381,6 +381,21 @@ tbody td{padding:11px 16px;font-size:13px;color:var(--text);}
   </div>
 </div>
 
+<!-- PARAMETER BUILDER — shown once when a new process is created; parameters are locked afterward -->
+<div id="paramBuilderModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:99999;justify-content:center;align-items:center;">
+  <div style="position:relative;background:var(--surface);border:1px solid rgba(61,126,245,.25);border-radius:16px;padding:28px 30px;width:540px;max-width:92vw;max-height:85vh;overflow-y:auto;box-shadow:0 32px 80px rgba(0,0,0,.6)">
+    <div style="position:absolute;top:0;left:0;right:0;height:2px;border-radius:16px 16px 0 0;background:linear-gradient(90deg,var(--accent),var(--purple))"></div>
+    <div style="font-family:var(--font-head);font-weight:800;font-size:17px;margin-bottom:4px">Define Audit Parameters</div>
+    <div style="font-size:11.5px;color:var(--muted);margin-bottom:18px">Set the parameters this process's Scorecard will use. <strong style="color:var(--critical)">These are locked once created.</strong></div>
+    <div id="paramBuilderRows"></div>
+    <button onclick="addParamRow()" style="background:var(--accent-dim);border:1px solid rgba(61,126,245,.3);color:var(--accent);border-radius:6px;padding:7px 14px;font-size:11.5px;font-family:var(--font-head);font-weight:700;cursor:pointer;margin-bottom:20px">+ Add Parameter</button>
+    <div style="display:flex;gap:10px">
+      <button onclick="cancelParamBuilder()" style="flex:1;padding:10px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:var(--font-head);font-weight:700;cursor:pointer;font-size:12px">Cancel</button>
+      <button onclick="submitNewProcessWithParams()" style="flex:2;padding:10px;border-radius:8px;border:none;background:var(--accent);color:#fff;font-family:var(--font-head);font-weight:700;cursor:pointer;font-size:12px">Create Process →</button>
+    </div>
+  </div>
+</div>
+
 <!-- ── MAIN APP ── -->
 <div id="mainApp" style="display:none;">
   <div class="top-bar">
@@ -503,70 +518,17 @@ tbody td{padding:11px 16px;font-size:13px;color:var(--text);}
 
       <!-- PARAMETERS -->
       <div class="sections-grid">
-        <!-- NON-CRITICAL -->
+        <!-- NON-CRITICAL — rendered dynamically per process, see renderScorecardParams() -->
         <div class="sec-card">
           <div class="sec-hdr">
             <div class="sec-hdr-title">Non-Critical Parameters</div>
-            <span style="font-size:10px;color:var(--accent);font-family:var(--font-head);font-weight:700;margin-left:auto">Total: 100 pts</span>
+            <span id="ncTotalPtsLabel" style="font-size:10px;color:var(--accent);font-family:var(--font-head);font-weight:700;margin-left:auto">Total: 100 pts</span>
             <span class="sbadge nc-badge" style="margin-left:10px">Non-Critical</span>
           </div>
-
-          <div class="pgh"><div class="pgl">Call Opening / Closing <span style="color:var(--muted);font-weight:400">(35 pts)</span></div></div>
-          <div class="param-row">
-            <div class="pl">Standard opening &amp; customer name confirmation<span class="param-pts">10 pts</span></div>
-            <div class="rg"><button class="br" onclick="rate(this,'yes','nc1')">Y</button><button class="br" onclick="rate(this,'no','nc1')">N</button><button class="br" onclick="rate(this,'na','nc1')">N/A</button></div>
-          </div>
-          <div class="param-row">
-            <div class="pl">Summarization<span class="param-pts">10 pts</span></div>
-            <div class="rg"><button class="br" onclick="rate(this,'yes','nc2')">Y</button><button class="br" onclick="rate(this,'no','nc2')">N</button><button class="br" onclick="rate(this,'na','nc2')">N/A</button></div>
-          </div>
-          <div class="param-row">
-            <div class="pl">Further assistance offered<span class="param-pts">5 pts</span></div>
-            <div class="rg"><button class="br" onclick="rate(this,'yes','nc3')">Y</button><button class="br" onclick="rate(this,'no','nc3')">N</button><button class="br" onclick="rate(this,'na','nc3')">N/A</button></div>
-          </div>
-          <div class="param-row">
-            <div class="pl">Prescribed call closing<span class="param-pts">10 pts</span></div>
-            <div class="rg"><button class="br" onclick="rate(this,'yes','nc4')">Y</button><button class="br" onclick="rate(this,'no','nc4')">N</button><button class="br" onclick="rate(this,'na','nc4')">N/A</button></div>
-          </div>
-
-          <div class="pgh"><div class="pgl">Issue Identification <span style="color:var(--muted);font-weight:400">(30 pts)</span></div></div>
-          <div class="param-row">
-            <div class="pl">Paraphrasing to ensure agent/customer alignment<span class="param-pts">10 pts</span></div>
-            <div class="rg"><button class="br" onclick="rate(this,'yes','nc5')">Y</button><button class="br" onclick="rate(this,'no','nc5')">N</button><button class="br" onclick="rate(this,'na','nc5')">N/A</button></div>
-          </div>
-          <div class="param-row">
-            <div class="pl">Customer VOC is understood and acknowledged<span class="param-pts">10 pts</span></div>
-            <div class="rg"><button class="br" onclick="rate(this,'yes','nc6')">Y</button><button class="br" onclick="rate(this,'no','nc6')">N</button><button class="br" onclick="rate(this,'na','nc6')">N/A</button></div>
-          </div>
-          <div class="param-row">
-            <div class="pl">Relevant probing questions were asked<span class="param-pts">10 pts</span></div>
-            <div class="rg"><button class="br" onclick="rate(this,'yes','nc7')">Y</button><button class="br" onclick="rate(this,'no','nc7')">N</button><button class="br" onclick="rate(this,'na','nc7')">N/A</button></div>
-          </div>
-
-          <div class="pgh"><div class="pgl">Customer Experience <span style="color:var(--muted);font-weight:400">(35 pts)</span></div></div>
-          <div class="param-row">
-            <div class="pl">Active Listening / Reading Demonstration<span class="param-pts">10 pts</span></div>
-            <div class="rg"><button class="br" onclick="rate(this,'yes','nc8')">Y</button><button class="br" onclick="rate(this,'no','nc8')">N</button><button class="br" onclick="rate(this,'na','nc8')">N/A</button></div>
-          </div>
-          <div class="param-row">
-            <div class="pl">Hold and Dead Air SLA Followed<span class="param-pts">5 pts</span></div>
-            <div class="rg"><button class="br" onclick="rate(this,'yes','nc9')">Y</button><button class="br" onclick="rate(this,'no','nc9')">N</button><button class="br" onclick="rate(this,'na','nc9')">N/A</button></div>
-          </div>
-          <div class="param-row">
-            <div class="pl">Apologies, Empathy, and Politeness Demonstrated<span class="param-pts">5 pts</span></div>
-            <div class="rg"><button class="br" onclick="rate(this,'yes','nc10')">Y</button><button class="br" onclick="rate(this,'no','nc10')">N</button><button class="br" onclick="rate(this,'na','nc10')">N/A</button></div>
-          </div>
-          <div class="param-row">
-            <div class="pl">Conversation without Overlapping and Interruptions<span class="param-pts">10 pts</span></div>
-            <div class="rg"><button class="br" onclick="rate(this,'yes','nc11')">Y</button><button class="br" onclick="rate(this,'no','nc11')">N</button><button class="br" onclick="rate(this,'na','nc11')">N/A</button></div>
-          </div>
-          <div class="param-row">
-            <div class="pl">Accurate Email Sent to Client<span class="param-pts">5 pts</span></div>
-            <div class="rg"><button class="br" onclick="rate(this,'yes','nc12')">Y</button><button class="br" onclick="rate(this,'no','nc12')">N</button><button class="br" onclick="rate(this,'na','nc12')">N/A</button></div>
-          </div>
+          <div id="ncParamsContainer"></div>
         </div>
 
-        <!-- CRITICAL -->
+        <!-- CRITICAL — rendered dynamically per process, see renderScorecardParams() -->
         <div class="sec-card">
           <div class="sec-hdr">
             <div class="sec-hdr-title">Critical Parameters</div>
@@ -575,16 +537,7 @@ tbody td{padding:11px 16px;font-size:13px;color:var(--text);}
           <div style="background:rgba(240,64,96,0.04);padding:8px 20px;border-bottom:1px solid var(--border);font-size:11px;color:rgba(240,64,96,0.7);font-family:var(--font-head);font-weight:600;letter-spacing:0.3px;">
             ⚡ Marking any parameter as N below will immediately set the overall score to 0% and result in a FAIL.
           </div>
-          <div class="param-row fatal-param"><div class="pl">Agent remained professional, polite, and pleasant throughout<span class="fatal-tag">⚡ FATAL</span></div><div class="rg"><button class="br" onclick="rate(this,'yes','cr1')">Y</button><button class="br" onclick="rate(this,'no','cr1')">N</button><button class="br" onclick="rate(this,'na','cr1')">N/A</button></div></div>
-          <div class="param-row fatal-param"><div class="pl">Called client within timeframe &amp; accommodated callback per global TZ<span class="fatal-tag">⚡ FATAL</span></div><div class="rg"><button class="br" onclick="rate(this,'yes','cr2')">Y</button><button class="br" onclick="rate(this,'no','cr2')">N</button><button class="br" onclick="rate(this,'na','cr2')">N/A</button></div></div>
-          <div class="param-row fatal-param"><div class="pl">Provided complete and accurate information on call/chat<span class="fatal-tag">⚡ FATAL</span></div><div class="rg"><button class="br" onclick="rate(this,'yes','cr3')">Y</button><button class="br" onclick="rate(this,'no','cr3')">N</button><button class="br" onclick="rate(this,'na','cr3')">N/A</button></div></div>
-          <div class="param-row fatal-param"><div class="pl">Answered queries timely and effectively; chose right disposition<span class="fatal-tag">⚡ FATAL</span></div><div class="rg"><button class="br" onclick="rate(this,'yes','cr4')">Y</button><button class="br" onclick="rate(this,'no','cr4')">N</button><button class="br" onclick="rate(this,'na','cr4')">N/A</button></div></div>
-          <div class="param-row fatal-param"><div class="pl">Asked qualifying questions and updated notes per standard procedure<span class="fatal-tag">⚡ FATAL</span></div><div class="rg"><button class="br" onclick="rate(this,'yes','cr5')">Y</button><button class="br" onclick="rate(this,'no','cr5')">N</button><button class="br" onclick="rate(this,'na','cr5')">N/A</button></div></div>
-          <div class="param-row fatal-param"><div class="pl">Successfully created an opportunity after the conversation<span class="fatal-tag">⚡ FATAL</span></div><div class="rg"><button class="br" onclick="rate(this,'yes','cr6')">Y</button><button class="br" onclick="rate(this,'no','cr6')">N</button><button class="br" onclick="rate(this,'na','cr6')">N/A</button></div></div>
-          <div class="param-row fatal-param"><div class="pl">Updated special requirements in notes for other teams<span class="fatal-tag">⚡ FATAL</span></div><div class="rg"><button class="br" onclick="rate(this,'yes','cr7')">Y</button><button class="br" onclick="rate(this,'no','cr7')">N</button><button class="br" onclick="rate(this,'na','cr7')">N/A</button></div></div>
-          <div class="param-row fatal-param"><div class="pl">Directed non-sales queries to relevant team for quick resolution<span class="fatal-tag">⚡ FATAL</span></div><div class="rg"><button class="br" onclick="rate(this,'yes','cr8')">Y</button><button class="br" onclick="rate(this,'no','cr8')">N</button><button class="br" onclick="rate(this,'na','cr8')">N/A</button></div></div>
-          <div class="param-row fatal-param"><div class="pl">All client questions answered accurately (installment plan, social media price)<span class="fatal-tag">⚡ FATAL</span></div><div class="rg"><button class="br" onclick="rate(this,'yes','cr9')">Y</button><button class="br" onclick="rate(this,'no','cr9')">N</button><button class="br" onclick="rate(this,'na','cr9')">N/A</button></div></div>
-          <div class="param-row fatal-param"><div class="pl">Converted lead without pushing client (language barrier, busy, etc.)<span class="fatal-tag">⚡ FATAL</span></div><div class="rg"><button class="br" onclick="rate(this,'yes','cr10')">Y</button><button class="br" onclick="rate(this,'no','cr10')">N</button><button class="br" onclick="rate(this,'na','cr10')">N/A</button></div></div>
+          <div id="crParamsContainer"></div>
         </div>
       </div>
 
@@ -914,7 +867,13 @@ tbody td{padding:11px 16px;font-size:13px;color:var(--text);}
             <div><label style="display:block;font-size:9.5px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);font-family:var(--font-head);font-weight:700;margin-bottom:6px">Agent Name</label><input id="aiUpAgent" placeholder="e.g. Rahul Kumar" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-family:var(--font-body);font-size:13px;padding:9px 12px;outline:none;box-sizing:border-box"></div>
             <div><label style="display:block;font-size:9.5px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);font-family:var(--font-head);font-weight:700;margin-bottom:6px">Caller Number</label><input id="aiUpCaller" placeholder="+91 9XXXXXXXXX" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-family:var(--font-body);font-size:13px;padding:9px 12px;outline:none;box-sizing:border-box"></div>
           </div>
-          <div style="margin-bottom:12px"><label style="display:block;font-size:9.5px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);font-family:var(--font-head);font-weight:700;margin-bottom:6px">Recording URL *</label><input id="aiUpUrl" placeholder="https://…/recording.mp3" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-family:var(--font-body);font-size:13px;padding:9px 12px;outline:none;box-sizing:border-box"></div>
+          <div style="margin-bottom:8px"><label style="display:block;font-size:9.5px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);font-family:var(--font-head);font-weight:700;margin-bottom:6px">Recording URL</label><input id="aiUpUrl" placeholder="https://…/recording.mp3" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-family:var(--font-body);font-size:13px;padding:9px 12px;outline:none;box-sizing:border-box"></div>
+          <div style="text-align:center;font-size:10px;color:var(--muted);margin:6px 0;text-transform:uppercase;letter-spacing:1px">— or —</div>
+          <div style="margin-bottom:12px">
+            <label style="display:block;font-size:9.5px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);font-family:var(--font-head);font-weight:700;margin-bottom:6px">Upload Audio File</label>
+            <input type="file" id="aiUpFile" accept="audio/*" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-family:var(--font-body);font-size:12px;padding:8px;box-sizing:border-box">
+            <div id="aiUpProgress" style="font-size:11px;color:var(--purple);margin-top:6px;display:none;font-family:var(--font-head);font-weight:600"></div>
+          </div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
             <div><label style="display:block;font-size:9.5px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);font-family:var(--font-head);font-weight:700;margin-bottom:6px">Assign To (Auditor) *</label><select id="aiUpAssignee" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-family:var(--font-body);font-size:13px;padding:9px 12px;outline:none;box-sizing:border-box"><option value="">&#8212; Select Auditor &#8212;</option></select></div>
             <div><label style="display:block;font-size:9.5px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);font-family:var(--font-head);font-weight:700;margin-bottom:6px">Call Language</label><select id="aiUpLang" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-family:var(--font-body);font-size:13px;padding:9px 12px;outline:none;box-sizing:border-box"><option value="hi-en">Hindi + English (Default)</option><option value="en">English Only</option><option value="hi">Hindi Only</option><option value="ta">Tamil</option><option value="te">Telugu</option><option value="kn">Kannada</option><option value="mr">Marathi</option><option value="gu">Gujarati</option><option value="bn">Bengali</option><option value="ml">Malayalam</option></select></div>
@@ -1085,9 +1044,11 @@ tbody td{padding:11px 16px;font-size:13px;color:var(--text);}
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getDatabase, ref, push, get, remove, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getStorage, ref as sRef, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 const fc={apiKey:"AIzaSyCifkNrq_PA8FtW7devgVsaNGXW-Tce0n8",authDomain:"qa-dashboard-system.firebaseapp.com",databaseURL:"https://qa-dashboard-system-default-rtdb.asia-southeast1.firebasedatabase.app",projectId:"qa-dashboard-system",storageBucket:"qa-dashboard-system.appspot.com",messagingSenderId:"373240224146",appId:"1:373240224146:web:80576d03fea68b3583894b"};
-const app=initializeApp(fc),db=getDatabase(app),auth=getAuth(app);
+const app=initializeApp(fc),db=getDatabase(app),auth=getAuth(app),storage=getStorage(app);
 window.db=db;window.ref=ref;window.push=push;window.get=get;window.remove=remove;window.set=set;window.auth=auth;window.signInWithEmailAndPassword=signInWithEmailAndPassword;window.signOut=signOut;window.sendPasswordResetEmail=sendPasswordResetEmail;window.onValue=onValue;
+window.storage=storage;window.sRef=sRef;window.uploadBytesResumable=uploadBytesResumable;window.getDownloadURL=getDownloadURL;
 const UP={"gaurabhi834@gmail.com":{name:"Abhishek Gaur",designation:"Deputy Manager – QA"},"tl.pinki@ocubeservices.com":{name:"Pinki Kumari",designation:"Team Leader – Sales"},"tl.shahid@ocubeservices.com":{name:"Md Shahid",designation:"Team Leader – Support"},"qa.prince@ocubeservices.com":{name:"Prince Kumar",designation:"Quality Analyst"}};
 window._grantedAdmins=[];window._grantedAdminData={};window._adminListReady=false;
 
@@ -1254,7 +1215,9 @@ window.logoutUser=function(){window.signOut(window.auth).then(()=>{showToast("Lo
 <!-- APP LOGIC -->
 <script>
 // ── PARAMETER METADATA with points ──────────────────────────────────────────
-const PM={
+// ── LEGACY (default) parameter set — used for any process created before the
+//    per-process parameter builder existed, e.g. your original sales process ──
+const LEGACY_PM={
   nc1: {label:'Standard opening & name confirmation',  short:'Opening',   group:'Call Opening/Closing', type:'NC', points:10},
   nc2: {label:'Summarization',                         short:'Summary',   group:'Call Opening/Closing', type:'NC', points:10},
   nc3: {label:'Further assistance offered',            short:'Assist.',   group:'Call Opening/Closing', type:'NC', points:5},
@@ -1278,11 +1241,102 @@ const PM={
   cr9: {label:'All client questions answered',         short:'Client Qs', group:'Critical', type:'CR', fatal:true},
   cr10:{label:'Lead converted without pushing',        short:'Convert',   group:'Critical', type:'CR', fatal:true}
 };
+const LEGACY_NCK=['nc1','nc2','nc3','nc4','nc5','nc6','nc7','nc8','nc9','nc10','nc11','nc12'];
+const LEGACY_CRK=['cr1','cr2','cr3','cr4','cr5','cr6','cr7','cr8','cr9','cr10'];
+const LEGACY_GROUPS={'Call Opening/Closing':['nc1','nc2','nc3','nc4'],'Issue Identification':['nc5','nc6','nc7'],'Customer Experience':['nc8','nc9','nc10','nc11','nc12'],'Critical Parameters':LEGACY_CRK};
 
-const NCK=['nc1','nc2','nc3','nc4','nc5','nc6','nc7','nc8','nc9','nc10','nc11','nc12'];
-const CRK=['cr1','cr2','cr3','cr4','cr5','cr6','cr7','cr8','cr9','cr10'];
-const AK=[...NCK,...CRK];
-const GROUPS={'Call Opening/Closing':['nc1','nc2','nc3','nc4'],'Issue Identification':['nc5','nc6','nc7'],'Customer Experience':['nc8','nc9','nc10','nc11','nc12'],'Critical Parameters':CRK};
+// ── LIVE parameter set — swapped per process by applyProcessParams(). Every
+//    other function in this app (scoring, tables, charts, exports) reads
+//    these same variable names, so nothing else needs to change. ──
+let PM={...LEGACY_PM};
+let NCK=[...LEGACY_NCK];
+let CRK=[...LEGACY_CRK];
+let AK=[...NCK,...CRK];
+let GROUPS={...LEGACY_GROUPS};
+
+// Rebuild PM/NCK/CRK/GROUPS from a process's own locked parameter set
+// (falls back to the legacy sales-style set if the process has none stored).
+function applyProcessParams(procRecord){
+  const custom = procRecord && procRecord.parameters;
+  if(!custom || !Object.keys(custom).length){
+    PM={...LEGACY_PM}; NCK=[...LEGACY_NCK]; CRK=[...LEGACY_CRK]; GROUPS={...LEGACY_GROUPS};
+  } else {
+    PM={}; NCK=[]; CRK=[];
+    Object.keys(custom).forEach(id=>{
+      const p=custom[id];
+      PM[id]={ label:p.label, short:(p.label||'').slice(0,14), group:p.critical?'Critical':'Non-Critical Parameters',
+                type:p.critical?'CR':'NC', points:p.critical?undefined:(Number(p.points)||0), fatal:!!p.critical };
+      if(p.critical) CRK.push(id); else NCK.push(id);
+    });
+    GROUPS = { 'Non-Critical Parameters': NCK, 'Critical Parameters': CRK };
+  }
+  AK=[...NCK,...CRK];
+  if(typeof syncAIParams==='function') syncAIParams();
+  if(typeof renderScorecardParams==='function') renderScorecardParams();
+}
+
+// Rebuild the Scorecard tab's parameter rows from the live PM/NCK/CRK
+function renderScorecardParams(){
+  const ncEl=document.getElementById('ncParamsContainer'), crEl=document.getElementById('crParamsContainer');
+  if(!ncEl||!crEl) return;
+  ncEl.innerHTML = NCK.map(k=>`<div class="param-row">
+      <div class="pl">${esc(PM[k].label)}<span class="param-pts">${PM[k].points} pts</span></div>
+      <div class="rg"><button class="br" onclick="rate(this,'yes','${k}')">Y</button><button class="br" onclick="rate(this,'no','${k}')">N</button><button class="br" onclick="rate(this,'na','${k}')">N/A</button></div>
+    </div>`).join('') || '<div style="padding:22px;text-align:center;color:var(--muted);font-size:12.5px">No non-critical parameters defined for this process.</div>';
+  crEl.innerHTML = CRK.map(k=>`<div class="param-row fatal-param">
+      <div class="pl">${esc(PM[k].label)}<span class="fatal-tag">⚡ FATAL</span></div>
+      <div class="rg"><button class="br" onclick="rate(this,'yes','${k}')">Y</button><button class="br" onclick="rate(this,'no','${k}')">N</button><button class="br" onclick="rate(this,'na','${k}')">N/A</button></div>
+    </div>`).join('') || '<div style="padding:22px;text-align:center;color:var(--muted);font-size:12.5px">No critical parameters defined for this process.</div>';
+  const totPts=NCK.reduce((s,k)=>s+(PM[k].points||0),0);
+  const lbl=document.getElementById('ncTotalPtsLabel'); if(lbl) lbl.textContent='Total: '+totPts+' pts';
+  CS={}; // reset in-progress scoring whenever the active parameter set changes
+  if(typeof updateDash==='function') updateDash();
+}
+
+// ── Process parameter builder (shown once, when a new process is created) ──
+let _paramRows=[];
+function openParamBuilder(processId){
+  window._pendingProcessId=processId;
+  _paramRows=[{label:'',points:10,critical:false}];
+  renderParamBuilderRows();
+  document.getElementById('paramBuilderModal').style.display='flex';
+}
+function addParamRow(){ _paramRows.push({label:'',points:10,critical:false}); renderParamBuilderRows(); }
+function removeParamRow(i){ if(_paramRows.length<=1){showToast('At least one parameter is required','e');return;} _paramRows.splice(i,1); renderParamBuilderRows(); }
+function updateParamRow(i,field,val){ _paramRows[i][field]=val; }
+function renderParamBuilderRows(){
+  const el=document.getElementById('paramBuilderRows'); if(!el) return;
+  el.innerHTML=_paramRows.map((r,i)=>`
+    <div style="display:grid;grid-template-columns:1fr 90px 100px 34px;gap:8px;align-items:center;margin-bottom:8px">
+      <input type="text" placeholder="Parameter name" value="${esc(r.label)}" oninput="updateParamRow(${i},'label',this.value)"
+        style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:8px 10px;font-size:12.5px;outline:none;font-family:var(--font-body)">
+      <input type="number" min="1" placeholder="Points" value="${r.critical?'':r.points}" ${r.critical?'disabled':''} oninput="updateParamRow(${i},'points',this.value)"
+        style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:8px 10px;font-size:12.5px;outline:none;opacity:${r.critical?0.4:1}">
+      <label style="display:flex;align-items:center;gap:5px;font-size:10.5px;color:var(--critical);font-family:var(--font-head);font-weight:700;white-space:nowrap">
+        <input type="checkbox" ${r.critical?'checked':''} onchange="updateParamRow(${i},'critical',this.checked);renderParamBuilderRows()"> Critical
+      </label>
+      <button onclick="removeParamRow(${i})" title="Remove" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;line-height:1">✕</button>
+    </div>`).join('');
+}
+async function submitNewProcessWithParams(){
+  const clean=_paramRows.filter(r=>String(r.label||'').trim());
+  if(!clean.length){showToast('Add at least one parameter','e');return;}
+  const parameters={};
+  clean.forEach((r,i)=>{ parameters['p'+(i+1)]={label:String(r.label).trim(), points:r.critical?null:(Number(r.points)||0), critical:!!r.critical}; });
+  try{
+    await window.set(window.ref(window.db,'processList/'+window._pendingProcessId), {
+      id:window._pendingProcessId, createdAt:Date.now(), createdBy:auth.currentUser.email, parameters
+    });
+    document.getElementById('paramBuilderModal').style.display='none';
+    document.getElementById('newProcessName').value='';
+    await loadProcessList(); renderProcessManagement(); populateProcessDropdowns();
+    showToast('✅ Process '+window._pendingProcessId+' created with '+clean.length+' parameter'+(clean.length!==1?'s':''),'s');
+  }catch(e){showToast('Error: '+e.message,'e');}
+}
+function cancelParamBuilder(){
+  document.getElementById('paramBuilderModal').style.display='none';
+  window._pendingProcessId=null;
+}
 
 // ── Agent list ───────────────────────────────────────────────────────────────
 let _agentList=[];
@@ -1548,7 +1602,7 @@ function updatePT(nc,cr,tot){
   const crTag=cr.fatal?'<span class="tag tfatal">⚡ FATAL</span>':'<span class="tag tp">✓ PASS</span>';
   rows.push(`<tr style="background:rgba(240,64,96,0.03)"><td><strong>Critical Parameters</strong></td><td><span class="tag tcr">⚡ FATAL</span></td><td style="font-family:var(--font-head);font-weight:700;color:${cr.fatal?'var(--critical)':'var(--success)'}">${crPassed.length}</td><td style="color:var(--muted)">${crRated.length}</td><td colspan="1" style="text-align:center">${crTag}${cr.fatal?`<span style="font-size:9px;color:var(--critical);margin-left:6px">${crFailed.map(k=>PM[k].short).join(', ')}</span>`:''}</td><td>${cr.fatal?'<span class="tag tf">Fatal</span>':'<span class="tag tp">Pass</span>'}</td></tr>`);
   // Totals
-  rows.push(`<tr style="background:rgba(61,126,245,0.04)"><td style="font-family:var(--font-head);font-weight:800">NC Total (100 pts)</td><td></td><td style="font-family:var(--font-head);font-weight:700;color:var(--accent)">${nc?nc.earned:0}</td><td style="color:var(--muted)">${nc?nc.total:0}</td><td class="sbc"><div class="sbw"><div class="smb"><div class="smf" style="width:${nc?nc.pct:0}%;background:var(--accent)"></div></div><span class="sv" style="color:var(--accent)">${nc?nc.pct+'%':'—'}</span></div></td><td>${stag(nc?nc.pct:null)}</td></tr>`);
+  rows.push(`<tr style="background:rgba(61,126,245,0.04)"><td style="font-family:var(--font-head);font-weight:800">NC Total (${NCK.reduce((s,k)=>s+(PM[k].points||0),0)} pts)</td><td></td><td style="font-family:var(--font-head);font-weight:700;color:var(--accent)">${nc?nc.earned:0}</td><td style="color:var(--muted)">${nc?nc.total:0}</td><td class="sbc"><div class="sbw"><div class="smb"><div class="smf" style="width:${nc?nc.pct:0}%;background:var(--accent)"></div></div><span class="sv" style="color:var(--accent)">${nc?nc.pct+'%':'—'}</span></div></td><td>${stag(nc?nc.pct:null)}</td></tr>`);
   rows.push(`<tr style="background:rgba(240,168,48,0.04)"><td style="font-family:var(--font-head);font-weight:800;font-size:14px">Overall Score</td><td></td><td></td><td></td><td class="sbc"><div class="sbw"><div class="smb"><div class="smf" style="width:${tot||0}%;background:${tot>=85?'var(--success)':tot>=70?'var(--warning)':'var(--critical)'}"></div></div><span class="sv" style="font-size:14px;color:${tot>=85?'var(--success)':tot>=70?'var(--warning)':'var(--critical)'}">${tot!==null?tot+'%':'—'}</span></div></td><td>${cr.fatal?'<span class="tag tfatal">⚡ FATAL</span>':stag(tot)}</td></tr>`);
   document.getElementById('perfTableBody').innerHTML=rows.join('');
 }
@@ -2473,6 +2527,7 @@ window.loadUserProcesses = async function loadUserProcesses(u){
     const key=u.email.replace(/[.@]/g,'_');
     const snap=await window.get(window.ref(window.db,'userProcesses/'+key));
     window._userProcesses=snap.exists()?snap.val():{};
+    try{ await loadProcessList(); }catch(e){console.warn('loadProcessList (regular user)',e);} // ★ needed so applyProcessParams can find each process's locked parameters
     return window._userProcesses;
   }catch(e){window._userProcesses={};return{};}
 }
@@ -2538,6 +2593,11 @@ window.selectProcess=function(processId){
   const label=document.getElementById('currentProcLabel');
   if(badge)badge.style.display='inline-flex';
   if(label)label.textContent=processId;
+  // Load this process's own locked parameter set (falls back to the legacy sales set if none stored)
+  try{
+    const procRecord=(window._processList||[]).find(p=>p.id===processId);
+    applyProcessParams(procRecord);
+  }catch(e){console.warn('applyProcessParams',e);}
   // Load everything — each call isolated so one failure doesn't block others
   const u=window.auth&&window.auth.currentUser; if(!u)return;
   try{updateBadge();}catch(e){console.warn('updateBadge',e);}
@@ -2563,19 +2623,12 @@ window.selectProcess=function(processId){
   },300);
 };
 
-window.addNewProcess=async function(){
+window.addNewProcess=function(){
   if(!isSuperAdmin()&&getUserRole()!=='processAdmin'){showToast('Admin only','e');return;}
   const name=document.getElementById('newProcessName').value.trim().toUpperCase().replace(/[^A-Z]/g,'').slice(0,6);
   if(!name||name.length<2){showToast('Enter 2–6 letters','e');return;}
   if(window._processList.find(p=>p.id===name)){showToast('Process "'+name+'" already exists','e');return;}
-  try{
-    await window.set(window.ref(window.db,'processList/'+name),{id:name,createdAt:Date.now(),createdBy:auth.currentUser.email});
-    document.getElementById('newProcessName').value='';
-    await loadProcessList();
-    renderProcessManagement();
-    populateProcessDropdowns();
-    showToast('Process '+name+' created','s');
-  }catch(e){showToast('Error: '+e.message,'e');}
+  openParamBuilder(name); // opens the parameter builder modal; process is saved in submitNewProcessWithParams()
 };
 
 async function renderProcessManagement(){
@@ -2698,23 +2751,20 @@ function populateProcessDropdowns(){
 // ════════════════════════════════════════════════════════════════════════════
 const AI_API_BASE = 'https://qahub-ai-api-glz7-71kxhi7f1-abhigaur834s-projects.vercel.app'; // ← REPLACE THIS
 
-const AI_NC_POINTS = {nc1:10,nc2:10,nc3:5,nc4:10,nc5:10,nc6:10,nc7:10,nc8:10,nc9:5,nc10:5,nc11:10,nc12:5};
-const AI_NCK = Object.keys(AI_NC_POINTS);
-const AI_CRK = ['cr1','cr2','cr3','cr4','cr5','cr6','cr7','cr8','cr9','cr10'];
-const AI_NC_GROUPS = {
-  'Call Opening / Closing':['nc1','nc2','nc3','nc4'],
-  'Issue Identification':['nc5','nc6','nc7'],
-  'Customer Experience':['nc8','nc9','nc10','nc11','nc12']
-};
-const AI_PM = {
-  nc1:'Standard opening & name confirmation',nc2:'Summarization',nc3:'Further assistance offered',nc4:'Prescribed call closing',
-  nc5:'Paraphrasing for alignment',nc6:'Customer VOC acknowledged',nc7:'Relevant probing questions',
-  nc8:'Active Listening / Reading',nc9:'Hold & Dead Air SLA',nc10:'Apologies, Empathy & Politeness',
-  nc11:'No Overlapping / Interruptions',nc12:'Accurate Email to Client',
-  cr1:'Professional & polite throughout',cr2:'Called within timeframe & TZ',cr3:'Complete & accurate information',
-  cr4:'Timely queries + right disposition',cr5:'Qualifying questions + notes updated',cr6:'Opportunity created post-call',
-  cr7:'Special requirements noted',cr8:'Non-sales queries redirected',cr9:'All client questions answered',cr10:'Lead converted without pushing'
-};
+// ★ These now stay in sync with the active process's PM/NCK/CRK/GROUPS (see syncAIParams(),
+//   called automatically from applyProcessParams() whenever a process is created/switched).
+let AI_NC_POINTS = {}, AI_NCK = [], AI_CRK = [], AI_NC_GROUPS = {}, AI_PM = {};
+function syncAIParams(){
+  AI_NCK=[...NCK]; AI_CRK=[...CRK];
+  AI_NC_POINTS={}; NCK.forEach(k=>AI_NC_POINTS[k]=PM[k].points);
+  AI_PM={}; [...NCK,...CRK].forEach(k=>AI_PM[k]=PM[k].label);
+  // Preserve the legacy 3-group breakdown when on a legacy process; flat single group for custom ones
+  const isLegacy = NCK.length===LEGACY_NCK.length && NCK.every((k,i)=>k===LEGACY_NCK[i]);
+  AI_NC_GROUPS = isLegacy
+    ? {'Call Opening / Closing':['nc1','nc2','nc3','nc4'],'Issue Identification':['nc5','nc6','nc7'],'Customer Experience':['nc8','nc9','nc10','nc11','nc12']}
+    : {'Non-Critical Parameters': NCK};
+}
+syncAIParams(); // seed with legacy defaults before any process is selected
 
 let _aiCalls=[],_aiSelectedCall=null,_aiFilter='pending_review',_aiCS={},_aiQueueTimer=null,_aiShowAllCalls=false;
 
@@ -2874,6 +2924,7 @@ function aiRenderMain(call){
     </div>
     <div class="ai-body">
       <div class="ai-transcript">
+        ${call.recordingUrl?`<div style="padding:10px 14px;border-bottom:1px solid var(--border);background:rgba(139,108,245,.04)"><audio controls preload="none" style="width:100%;height:34px" src="${call.recordingUrl}"></audio></div>`:''}
         <div class="ai-panel-hdr"><span>Transcript</span><span style="font-size:10px;color:var(--muted)">${segments.length} utterances ${call.transcript?.stats?'&middot; Agent: '+call.transcript.stats.talkRatio+'%':''}</span></div>
         <div class="ai-scroll">
           ${segments.length?segments.map(s=>{const isAgent=s.speaker==='Agent',min=Math.floor(s.start/60),sec=Math.floor(s.start%60);return`<div class="ai-utt ${isAgent?'ai-utt-agent':'ai-utt-cust'}"><div class="ai-utt-spk">${s.speaker}</div><div class="ai-utt-txt">${s.text}</div><div class="ai-utt-time">${min}:${String(sec).padStart(2,'0')}</div></div>`;}).join(''):'<div style="color:var(--muted);font-size:12px;text-align:center;padding:20px">No transcript available</div>'}
@@ -2975,13 +3026,51 @@ async function aiPopulateAssigneeDropdown(){
 }
 function aiHideUpload(){
   document.getElementById('aiUploadModal').style.display='none';
-  ['aiUpAgent','aiUpCaller','aiUpUrl','aiUpNotes'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';}); const assignSel=document.getElementById('aiUpAssignee');if(assignSel)assignSel.value=''; const langSel=document.getElementById('aiUpLang');if(langSel)langSel.value='hi-en';;
+  ['aiUpAgent','aiUpCaller','aiUpUrl','aiUpNotes'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  const fileEl=document.getElementById('aiUpFile'); if(fileEl) fileEl.value='';
+  const progEl=document.getElementById('aiUpProgress'); if(progEl){progEl.style.display='none';progEl.textContent='';}
+  const assignSel=document.getElementById('aiUpAssignee');if(assignSel)assignSel.value='';
+  const langSel=document.getElementById('aiUpLang');if(langSel)langSel.value='hi-en';
 }
 async function aiSubmitUpload(){
-  const url=document.getElementById('aiUpUrl')?.value.trim();
-  if(!url){showToast('Recording URL is required','e');return;}
+  const urlField=document.getElementById('aiUpUrl')?.value.trim();
+  const fileInput=document.getElementById('aiUpFile');
+  const progEl=document.getElementById('aiUpProgress');
+  let recordingUrl=urlField;
+
+  // If no URL was pasted but a file was chosen, upload it to Firebase Storage first
+  if(!recordingUrl && fileInput?.files?.[0]){
+    const file=fileInput.files[0];
+    const path=`calls/${window._currentProcess}/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9_.-]/g,'_')}`;
+    try{
+      const storageRef=window.sRef(window.storage,path);
+      const task=window.uploadBytesResumable(storageRef,file);
+      if(progEl)progEl.style.display='block';
+      recordingUrl=await new Promise((resolve,reject)=>{
+        task.on('state_changed',
+          snap=>{ if(progEl)progEl.textContent='Uploading… '+Math.round(snap.bytesTransferred/snap.totalBytes*100)+'%'; },
+          err=>reject(err),
+          async ()=>{ try{ resolve(await window.getDownloadURL(task.snapshot.ref)); }catch(e2){reject(e2);} }
+        );
+      });
+      if(progEl)progEl.textContent='✅ Upload complete — starting AI scoring…';
+    }catch(e){ showToast('File upload failed: '+e.message,'e'); if(progEl)progEl.style.display='none'; return; }
+  }
+
+  if(!recordingUrl){ showToast('Paste a recording URL or choose a file to upload','e'); return; }
+
   try{
-    const res=await fetch(AI_API_BASE+'/api/upload',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({processId:window._currentProcess,agentName:document.getElementById('aiUpAgent')?.value.trim()||null,callerNumber:document.getElementById('aiUpCaller')?.value.trim()||null,recordingUrl:url,notes:document.getElementById('aiUpNotes')?.value.trim()||'',uploadedBy:window.auth.currentUser?.uid||null,assignedTo:document.getElementById('aiUpAssignee')?.value||null,language:document.getElementById('aiUpLang')?.value||'hi-en'})});
+    const res=await fetch(AI_API_BASE+'/api/upload',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+      processId:window._currentProcess,
+      agentName:document.getElementById('aiUpAgent')?.value.trim()||null,
+      callerNumber:document.getElementById('aiUpCaller')?.value.trim()||null,
+      recordingUrl,
+      notes:document.getElementById('aiUpNotes')?.value.trim()||'',
+      uploadedBy:window.auth.currentUser?.uid||null,
+      assignedTo:document.getElementById('aiUpAssignee')?.value||null,
+      language:document.getElementById('aiUpLang')?.value||'hi-en',
+      parameters:{...PM} // ★ sends this process's locked audit parameters so the AI can score against them
+    })});
     const data=await res.json();
     if(data.success){aiHideUpload();showToast('Uploaded! AI is scoring — check back in ~60 seconds.','s');setTimeout(()=>aiLoadQueue(),3000);}
     else showToast('Upload failed: '+data.error,'e');
