@@ -383,12 +383,45 @@ tbody td{padding:11px 16px;font-size:13px;color:var(--text);}
 
 <!-- PARAMETER BUILDER — shown once when a new process is created; parameters are locked afterward -->
 <div id="paramBuilderModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:99999;justify-content:center;align-items:center;">
-  <div style="position:relative;background:var(--surface);border:1px solid rgba(61,126,245,.25);border-radius:16px;padding:28px 30px;width:540px;max-width:92vw;max-height:85vh;overflow-y:auto;box-shadow:0 32px 80px rgba(0,0,0,.6)">
+  <div style="position:relative;background:var(--surface);border:1px solid rgba(61,126,245,.25);border-radius:16px;padding:28px 30px;width:560px;max-width:92vw;max-height:88vh;overflow-y:auto;box-shadow:0 32px 80px rgba(0,0,0,.6)">
     <div style="position:absolute;top:0;left:0;right:0;height:2px;border-radius:16px 16px 0 0;background:linear-gradient(90deg,var(--accent),var(--purple))"></div>
     <div style="font-family:var(--font-head);font-weight:800;font-size:17px;margin-bottom:4px">Define Audit Parameters</div>
-    <div style="font-size:11.5px;color:var(--muted);margin-bottom:18px">Set the parameters this process's Scorecard will use. <strong style="color:var(--critical)">These are locked once created.</strong></div>
+    <div style="font-size:11.5px;color:var(--muted);margin-bottom:16px">Set the parameters this process's Scorecard will use. <strong style="color:var(--critical)">These are locked once created.</strong></div>
+
+    <!-- Tab switcher: manual typing vs bulk paste vs Excel upload — all feed the same review list below -->
+    <div style="display:flex;gap:6px;margin-bottom:16px;border-bottom:1px solid var(--border);padding-bottom:2px">
+      <button id="pbTab-manual" onclick="switchParamBuilderTab('manual')" style="background:none;border:none;border-bottom:2px solid var(--accent);color:var(--accent);font-family:var(--font-head);font-size:11.5px;font-weight:700;padding:6px 10px;cursor:pointer">Manual Entry</button>
+      <button id="pbTab-paste" onclick="switchParamBuilderTab('paste')" style="background:none;border:none;border-bottom:2px solid transparent;color:var(--muted);font-family:var(--font-head);font-size:11.5px;font-weight:700;padding:6px 10px;cursor:pointer">Paste List</button>
+      <button id="pbTab-excel" onclick="switchParamBuilderTab('excel')" style="background:none;border:none;border-bottom:2px solid transparent;color:var(--muted);font-family:var(--font-head);font-size:11.5px;font-weight:700;padding:6px 10px;cursor:pointer">Excel Upload</button>
+    </div>
+
+    <!-- PASTE LIST panel -->
+    <div id="pbPanel-paste" style="display:none;margin-bottom:16px">
+      <div style="font-size:11px;color:var(--muted);margin-bottom:8px;line-height:1.5">One parameter per line. End a line with <strong style="color:var(--critical)">*</strong> to mark it Critical (fatal fail). Points for non-critical ones are auto-calculated to add up to your target total.</div>
+      <textarea id="pbPasteText" placeholder="Pitched all add-ons&#10;Confirmed payment method&#10;Did not misquote pricing *&#10;Agent remained polite throughout *" style="width:100%;min-height:110px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:9px 11px;font-size:12.5px;font-family:var(--font-body);outline:none;box-sizing:border-box;resize:vertical;margin-bottom:10px"></textarea>
+      <div style="display:flex;gap:10px;align-items:center;margin-bottom:10px">
+        <label style="font-size:10.5px;color:var(--muted);font-family:var(--font-head);font-weight:700;white-space:nowrap">Total Points Pool</label>
+        <input type="number" id="pbPastePool" value="100" min="1" style="width:90px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:7px 10px;font-size:12.5px;outline:none">
+        <span style="font-size:10px;color:var(--muted)">(split evenly across non-critical parameters)</span>
+      </div>
+      <button onclick="generateFromPaste()" style="background:var(--accent-dim);border:1px solid rgba(61,126,245,.3);color:var(--accent);border-radius:6px;padding:8px 16px;font-size:11.5px;font-family:var(--font-head);font-weight:700;cursor:pointer">Generate Parameters →</button>
+    </div>
+
+    <!-- EXCEL UPLOAD panel -->
+    <div id="pbPanel-excel" style="display:none;margin-bottom:16px">
+      <div style="font-size:11px;color:var(--muted);margin-bottom:10px;line-height:1.5">Upload a .xlsx with columns <strong>Parameter</strong> and <strong>Critical</strong> (Y/N). Points for non-critical ones are auto-calculated to add up to your target total.</div>
+      <div style="display:flex;gap:10px;align-items:center;margin-bottom:10px">
+        <label style="font-size:10.5px;color:var(--muted);font-family:var(--font-head);font-weight:700;white-space:nowrap">Total Points Pool</label>
+        <input type="number" id="pbExcelPool" value="100" min="1" style="width:90px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:7px 10px;font-size:12.5px;outline:none">
+        <a href="#" onclick="downloadParamTemplate(event)" style="font-size:10.5px;color:var(--accent);text-decoration:underline;margin-left:auto">⬇ Download Template</a>
+      </div>
+      <input type="file" id="pbExcelFile" accept=".xlsx,.xls" onchange="generateFromExcel(this)" style="width:100%;background:var(--surface2);border:1px dashed rgba(61,126,245,.4);border-radius:6px;color:var(--text);padding:9px;font-size:12px;box-sizing:border-box">
+      <div id="pbExcelStatus" style="font-size:11px;color:var(--muted);margin-top:8px"></div>
+    </div>
+
+    <!-- Review list — populated by manual typing, paste, or Excel; final edits happen here before creating -->
     <div id="paramBuilderRows"></div>
-    <button onclick="addParamRow()" style="background:var(--accent-dim);border:1px solid rgba(61,126,245,.3);color:var(--accent);border-radius:6px;padding:7px 14px;font-size:11.5px;font-family:var(--font-head);font-weight:700;cursor:pointer;margin-bottom:20px">+ Add Parameter</button>
+    <button id="pbAddRowBtn" onclick="addParamRow()" style="background:var(--accent-dim);border:1px solid rgba(61,126,245,.3);color:var(--accent);border-radius:6px;padding:7px 14px;font-size:11.5px;font-family:var(--font-head);font-weight:700;cursor:pointer;margin-bottom:20px">+ Add Parameter</button>
     <div style="display:flex;gap:10px">
       <button onclick="cancelParamBuilder()" style="flex:1;padding:10px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:var(--font-head);font-weight:700;cursor:pointer;font-size:12px">Cancel</button>
       <button onclick="submitNewProcessWithParams()" style="flex:2;padding:10px;border-radius:8px;border:none;background:var(--accent);color:#fff;font-family:var(--font-head);font-weight:700;cursor:pointer;font-size:12px">Create Process →</button>
@@ -867,12 +900,18 @@ tbody td{padding:11px 16px;font-size:13px;color:var(--text);}
             <div><label style="display:block;font-size:9.5px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);font-family:var(--font-head);font-weight:700;margin-bottom:6px">Agent Name</label><input id="aiUpAgent" placeholder="e.g. Rahul Kumar" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-family:var(--font-body);font-size:13px;padding:9px 12px;outline:none;box-sizing:border-box"></div>
             <div><label style="display:block;font-size:9.5px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);font-family:var(--font-head);font-weight:700;margin-bottom:6px">Caller Number</label><input id="aiUpCaller" placeholder="+91 9XXXXXXXXX" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-family:var(--font-body);font-size:13px;padding:9px 12px;outline:none;box-sizing:border-box"></div>
           </div>
-          <div style="margin-bottom:8px"><label style="display:block;font-size:9.5px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);font-family:var(--font-head);font-weight:700;margin-bottom:6px">Recording URL</label><input id="aiUpUrl" placeholder="https://…/recording.mp3" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-family:var(--font-body);font-size:13px;padding:9px 12px;outline:none;box-sizing:border-box"></div>
-          <div style="text-align:center;font-size:10px;color:var(--muted);margin:6px 0;text-transform:uppercase;letter-spacing:1px">— or —</div>
-          <div style="margin-bottom:12px">
-            <label style="display:block;font-size:9.5px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);font-family:var(--font-head);font-weight:700;margin-bottom:6px">Upload Audio File</label>
-            <input type="file" id="aiUpFile" accept="audio/*" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-family:var(--font-body);font-size:12px;padding:8px;box-sizing:border-box">
-            <div id="aiUpProgress" style="font-size:11px;color:var(--purple);margin-top:6px;display:none;font-family:var(--font-head);font-weight:600"></div>
+          <div style="margin-bottom:6px"><label style="display:block;font-size:9.5px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);font-family:var(--font-head);font-weight:700;margin-bottom:6px">Recording URL *</label><input id="aiUpUrl" placeholder="https://…/recording.mp3" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-family:var(--font-body);font-size:13px;padding:9px 12px;outline:none;box-sizing:border-box"></div>
+          <div style="font-size:10.5px;color:var(--muted);margin-bottom:14px;line-height:1.5">Must be reachable from the internet — links to an internal server (e.g. an office IP like 172.x.x.x) won't work here, since the AI runs in the cloud, not on your local network.</div>
+          <!-- ★ Direct file upload is disabled for now — it needs cloud storage (Firebase Storage or similar)
+               which isn't set up yet. Re-enable by un-hiding this block and removing the "disabled" flag
+               in aiSubmitUpload() below once storage is configured. -->
+          <div id="aiUpFileSection" style="display:none">
+            <div style="text-align:center;font-size:10px;color:var(--muted);margin:6px 0;text-transform:uppercase;letter-spacing:1px">— or —</div>
+            <div style="margin-bottom:12px">
+              <label style="display:block;font-size:9.5px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);font-family:var(--font-head);font-weight:700;margin-bottom:6px">Upload Audio File</label>
+              <input type="file" id="aiUpFile" accept="audio/*,.mp3,.wav,.m4a,.ogg,.opus,.aac,.flac,.amr,.webm" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-family:var(--font-body);font-size:12px;padding:8px;box-sizing:border-box">
+              <div id="aiUpProgress" style="font-size:11px;color:var(--purple);margin-top:6px;display:none;font-family:var(--font-head);font-weight:600"></div>
+            </div>
           </div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
             <div><label style="display:block;font-size:9.5px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);font-family:var(--font-head);font-weight:700;margin-bottom:6px">Assign To (Auditor) *</label><select id="aiUpAssignee" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-family:var(--font-body);font-size:13px;padding:9px 12px;outline:none;box-sizing:border-box"><option value="">&#8212; Select Auditor &#8212;</option></select></div>
@@ -886,6 +925,38 @@ tbody td{padding:11px 16px;font-size:13px;color:var(--text);}
         </div>
       </div>
 
+      <!-- SMARTFLO SYNC — pulls recent call records + recording URLs directly from the dialer -->
+      <div id="smartfloSyncModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;backdrop-filter:blur(4px);justify-content:center;align-items:center;">
+        <div style="background:var(--surface);border:1px solid rgba(240,168,48,.25);border-radius:var(--r-lg);padding:28px;width:640px;max-width:92vw;max-height:85vh;overflow-y:auto;position:relative">
+          <div style="position:absolute;top:0;left:0;right:0;height:2px;border-radius:16px 16px 0 0;background:linear-gradient(90deg,var(--accent2),var(--purple))"></div>
+          <div style="font-family:var(--font-head);font-size:17px;font-weight:800;margin-bottom:6px">&#9737; Sync from Smartflo</div>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:18px">Pulls recent call records directly from your Tata Tele CloudPhone/Smartflo account — pick which calls to send for AI scoring.</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px">
+            <div><label style="display:block;font-size:9.5px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);font-family:var(--font-head);font-weight:700;margin-bottom:6px">From Date</label><input type="date" id="sfFromDate" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-family:var(--font-body);font-size:13px;padding:9px 10px;outline:none;box-sizing:border-box"></div>
+            <div><label style="display:block;font-size:9.5px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);font-family:var(--font-head);font-weight:700;margin-bottom:6px">To Date</label><input type="date" id="sfToDate" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-family:var(--font-body);font-size:13px;padding:9px 10px;outline:none;box-sizing:border-box"></div>
+            <div><label style="display:block;font-size:9.5px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);font-family:var(--font-head);font-weight:700;margin-bottom:6px">Agent (optional)</label><input type="text" id="sfAgentFilter" placeholder="e.g. Rahul" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-family:var(--font-body);font-size:13px;padding:9px 10px;outline:none;box-sizing:border-box"></div>
+          </div>
+          <div style="display:flex;gap:10px;margin-bottom:16px">
+            <button onclick="sfFetchCalls()" style="background:var(--accent2-dim);border:1px solid rgba(240,168,48,.3);color:var(--accent2);border-radius:var(--r-sm);padding:9px 18px;font-family:var(--font-head);font-size:12px;font-weight:700;cursor:pointer">Fetch Calls</button>
+            <div id="sfFetchStatus" style="font-size:11.5px;color:var(--muted);align-self:center"></div>
+          </div>
+          <div id="sfResultsWrap" style="display:none">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid var(--border)">
+              <label style="display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--text-dim);cursor:pointer"><input type="checkbox" id="sfSelectAll" onchange="sfToggleSelectAll(this)"> Select all</label>
+              <div style="margin-left:auto;display:flex;gap:10px;align-items:center">
+                <select id="sfAssignee" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-family:var(--font-body);font-size:12px;padding:6px 10px;outline:none"><option value="">&#8212; Assign imported calls to &#8212;</option></select>
+                <select id="sfLang" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-family:var(--font-body);font-size:12px;padding:6px 10px;outline:none"><option value="hi-en">Hindi + English</option><option value="en">English Only</option><option value="hi">Hindi Only</option></select>
+              </div>
+            </div>
+            <div id="sfCallList" style="max-height:320px;overflow-y:auto"></div>
+            <div style="display:flex;gap:10px;margin-top:16px">
+              <button onclick="sfHideSync()" style="flex:1;padding:10px;border-radius:var(--r-sm);border:1px solid var(--border);background:transparent;color:var(--muted);font-family:var(--font-head);font-size:12px;font-weight:700;cursor:pointer">Close</button>
+              <button onclick="sfImportSelected()" id="sfImportBtn" style="flex:2;padding:10px;border-radius:var(--r-sm);border:none;background:var(--accent2);color:#111;font-family:var(--font-head);font-size:12px;font-weight:700;cursor:pointer">Import Selected &rarr;</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div style="display:flex;gap:0;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;height:calc(100vh - 140px);">
         <div class="ai-queue">
           <div class="ai-queue-hdr">
@@ -895,6 +966,7 @@ tbody td{padding:11px 16px;font-size:13px;color:var(--text);}
             </div>
             <div style="display:flex;gap:6px;align-items:center;flex-shrink:0">
               <button id="aiAdminViewBtn" onclick="aiToggleAdminView(this)" style="display:none;background:rgba(139,108,245,.1);border:1px solid rgba(139,108,245,.25);color:var(--purple);padding:4px 8px;border-radius:var(--r-sm);font-family:var(--font-head);font-size:9px;font-weight:700;cursor:pointer;white-space:nowrap">&#128101; My Calls</button>
+              <button class="ai-upload-btn" onclick="aiShowSmartfloSync()" style="background:rgba(240,168,48,.1);border-color:rgba(240,168,48,.25);color:var(--accent2)">&#9737; Sync</button>
               <button class="ai-upload-btn" onclick="aiShowUpload()">+ Upload</button>
             </div>
           </div>
@@ -1299,6 +1371,9 @@ function openParamBuilder(processId){
   window._pendingProcessId=processId;
   _paramRows=[{label:'',points:10,critical:false}];
   renderParamBuilderRows();
+  switchParamBuilderTab('manual');
+  const pasteEl=document.getElementById('pbPasteText'); if(pasteEl) pasteEl.value='';
+  const excelStatus=document.getElementById('pbExcelStatus'); if(excelStatus) excelStatus.textContent='';
   document.getElementById('paramBuilderModal').style.display='flex';
 }
 function addParamRow(){ _paramRows.push({label:'',points:10,critical:false}); renderParamBuilderRows(); }
@@ -1336,6 +1411,91 @@ async function submitNewProcessWithParams(){
 function cancelParamBuilder(){
   document.getElementById('paramBuilderModal').style.display='none';
   window._pendingProcessId=null;
+}
+
+// ── Bulk parameter entry: tabs, auto-weight distribution, paste + Excel parsing ──
+function switchParamBuilderTab(tab){
+  ['manual','paste','excel'].forEach(t=>{
+    const btn=document.getElementById('pbTab-'+t);
+    const panel=document.getElementById('pbPanel-'+t);
+    if(btn) btn.style.borderBottomColor = t===tab ? 'var(--accent)' : 'transparent';
+    if(btn) btn.style.color = t===tab ? 'var(--accent)' : 'var(--muted)';
+    if(panel) panel.style.display = t===tab ? 'block' : 'none';
+  });
+}
+
+// Splits `pool` points evenly across `count` non-critical parameters, rounded to
+// whole numbers, with any remainder distributed to the first few so the total
+// always adds up exactly (matches how the legacy 100-point scorecard behaves).
+function autoDistributePoints(count, pool){
+  if(count<=0) return [];
+  const base=Math.floor(pool/count);
+  const remainder=pool-(base*count);
+  return Array.from({length:count}, (_,i)=> base + (i<remainder ? 1 : 0));
+}
+
+// Takes a flat list of {label, critical} and returns _paramRows-shaped rows
+// with points auto-assigned to non-critical ones.
+function buildRowsWithAutoPoints(items, pool){
+  const ncItems=items.filter(it=>!it.critical);
+  const pts=autoDistributePoints(ncItems.length, Number(pool)||100);
+  let ncIdx=0;
+  return items.map(it=>{
+    if(it.critical) return {label:it.label, points:null, critical:true};
+    return {label:it.label, points:pts[ncIdx++], critical:false};
+  });
+}
+
+function generateFromPaste(){
+  const raw=document.getElementById('pbPasteText').value;
+  const pool=document.getElementById('pbPastePool').value;
+  const lines=raw.split('\n').map(l=>l.trim()).filter(Boolean);
+  if(!lines.length){ showToast('Paste at least one parameter','e'); return; }
+  const items=lines.map(line=>{
+    const critical=/\*\s*$/.test(line);
+    const label=line.replace(/\*\s*$/,'').trim();
+    return {label, critical};
+  }).filter(it=>it.label);
+  _paramRows=buildRowsWithAutoPoints(items, pool);
+  renderParamBuilderRows();
+  switchParamBuilderTab('manual');
+  showToast('✅ Generated '+items.length+' parameters — review points below before creating','s');
+}
+
+async function generateFromExcel(input){
+  const statusEl=document.getElementById('pbExcelStatus');
+  if(!input.files||!input.files[0]) return;
+  statusEl.textContent='Reading file...'; statusEl.style.color='var(--muted)';
+  try{
+    const ab=await input.files[0].arrayBuffer();
+    const wb=XLSX.read(ab,{type:'arraybuffer'});
+    const ws=wb.Sheets[wb.SheetNames[0]];
+    const rows=XLSX.utils.sheet_to_json(ws,{defval:''});
+    if(!rows.length){ statusEl.textContent='❌ No rows found'; statusEl.style.color='var(--critical)'; return; }
+    const pool=document.getElementById('pbExcelPool').value;
+    const items=rows.map(row=>{
+      const label=String(row['Parameter']||row['parameter']||row['Name']||'').trim();
+      const critFlag=String(row['Critical']||row['critical']||'').trim().toLowerCase();
+      const critical=['y','yes','true','1'].includes(critFlag);
+      return {label, critical};
+    }).filter(it=>it.label);
+    if(!items.length){ statusEl.textContent='❌ No valid "Parameter" column found'; statusEl.style.color='var(--critical)'; return; }
+    _paramRows=buildRowsWithAutoPoints(items, pool);
+    renderParamBuilderRows();
+    switchParamBuilderTab('manual');
+    statusEl.textContent='✅ Loaded '+items.length+' parameters';
+    statusEl.style.color='var(--success)';
+    input.value='';
+    showToast('✅ Generated '+items.length+' parameters — review points below before creating','s');
+  }catch(e){ statusEl.textContent='❌ Error: '+e.message; statusEl.style.color='var(--critical)'; }
+}
+
+function downloadParamTemplate(e){
+  e.preventDefault();
+  const ws=XLSX.utils.aoa_to_sheet([['Parameter','Critical'],['Pitched all add-ons','N'],['Confirmed payment method','N'],['Did not misquote pricing','Y']]);
+  ws['!cols']=[{wch:36},{wch:10}];
+  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Parameters');
+  XLSX.writeFile(wb,'parameter_upload_template.xlsx');
 }
 
 // ── Agent list ───────────────────────────────────────────────────────────────
@@ -2981,12 +3141,13 @@ async function aiSubmitAudit(){
 
 function aiShowUpload(){
   // Populate assignee dropdown from process users list
-  aiPopulateAssigneeDropdown();
+  aiPopulateAssigneeDropdown('aiUpAssignee');
   document.getElementById('aiUploadModal').style.display='flex';
 }
 
-async function aiPopulateAssigneeDropdown(){
-  const sel=document.getElementById('aiUpAssignee');if(!sel)return;
+async function aiPopulateAssigneeDropdown(targetId){
+  targetId = targetId || 'aiUpAssignee';
+  const sel=document.getElementById(targetId);if(!sel)return;
   sel.innerHTML='<option value="">&#8212; Select Auditor &#8212;</option>';
   try{
     // Load from userProcesses - find all users assigned to current process
@@ -3024,6 +3185,102 @@ async function aiPopulateAssigneeDropdown(){
     }
   }catch(e){console.warn('aiPopulateAssigneeDropdown:',e);}
 }
+
+// ── SMARTFLO SYNC ────────────────────────────────────────────────────────────
+let _sfFoundCalls=[];
+
+function aiShowSmartfloSync(){
+  aiPopulateAssigneeDropdown('sfAssignee');
+  const today=new Date().toISOString().slice(0,10);
+  const fromEl=document.getElementById('sfFromDate'), toEl=document.getElementById('sfToDate');
+  if(fromEl && !fromEl.value) fromEl.value=today;
+  if(toEl && !toEl.value) toEl.value=today;
+  document.getElementById('sfResultsWrap').style.display='none';
+  document.getElementById('sfFetchStatus').textContent='';
+  document.getElementById('smartfloSyncModal').style.display='flex';
+}
+function sfHideSync(){
+  document.getElementById('smartfloSyncModal').style.display='none';
+}
+
+async function sfFetchCalls(){
+  const statusEl=document.getElementById('sfFetchStatus');
+  const fromDate=document.getElementById('sfFromDate').value;
+  const toDate=document.getElementById('sfToDate').value;
+  const agentName=document.getElementById('sfAgentFilter').value.trim();
+  if(!fromDate||!toDate){ showToast('Pick a date range','e'); return; }
+
+  statusEl.textContent='Fetching from Smartflo…'; statusEl.style.color='var(--muted)';
+  try{
+    const idToken=await window.auth.currentUser.getIdToken();
+    const res=await fetch(AI_API_BASE+'/api/smartflo-sync',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+idToken},
+      body:JSON.stringify({ fromDate, toDate, agentName: agentName||undefined, limit:'100' })
+    });
+    const data=await res.json();
+    if(!data.success){ statusEl.textContent='❌ '+(data.error||'Fetch failed'); statusEl.style.color='var(--critical)'; return; }
+    _sfFoundCalls=data.calls||[];
+    statusEl.textContent=_sfFoundCalls.length+' call(s) with recordings found (of '+(data.totalAvailable||0)+' total in range)';
+    statusEl.style.color='var(--success)';
+    sfRenderCallList();
+    document.getElementById('sfResultsWrap').style.display='block';
+  }catch(e){
+    statusEl.textContent='❌ Error: '+e.message; statusEl.style.color='var(--critical)';
+  }
+}
+
+function sfRenderCallList(){
+  const el=document.getElementById('sfCallList'); if(!el) return;
+  if(!_sfFoundCalls.length){ el.innerHTML='<div style="text-align:center;padding:24px;color:var(--muted);font-size:12.5px">No calls with recordings in this range.</div>'; return; }
+  el.innerHTML=_sfFoundCalls.map((c,i)=>`
+    <label style="display:flex;align-items:center;gap:10px;padding:9px 8px;border-bottom:1px solid rgba(28,38,64,0.5);cursor:pointer;font-size:12.5px">
+      <input type="checkbox" class="sf-call-cb" data-idx="${i}" checked>
+      <div style="flex:1;min-width:0">
+        <div style="font-family:var(--font-head);font-weight:700">${esc(c.agentName||'Unknown Agent')} <span style="color:var(--muted);font-weight:400">&middot; ${esc(c.callerNumber||'')}</span></div>
+        <div style="font-size:11px;color:var(--muted)">${c.date} ${c.time} &middot; ${Math.round(c.durationSec/60)}m ${c.durationSec%60}s ${c.direction?'&middot; '+c.direction:''}</div>
+      </div>
+    </label>`).join('');
+}
+
+function sfToggleSelectAll(cb){
+  document.querySelectorAll('.sf-call-cb').forEach(el=>{ el.checked=cb.checked; });
+}
+
+async function sfImportSelected(){
+  const checked=[...document.querySelectorAll('.sf-call-cb:checked')].map(el=>_sfFoundCalls[Number(el.dataset.idx)]);
+  if(!checked.length){ showToast('Select at least one call','e'); return; }
+
+  const assignedTo=document.getElementById('sfAssignee').value||null;
+  const language=document.getElementById('sfLang').value||'hi-en';
+  const btn=document.getElementById('sfImportBtn');
+  btn.disabled=true;
+
+  let ok=0, fail=0;
+  for(const call of checked){
+    btn.textContent=`Importing… (${ok+fail+1}/${checked.length})`;
+    try{
+      const res=await fetch(AI_API_BASE+'/api/upload',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+        processId:window._currentProcess,
+        agentName:call.agentName,
+        callerNumber:call.callerNumber,
+        recordingUrl:call.recordingUrl,
+        notes:'Imported from Smartflo — Call ID '+call.callId,
+        uploadedBy:window.auth.currentUser?.uid||null,
+        assignedTo,
+        language,
+      })});
+      const data=await res.json();
+      if(data.success) ok++; else fail++;
+    }catch(e){ fail++; }
+  }
+
+  btn.disabled=false;
+  btn.textContent='Import Selected →';
+  showToast(`✅ Imported ${ok} call(s)${fail?', '+fail+' failed':''}`, fail?'e':'s');
+  sfHideSync();
+  setTimeout(()=>aiLoadQueue(),2000);
+}
 function aiHideUpload(){
   document.getElementById('aiUploadModal').style.display='none';
   ['aiUpAgent','aiUpCaller','aiUpUrl','aiUpNotes'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
@@ -3034,11 +3291,21 @@ function aiHideUpload(){
 }
 async function aiSubmitUpload(){
   const urlField=document.getElementById('aiUpUrl')?.value.trim();
-  const fileInput=document.getElementById('aiUpFile');
+  const fileInput=document.getElementById('aiUpFile'); // hidden for now — see aiUpFileSection above
   const progEl=document.getElementById('aiUpProgress');
   let recordingUrl=urlField;
 
-  // If no URL was pasted but a file was chosen, upload it to Firebase Storage first
+  if(!recordingUrl){ showToast('Paste a publicly accessible recording URL','e'); return; }
+
+  // Warn (don't block) if the URL looks like a private/internal address — the AI backend
+  // runs in the cloud and can't reach office-network IPs like 172.x, 192.168.x, or 10.x
+  if(/^https?:\/\/(172\.(1[6-9]|2\d|3[0-1])\.|192\.168\.|10\.|localhost|127\.)/i.test(recordingUrl)){
+    if(!confirm('This URL looks like an internal/private address (e.g. an office server). The AI runs in the cloud and likely can\'t reach it, so scoring may fail. Continue anyway?')) return;
+  }
+
+  // Direct file upload is disabled until cloud storage (Firebase Storage or similar) is set up.
+  // This branch is unreachable today since aiUpFile lives inside a hidden section — kept here
+  // so it can be re-enabled later by un-hiding #aiUpFileSection with no other code changes needed.
   if(!recordingUrl && fileInput?.files?.[0]){
     const file=fileInput.files[0];
     const path=`calls/${window._currentProcess}/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9_.-]/g,'_')}`;
