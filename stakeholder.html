@@ -113,17 +113,38 @@ function render(d){
     : '';
 
   const k=d.kpis||{};
+  const deltaHtml=(delta,goodUp=true)=>{
+    if(delta==null) return '<span style="color:var(--muted)">vs prior 30 days: —</span>';
+    const up=delta>0, good=goodUp?up:!up;
+    const arrow=up?'▲':delta<0?'▼':'—';
+    const color=delta===0?'var(--muted)':good?'var(--success)':'var(--critical)';
+    return `<span style="color:${color}">${arrow} ${Math.abs(delta)}pt vs prior 30 days</span>`;
+  };
+
   const html = `
     <h1>${esc(d.processId||'')} — Quality Performance</h1>
     <div class="sub">Aggregated view across all completed audits for this process.</div>
 
     <div class="kpi-row">
-      <div class="kpi blue"><div class="kpi-label">Avg QA Score</div><div class="kpi-val" style="color:${scoreColor(k.avgScore)}">${k.avgScore!==null&&k.avgScore!==undefined?k.avgScore+'%':'—'}</div><div class="kpi-sub">Across all audits</div></div>
-      <div class="kpi green"><div class="kpi-label">Pass Rate</div><div class="kpi-val" style="color:var(--success)">${k.passRate!==null&&k.passRate!==undefined?k.passRate+'%':'—'}</div><div class="kpi-sub">≥85% threshold</div></div>
+      <div class="kpi blue"><div class="kpi-label">Avg QA Score</div><div class="kpi-val" style="color:${scoreColor(k.avgScore)}">${k.avgScore!==null&&k.avgScore!==undefined?k.avgScore+'%':'—'}</div><div class="kpi-sub">${deltaHtml(k.scoreDelta,true)}</div></div>
+      <div class="kpi green"><div class="kpi-label">Pass Rate</div><div class="kpi-val" style="color:var(--success)">${k.passRate!==null&&k.passRate!==undefined?k.passRate+'%':'—'}</div><div class="kpi-sub">${deltaHtml(k.passRateDelta,true)}</div></div>
       <div class="kpi yellow"><div class="kpi-label">Total Audits</div><div class="kpi-val">${k.totalAudits??0}</div><div class="kpi-sub">All time on record</div></div>
       <div class="kpi red"><div class="kpi-label">Fatal Failures</div><div class="kpi-val" style="color:var(--critical)">${k.fatalCount??0}</div><div class="kpi-sub">${k.fatalRate??0}% of audits</div></div>
       <div class="kpi purple"><div class="kpi-label">Coaching Sessions</div><div class="kpi-val" style="color:var(--purple)">${d.coaching?.sessionsLogged??0}</div><div class="kpi-sub">${d.coaching?.avgImprovement!=null?(d.coaching.avgImprovement>=0?'+':'')+d.coaching.avgImprovement+'% avg impact':'No data yet'}</div></div>
     </div>
+
+    ${(d.riskAlerts||[]).length?`
+    <div class="sec-title">At-Risk Agents — Needs Attention</div>
+    <div class="card" style="margin-bottom:8px;border-color:rgba(240,64,96,.3)">
+      ${d.riskAlerts.map(r=>`<div style="display:flex;align-items:center;gap:12px;padding:12px 20px;border-bottom:1px solid rgba(28,38,64,0.5)">
+        <span style="font-size:16px">🚨</span>
+        <div style="font-family:var(--font-head);font-weight:700">${esc(r.agent)}</div>
+        <div style="color:var(--muted);font-size:12px">${esc(r.reason)}</div>
+      </div>`).join('')}
+    </div>`:`
+    <div class="card" style="margin-bottom:8px;border-color:rgba(34,211,138,.25);background:rgba(34,211,138,.04)">
+      <div style="padding:14px 20px;color:var(--success);font-size:13px;font-weight:600">✅ No agents currently flagged — all within acceptable range.</div>
+    </div>`}
 
     <div class="sec-title">Score Trends</div>
     <div class="g2">
@@ -131,10 +152,21 @@ function render(d){
       <div class="card"><div class="card-hdr">Weekly QA Score</div><div class="chart-wrap" style="height:240px"><canvas id="weeklyChart"></canvas></div></div>
     </div>
 
+    <div class="sec-title">Score Distribution &amp; Fatal Trend</div>
+    <div class="g2">
+      <div class="card"><div class="card-hdr">Score Distribution (All Audits)</div><div class="chart-wrap" style="height:220px"><canvas id="distChart"></canvas></div></div>
+      <div class="card"><div class="card-hdr">Fatal Failures by Month</div><div class="chart-wrap" style="height:220px"><canvas id="fatalChart"></canvas></div></div>
+    </div>
+
     <div class="sec-title">Audit Volume &amp; Parameter Insights</div>
     <div class="g2">
       <div class="card"><div class="card-hdr">Audit Outcomes by Month</div><div class="chart-wrap" style="height:240px"><canvas id="volumeChart"></canvas></div></div>
       <div class="card"><div class="card-hdr">Top Failing Parameters</div><div class="chart-wrap" style="height:240px"><canvas id="paretoChart"></canvas></div></div>
+    </div>
+
+    <div class="sec-title">Critical vs Non-Critical Failures</div>
+    <div class="card" style="margin-bottom:8px">
+      <div class="chart-wrap" style="height:200px;display:flex;align-items:center;justify-content:center"><canvas id="ncCrChart" style="max-width:260px"></canvas></div>
     </div>
 
     <div class="sec-title">Agent Leaderboard</div>
@@ -156,7 +188,7 @@ function render(d){
 
     ${(d.teamComparison||[]).length>1?`
     <div class="sec-title">Team Comparison</div>
-    <div class="card">
+    <div class="card" style="margin-bottom:8px">
       <div style="overflow-x:auto"><table>
         <thead><tr><th>Team</th><th>Agents</th><th>Audits</th><th style="width:160px">Avg Score</th><th>Pass Rate</th></tr></thead>
         <tbody>${d.teamComparison.map(t=>`<tr>
@@ -165,6 +197,20 @@ function render(d){
           <td style="color:var(--muted)">${t.evals}</td>
           <td><span style="font-family:var(--font-head);font-weight:700;color:${scoreColor(t.avgScore)}">${t.avgScore!=null?t.avgScore+'%':'—'}</span></td>
           <td style="color:var(--success)">${t.passRate!=null?t.passRate+'%':'—'}</td>
+        </tr>`).join('')}</tbody>
+      </table></div>
+    </div>`:''}
+
+    ${(d.coaching?.detail||[]).length?`
+    <div class="sec-title">Coaching Impact — Before vs After</div>
+    <div class="card">
+      <div style="overflow-x:auto"><table>
+        <thead><tr><th>Agent</th><th>Before (30d avg)</th><th>After (30d avg)</th><th>Change</th></tr></thead>
+        <tbody>${d.coaching.detail.map(c=>`<tr>
+          <td style="font-family:var(--font-head);font-weight:700">${esc(c.agent)}</td>
+          <td style="color:var(--text-dim)">${c.beforeAvg}%</td>
+          <td style="color:var(--text-dim)">${c.afterAvg}%</td>
+          <td style="color:${c.delta>=0?'var(--success)':'var(--critical)'};font-family:var(--font-head);font-weight:700">${c.delta>=0?'+':''}${c.delta}pt</td>
         </tr>`).join('')}</tbody>
       </table></div>
     </div>`:''}
@@ -178,6 +224,12 @@ function render(d){
   const weekly=d.weeklyTrend||[];
   new Chart(document.getElementById('weeklyChart'), {type:'line',data:{labels:weekly.map(w=>w.label),datasets:[{data:weekly.map(w=>w.avgScore),borderColor:'rgba(139,108,245,0.85)',backgroundColor:'rgba(139,108,245,0.08)',borderWidth:2.5,pointRadius:3,tension:0.4,fill:true}]},options:baseOpts()});
 
+  const dist=d.scoreDistribution||[];
+  new Chart(document.getElementById('distChart'), {type:'bar',data:{labels:dist.map(b=>b.label),datasets:[{data:dist.map(b=>b.count),backgroundColor:dist.map((b,i)=>i>=8?'rgba(34,211,138,0.65)':i>=7?'rgba(240,128,64,0.65)':'rgba(240,64,96,0.55)'),borderRadius:5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#4a5878',font:{size:9}},grid:{display:false}},y:{ticks:{color:'#4a5878',font:{size:10}},grid:{color:'rgba(28,38,64,0.6)'}}}}});
+
+  const fatal=d.fatalTrend||[];
+  new Chart(document.getElementById('fatalChart'), {type:'bar',data:{labels:fatal.map(f=>f.label),datasets:[{data:fatal.map(f=>f.count),backgroundColor:'rgba(240,64,96,0.65)',borderRadius:5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#4a5878',font:{size:10}},grid:{display:false}},y:{ticks:{color:'#4a5878',font:{size:10},stepSize:1},grid:{color:'rgba(28,38,64,0.6)'}}}}});
+
   const vol=d.volumeByMonth||[];
   new Chart(document.getElementById('volumeChart'), {type:'bar',data:{labels:vol.map(v=>v.label),datasets:[
     {label:'Pass',data:vol.map(v=>v.pass),backgroundColor:'rgba(34,211,138,0.65)',borderRadius:4},
@@ -187,6 +239,9 @@ function render(d){
 
   const pareto=d.paretoTop||[];
   new Chart(document.getElementById('paretoChart'), {type:'bar',indexAxis:'y',data:{labels:pareto.map(p=>p.label.length>28?p.label.slice(0,28)+'…':p.label),datasets:[{data:pareto.map(p=>p.failRate),backgroundColor:pareto.map(p=>p.type==='CR'?'rgba(240,64,96,0.7)':'rgba(61,126,245,0.6)'),borderRadius:4}]},options:{...baseOpts(),scales:{x:{max:100,ticks:{color:'#4a5878',font:{size:10},callback:v=>v+'%'},grid:{color:'rgba(28,38,64,0.6)'}},y:{ticks:{color:'#8a9bb8',font:{size:10}},grid:{display:false}}}}});
+
+  const ncCr=d.ncCrSplit||{nc:0,cr:0};
+  new Chart(document.getElementById('ncCrChart'), {type:'doughnut',data:{labels:['Non-Critical Fails','Critical Fails'],datasets:[{data:[ncCr.nc,ncCr.cr],backgroundColor:['rgba(61,126,245,0.65)','rgba(240,64,96,0.7)'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'60%',plugins:{legend:{position:'bottom',labels:{color:'#8a9bb8',font:{size:11},boxWidth:10,padding:14}}}}});
 }
 
 function baseOpts(){
