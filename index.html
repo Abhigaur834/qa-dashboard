@@ -984,10 +984,11 @@ tbody td{padding:11px 16px;font-size:13px;color:var(--text);}
               <button class="ai-upload-btn" onclick="aiShowUpload()">+ Upload</button>
             </div>
           </div>
-          <div style="padding:8px 10px;border-bottom:1px solid var(--border);display:flex;gap:5px;flex-shrink:0;">
+          <div style="padding:8px 10px;border-bottom:1px solid var(--border);display:flex;gap:5px;flex-shrink:0;align-items:center">
             <button class="ai-br ay" id="aiF-pending_review" onclick="aiSetFilter('pending_review',this)" style="font-size:9.5px">Pending</button>
             <button class="ai-br" id="aiF-submitted" onclick="aiSetFilter('submitted',this)" style="font-size:9.5px">Done</button>
             <button class="ai-br" id="aiF-all" onclick="aiSetFilter('all',this)" style="font-size:9.5px">All</button>
+            <button id="aiDeleteAllBtn" onclick="aiDeleteAllCalls()" title="Delete ALL calls in this process" style="display:none;margin-left:auto;background:none;border:1px solid rgba(240,64,96,.3);color:var(--critical);border-radius:5px;padding:3px 8px;font-family:var(--font-head);font-size:9.5px;font-weight:700;cursor:pointer">&#128465; Delete All</button>
           </div>
           <div class="ai-queue-list" id="aiQueueList">
             <div style="text-align:center;padding:28px 12px;color:var(--muted);font-size:12px">Loading calls&hellip;</div>
@@ -2987,6 +2988,8 @@ async function aiLoadQueue(){
     // Show admin toggle button only for admins
     const toggleBtn=document.getElementById('aiAdminViewBtn');
     if(toggleBtn)toggleBtn.style.display=isAdmin?'block':'none';
+    const deleteAllBtn=document.getElementById('aiDeleteAllBtn');
+    if(deleteAllBtn)deleteAllBtn.style.display=isAdmin?'inline-block':'none';
 
     const filtered=_aiFilter==='all'?myVisible:myVisible.filter(c=>{
       if(_aiFilter==='pending_review')return['pending_review','pending_transcription','transcribing','ai_scoring','transcription_failed','ai_scoring_failed','ready_for_review'].includes(c.status);
@@ -3044,6 +3047,22 @@ async function aiMarkReviewed(key){
     await window.set(window.ref(window.db,`processes/${window._currentProcess}/calls/${key}/reviewedBy`),window.auth.currentUser?.email||null);
     showToast('✅ Marked as reviewed','s');
     await aiSelectCall(key);
+    aiLoadQueue();
+  }catch(e){showToast('Error: '+e.message,'e');}
+}
+
+async function aiDeleteAllCalls(){
+  if(!(window.isSuperAdmin()||window.getUserRole()==='admin'||window.getUserRole()==='processAdmin')){showToast('Admin only','e');return;}
+  const count=_aiCalls.length;
+  if(!count){showToast('No calls to delete','e');return;}
+  if(!confirm(`Delete ALL ${count} call(s) in this process's queue? This cannot be undone.`))return;
+  if(!confirm('Are you absolutely sure? This will permanently remove every call, including any already marked reviewed.'))return;
+  try{
+    await window.remove(window.ref(window.db,`processes/${window._currentProcess}/calls`));
+    _aiSelectedCall=null;
+    const main=document.getElementById('aiMainPanel');
+    if(main)main.innerHTML=`<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:var(--muted)"><div style="font-size:40px;opacity:.3">&#129302;</div><div style="font-family:var(--font-head);font-size:15px;font-weight:700;color:var(--text-dim)">Select a call to review</div></div>`;
+    showToast(`✅ Deleted all ${count} call(s)`,'s');
     aiLoadQueue();
   }catch(e){showToast('Error: '+e.message,'e');}
 }
@@ -3134,7 +3153,13 @@ function aiRenderMain(call){
         ${call.duration?`<div style="font-size:11px;color:var(--muted)">${Math.round(call.duration/60)}m ${call.duration%60}s</div>`:''}
       </div>
       <div style="flex:1;padding:24px;overflow-y:auto">
-        ${call.recordingUrl?`<div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-md);padding:16px;margin-bottom:16px"><div style="font-size:10px;font-family:var(--font-head);font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin-bottom:10px">Call Recording</div><audio controls preload="none" style="width:100%" src="${call.recordingUrl}"></audio></div>`:'<div style="color:var(--muted);font-size:12px;padding:20px;text-align:center">No recording available for this call.</div>'}
+        ${call.recordingUrl?`<div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-md);padding:16px;margin-bottom:16px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+            <div style="font-size:10px;font-family:var(--font-head);font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted)">Call Recording</div>
+            <a href="${call.recordingUrl}" download="call_${esc(call.agentName||'recording')}_${call.date||''}.mp3" target="_blank" rel="noopener" style="font-size:10.5px;color:var(--accent);text-decoration:none;font-family:var(--font-head);font-weight:700;display:flex;align-items:center;gap:4px">&#8681; Download</a>
+          </div>
+          <audio controls preload="none" style="width:100%" src="${call.recordingUrl}"></audio>
+        </div>`:'<div style="color:var(--muted);font-size:12px;padding:20px;text-align:center">No recording available for this call.</div>'}
         ${call.notes?`<div style="font-size:12.5px;color:var(--text-dim);background:var(--surface2);border-radius:8px;padding:10px 14px;margin-bottom:16px">${esc(call.notes)}</div>`:''}
         <div style="font-size:12px;color:var(--muted);line-height:1.7;margin-bottom:20px">Listen to the recording above, then open the <strong style="color:var(--text-dim)">Scorecard</strong> tab to manually audit this call against your process's parameters.</div>
         ${reviewedBadge}
