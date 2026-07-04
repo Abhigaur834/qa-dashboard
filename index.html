@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>QA Intelligence Dashboard TEST123</title>
+<title>QA Intelligence Dashboard</title>
 <link href="https://fonts.googleapis.com/css2?family=Epilogue:wght@400;600;700;800;900&family=Onest:wght@300;400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -362,7 +362,7 @@ tbody td{padding:11px 16px;font-size:13px;color:var(--text);}
     </div>
     <div class="login-footer">
       <div class="login-footer-item"><div class="login-footer-icon">🔐</div><span>Role-based access</span></div>
-      <div class="login-footer-item"><div class="login-footer-icon"☁️</div><span>Firebase secured</span></div>
+      <div class="login-footer-item"><div class="login-footer-icon">☁️</div><span>Firebase secured</span></div>
       <div class="login-footer-item"><div class="login-footer-icon">📊</div><span>Real-time sync</span></div>
     </div>
   </div>
@@ -706,7 +706,11 @@ tbody td{padding:11px 16px;font-size:13px;color:var(--text);}
           <tbody id="agentTableBody"><tr><td colspan="14"><div class="empty-state" style="padding:22px"><p>No data yet</p></div></td></tr></tbody>
         </table></div>
       </div>
-      <div class="abar"><button class="btn btn-excel btn-sm" onclick="exportPerfExcel()">⬇ Export Performance</button></div>
+      <div class="abar">
+        <button class="btn btn-excel btn-sm" onclick="exportPerfExcel()">⬇ Export Performance</button>
+        <button id="publishStakeholderBtn" class="btn btn-sm" onclick="publishStakeholderDashboard()" style="display:none;background:rgba(139,108,245,.12);border:1px solid rgba(139,108,245,.3);color:var(--purple)">&#128225; Publish Stakeholder Dashboard</button>
+        <span id="publishStakeholderStatus" style="font-size:11px;color:var(--muted);align-self:center"></span>
+      </div>
 
       <div class="card mb6">
         <div class="card-hdr"><div class="card-title">📈 Monthly QA Trend</div></div>
@@ -1214,6 +1218,7 @@ window.applyUIForRole = function applyUIForRole(u){
     document.getElementById("clearBtn2").style.display="inline-flex";
     const at=document.getElementById('agentsNavTab');if(at)at.style.display='flex';
     const auc=document.getElementById('assignUserCard');if(auc)auc.style.display='block';
+    const psb=document.getElementById('publishStakeholderBtn');if(psb)psb.style.display='inline-flex';
   }
   // Show process badge (always show if process is selected)
   if(window._currentProcess){
@@ -2004,6 +2009,97 @@ function stabilityRating(sd){if(sd<5)return{label:'Excellent',color:'var(--succe
 function calcRiskScore(aa){const v=aa.filter(a=>a.totalScore!==null);if(!v.length)return 0;const fr=v.filter(a=>a.result==='Fail').length/v.length*100,rr=v.filter(a=>a.result==='Review').length/v.length*100,sd=calcStdDev(v.map(a=>a.totalScore)),c=[...v].sort((a,b)=>b.timestamp-a.timestamp).slice(0,3).filter(a=>a.totalScore<70).length,fatalC=aa.filter(a=>a.crFatal).length;return Math.min(100,Math.round(fr*.3+rr*.15+Math.min(sd,30)*.25+c*12+fatalC*8));}
 function getDipAlerts(audits){const map={};audits.forEach(a=>{if(!map[a.agent])map[a.agent]=[];map[a.agent].push(a);});const al=[];Object.entries(map).forEach(([agent,aa])=>{const s=[...aa].filter(a=>a.totalScore!==null).sort((a,b)=>b.timestamp-a.timestamp);if(s.length>=3&&s.slice(0,3).every(a=>a.totalScore<70))al.push({agent,type:'3 Consecutive Scores Below 70%',sev:'critical'});const ago=Date.now()-7*24*60*60*1000,rc=s.filter(a=>a.timestamp>ago&&a.crFatal);if(rc.length>=2)al.push({agent,type:'2+ FATAL Critical Failures in 7 Days',sev:'critical'});});return al;}
 function renderDipAlerts(alerts,id){const el=document.getElementById(id);if(!alerts.length){el.innerHTML=`<div style="background:rgba(34,211,138,.05);border:1px solid rgba(34,211,138,.18);border-radius:var(--r-md);padding:12px 18px;color:var(--success);font-size:13px;font-weight:600;margin-bottom:20px">✅ No dip alerts — all agents within acceptable range.</div>`;return;}el.innerHTML=alerts.map(a=>`<div class="alert-card alert-critical"><div class="alert-icon">🚨</div><div><div class="alert-agent">${a.agent}</div><div class="alert-type">${a.type}</div></div><span style="margin-left:auto;font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;background:rgba(240,64,96,.15);color:var(--critical);font-family:var(--font-head)">${a.sev==='critical'?'CRITICAL':'WARNING'}</span></div>`).join('');}
+
+// ── STAKEHOLDER DASHBOARD PUBLISHING ────────────────────────────────────────
+// Computes a curated, aggregated snapshot (no PII beyond agent name, no
+// recordings, no raw call numbers, no coaching notes) and writes ONLY this
+// snapshot to a separate public-readable Firebase path. The public dashboard
+// page reads exclusively from that path — it never touches raw audits/calls.
+async function publishStakeholderDashboard(){
+  const statusEl=document.getElementById('publishStakeholderStatus');
+  const btn=document.getElementById('publishStakeholderBtn');
+  if(statusEl){statusEl.textContent='Building snapshot…';statusEl.style.color='var(--muted)';}
+  if(btn)btn.disabled=true;
+  try{
+    const audits=await loadAudits(true);
+    const agents=buildAgentMap(audits);
+    const v=audits.filter(a=>a.totalScore!==null);
+
+    // KPIs
+    const avgScore=v.length?Math.round(v.reduce((s,a)=>s+a.totalScore,0)/v.length):null;
+    const passRate=v.length?Math.round(v.filter(a=>a.result==='Pass').length/v.length*100):null;
+    const fatalCount=audits.filter(a=>a.crFatal).length;
+    const fatalRate=audits.length?Math.round(fatalCount/audits.length*100):0;
+
+    // Monthly trend (last 12 months)
+    const mmap={};
+    audits.forEach(a=>{const ds=a.date||a.callDate;if(!ds||a.totalScore===null)return;const k=ds.slice(0,7);if(!mmap[k])mmap[k]=[];mmap[k].push(a.totalScore);});
+    const monthKeys=Object.keys(mmap).sort().slice(-12);
+    const monthlyTrend=monthKeys.map(k=>{const[y,m]=k.split('-');return{label:new Date(+y,+m-1,1).toLocaleDateString('en-GB',{month:'short',year:'2-digit'}),avgScore:Math.round(mmap[k].reduce((s,x)=>s+x,0)/mmap[k].length)};});
+
+    // Weekly trend (last 12 weeks)
+    const wmap={};
+    audits.forEach(a=>{const ds=a.callDate||a.date;if(!ds||a.totalScore===null)return;const d=new Date(ds);if(isNaN(d))return;const{week,year}=getISOWeek(d);const k=`${year}-W${String(week).padStart(2,'0')}`;if(!wmap[k])wmap[k]=[];wmap[k].push(a.totalScore);});
+    const weekKeys=Object.keys(wmap).sort().slice(-12);
+    const weeklyTrend=weekKeys.map(k=>({label:k,avgScore:Math.round(wmap[k].reduce((s,x)=>s+x,0)/wmap[k].length)}));
+
+    // Volume by month (Pass/Review/Fail)
+    const volMap={};
+    audits.forEach(a=>{const ds=a.date||a.callDate;if(!ds)return;const k=ds.slice(0,7);if(!volMap[k])volMap[k]={pass:0,review:0,fail:0};if(a.result==='Pass')volMap[k].pass++;else if(a.result==='Review')volMap[k].review++;else if(a.result)volMap[k].fail++;});
+    const volumeByMonth=Object.keys(volMap).sort().slice(-6).map(k=>{const[y,m]=k.split('-');return{label:new Date(+y,+m-1,1).toLocaleDateString('en-GB',{month:'short',year:'2-digit'}),...volMap[k]};});
+
+    // Parameter Pareto — top failing parameters (uses the process's own live PM)
+    const failMap={},totalRated={};
+    Object.keys(PM).forEach(k=>{failMap[k]=0;totalRated[k]=0;});
+    audits.forEach(a=>{if(!a.scores)return;Object.keys(PM).forEach(k=>{if(!(k in a.scores))return;if(a.scores[k]==='yes'||a.scores[k]==='no')totalRated[k]++;if(a.scores[k]==='no')failMap[k]++;});});
+    const paretoTop=Object.keys(PM).map(k=>({label:PM[k].label,type:PM[k].type,fails:failMap[k],total:totalRated[k],failRate:totalRated[k]?Math.round(failMap[k]/totalRated[k]*100):0})).sort((a,b)=>b.fails-a.fails).slice(0,8);
+    const ncFails=Object.keys(PM).filter(k=>PM[k].type==='NC').reduce((s,k)=>s+failMap[k],0);
+    const crFails=Object.keys(PM).filter(k=>PM[k].type==='CR').reduce((s,k)=>s+failMap[k],0);
+
+    // Leaderboard — agent name + team + score only (no PII beyond name, no notes/recordings)
+    const leaderboard=agents.filter(ag=>ag.avgTot!==null).map(ag=>({
+      name:ag.name, team:ag.team, evals:ag.evals.length, avgScore:ag.avgTot, passRate:ag.passRate, fatalCount:ag.fatalCount
+    })).sort((a,b)=>b.avgScore-a.avgScore).slice(0,50);
+
+    // Team comparison
+    const teamMap={};
+    audits.forEach(a=>{const t=a.team||'Unknown';if(!teamMap[t])teamMap[t]={evals:[],agents:new Set()};teamMap[t].evals.push(a);teamMap[t].agents.add(a.agent);});
+    const teamComparison=Object.entries(teamMap).map(([name,t])=>{const tv=t.evals.filter(e=>e.totalScore!==null);return{name,agents:t.agents.size,evals:t.evals.length,avgScore:tv.length?Math.round(tv.reduce((s,e)=>s+e.totalScore,0)/tv.length):null,passRate:tv.length?Math.round(tv.filter(e=>e.result==='Pass').length/tv.length*100):null};});
+
+    // Coaching — aggregate only, no session notes
+    const coachingSessions=await loadCoachingSessions();
+    let improvementSum=0,improvementCount=0;
+    for(const s of coachingSessions){
+      const d=new Date(s.date||s.timestamp);
+      const before=audits.filter(a=>a.agent===s.agent&&new Date(a.date||a.callDate)<d&&new Date(a.date||a.callDate)>new Date(d.getTime()-30*86400000)&&a.totalScore!==null);
+      const after=audits.filter(a=>a.agent===s.agent&&new Date(a.date||a.callDate)>=d&&new Date(a.date||a.callDate)<new Date(d.getTime()+30*86400000)&&a.totalScore!==null);
+      if(before.length&&after.length){
+        const bAvg=before.reduce((s,a)=>s+a.totalScore,0)/before.length;
+        const aAvg=after.reduce((s,a)=>s+a.totalScore,0)/after.length;
+        improvementSum+=(aAvg-bAvg);improvementCount++;
+      }
+    }
+
+    const snapshot={
+      processId:window._currentProcess,
+      generatedAt:new Date().toISOString(),
+      generatedBy:window.auth.currentUser?.email||null,
+      kpis:{avgScore,passRate,totalAudits:audits.length,fatalCount,fatalRate},
+      monthlyTrend,weeklyTrend,volumeByMonth,
+      paretoTop,ncCrSplit:{nc:ncFails,cr:crFails},
+      leaderboard,teamComparison,
+      coaching:{sessionsLogged:coachingSessions.length,avgImprovement:improvementCount?Math.round((improvementSum/improvementCount)*10)/10:null}
+    };
+
+    await window.set(window.ref(window.db,`publicDashboards/${window._currentProcess}`),snapshot);
+    if(statusEl){statusEl.textContent='✅ Published '+new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});statusEl.style.color='var(--success)';}
+    showToast('✅ Stakeholder dashboard published','s');
+  }catch(e){
+    if(statusEl){statusEl.textContent='❌ '+e.message;statusEl.style.color='var(--critical)';}
+    showToast('Error publishing: '+e.message,'e');
+  }
+  if(btn)btn.disabled=false;
+}
 
 function buildAgentMap(audits){
   const m={};
