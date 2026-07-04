@@ -930,11 +930,25 @@ tbody td{padding:11px 16px;font-size:13px;color:var(--text);}
         <div style="background:var(--surface);border:1px solid rgba(240,168,48,.25);border-radius:var(--r-lg);padding:28px;width:640px;max-width:92vw;max-height:85vh;overflow-y:auto;position:relative">
           <div style="position:absolute;top:0;left:0;right:0;height:2px;border-radius:16px 16px 0 0;background:linear-gradient(90deg,var(--accent2),var(--purple))"></div>
           <div style="font-family:var(--font-head);font-size:17px;font-weight:800;margin-bottom:6px">&#9737; Sync from Smartflo</div>
-          <div style="font-size:12px;color:var(--muted);margin-bottom:18px">Pulls recent call records directly from your Tata Tele CloudPhone/Smartflo account — pick which calls to send for AI scoring.</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px">
+          <div style="font-size:12px;color:var(--muted);margin-bottom:18px">Pulls recent call records directly from your Tata Tele CloudPhone/Smartflo account — pick which calls to bring in for your auditors to listen to.</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
             <div><label style="display:block;font-size:9.5px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);font-family:var(--font-head);font-weight:700;margin-bottom:6px">From Date</label><input type="date" id="sfFromDate" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-family:var(--font-body);font-size:13px;padding:9px 10px;outline:none;box-sizing:border-box"></div>
             <div><label style="display:block;font-size:9.5px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);font-family:var(--font-head);font-weight:700;margin-bottom:6px">To Date</label><input type="date" id="sfToDate" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-family:var(--font-body);font-size:13px;padding:9px 10px;outline:none;box-sizing:border-box"></div>
-            <div><label style="display:block;font-size:9.5px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);font-family:var(--font-head);font-weight:700;margin-bottom:6px">Agent (optional)</label><input type="text" id="sfAgentFilter" placeholder="e.g. Rahul" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-family:var(--font-body);font-size:13px;padding:9px 10px;outline:none;box-sizing:border-box"></div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+            <div><label style="display:block;font-size:9.5px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);font-family:var(--font-head);font-weight:700;margin-bottom:6px">Agent (optional)</label>
+              <div style="display:flex;gap:6px">
+                <input type="text" id="sfAgentFilter" placeholder="e.g. Rahul, or OC-Extension" style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-family:var(--font-body);font-size:13px;padding:9px 10px;outline:none;box-sizing:border-box">
+                <button onclick="sfQuickFilterOcube()" title="Filter to Ocube's own agents (OC-Extension)" style="background:rgba(139,108,245,.1);border:1px solid rgba(139,108,245,.25);color:var(--purple);border-radius:var(--r-sm);padding:0 12px;font-family:var(--font-head);font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">Ocube (OC)</button>
+              </div>
+            </div>
+            <div><label style="display:block;font-size:9.5px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);font-family:var(--font-head);font-weight:700;margin-bottom:6px">Call Type</label>
+              <select id="sfCallType" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-family:var(--font-body);font-size:13px;padding:9px 10px;outline:none;box-sizing:border-box">
+                <option value="connected">Connected only (has recording)</option>
+                <option value="not_connected">Not Connected (missed/no answer)</option>
+                <option value="all">All calls</option>
+              </select>
+            </div>
           </div>
           <div style="display:flex;gap:10px;margin-bottom:16px">
             <button onclick="sfFetchCalls()" style="background:var(--accent2-dim);border:1px solid rgba(240,168,48,.3);color:var(--accent2);border-radius:var(--r-sm);padding:9px 18px;font-family:var(--font-head);font-size:12px;font-weight:700;cursor:pointer">Fetch Calls</button>
@@ -2975,7 +2989,7 @@ async function aiLoadQueue(){
     if(toggleBtn)toggleBtn.style.display=isAdmin?'block':'none';
 
     const filtered=_aiFilter==='all'?myVisible:myVisible.filter(c=>{
-      if(_aiFilter==='pending_review')return['pending_review','pending_transcription','transcribing','ai_scoring','transcription_failed','ai_scoring_failed'].includes(c.status);
+      if(_aiFilter==='pending_review')return['pending_review','pending_transcription','transcribing','ai_scoring','transcription_failed','ai_scoring_failed','ready_for_review'].includes(c.status);
       if(_aiFilter==='submitted')return c.status==='submitted';
       return true;
     });
@@ -3007,8 +3021,11 @@ function aiRenderQueue(calls){
     const langBadge=c.language&&c.language!=='hi-en'?`<span style="font-size:9px;background:rgba(139,108,245,.12);color:var(--purple);padding:1px 5px;border-radius:8px;border:1px solid rgba(139,108,245,.2)">${c.language}</span>`:'';
     return`<div class="ai-call-card${isActive?' active':''}" onclick="aiSelectCall('${c.key}')">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
-        <div style="font-family:var(--font-head);font-weight:700;font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:140px">${c.agentName||c.agentNumber||'Unknown Agent'}</div>
-        <div class="ai-status-pill ${badge.cls}">${badge.label}</div>
+        <div style="font-family:var(--font-head);font-weight:700;font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:120px">${c.agentName||c.agentNumber||'Unknown Agent'}</div>
+        <div style="display:flex;align-items:center;gap:4px;flex-shrink:0">
+          <div class="ai-status-pill ${badge.cls}">${badge.label}</div>
+          ${isAdmin?`<button onclick="event.stopPropagation();aiDeleteCall('${c.key}')" title="Delete call" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:12px;padding:0 2px;line-height:1">&#128465;</button>`:''}
+        </div>
       </div>
       <div style="display:flex;gap:6px;font-size:10px;color:var(--muted);align-items:center;flex-wrap:wrap"><span>${c.dialerSource||'upload'}</span><span>${time}</span>${c.duration?`<span>${Math.round(c.duration/60)}m</span>`:''} ${langBadge}</div>
       ${assigneeBadge}
@@ -3017,8 +3034,34 @@ function aiRenderQueue(calls){
   }).join('');
 }
 
+async function aiMarkReviewed(key){
+  try{
+    await window.set(window.ref(window.db,`processes/${window._currentProcess}/calls/${key}/status`),'submitted');
+    await window.set(window.ref(window.db,`processes/${window._currentProcess}/calls/${key}/reviewedAt`),new Date().toISOString());
+    await window.set(window.ref(window.db,`processes/${window._currentProcess}/calls/${key}/reviewedBy`),window.auth.currentUser?.email||null);
+    showToast('✅ Marked as reviewed','s');
+    await aiSelectCall(key);
+    aiLoadQueue();
+  }catch(e){showToast('Error: '+e.message,'e');}
+}
+
+async function aiDeleteCall(key){
+  if(!(window.isSuperAdmin()||window.getUserRole()==='admin'||window.getUserRole()==='processAdmin')){showToast('Admin only','e');return;}
+  if(!confirm('Delete this call? This cannot be undone.'))return;
+  try{
+    await window.remove(window.ref(window.db,`processes/${window._currentProcess}/calls/${key}`));
+    if(_aiSelectedCall?.key===key){
+      _aiSelectedCall=null;
+      const main=document.getElementById('aiMainPanel');
+      if(main)main.innerHTML=`<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:var(--muted)"><div style="font-size:40px;opacity:.3">&#129302;</div><div style="font-family:var(--font-head);font-size:15px;font-weight:700;color:var(--text-dim)">Select a call to review</div></div>`;
+    }
+    showToast('Call deleted','s');
+    aiLoadQueue();
+  }catch(e){showToast('Error: '+e.message,'e');}
+}
+
 function aiStatusBadge(status,ai){
-  const map={pending_transcription:{cls:'sp-pending',label:'Queued'},transcribing:{cls:'sp-processing',label:'Transcribing'},ai_scoring:{cls:'sp-processing',label:'AI Scoring'},pending_review:{cls:'sp-review',label:'Review'},submitted:{cls:'sp-done',label:'Done'},transcription_failed:{cls:'sp-error',label:'Error'},ai_scoring_failed:{cls:'sp-error',label:'AI Error'}};
+  const map={pending_transcription:{cls:'sp-pending',label:'Queued'},transcribing:{cls:'sp-processing',label:'Transcribing'},ai_scoring:{cls:'sp-processing',label:'AI Scoring'},pending_review:{cls:'sp-review',label:'Review'},submitted:{cls:'sp-done',label:'Done'},transcription_failed:{cls:'sp-error',label:'Error'},ai_scoring_failed:{cls:'sp-error',label:'AI Error'},ready_for_review:{cls:'sp-review',label:'Ready'}};
   if(status==='pending_review'&&ai){if(ai.result==='Pass')return{cls:'sp-done',label:'AI Pass'};if(ai.result==='Review')return{cls:'sp-review',label:'AI Review'};if(ai.result==='Fail')return{cls:'sp-error',label:'AI Fail'};}
   return map[status]||{cls:'sp-pending',label:status};
 }
@@ -3030,7 +3073,7 @@ async function aiSelectCall(key){
     _aiSelectedCall={key,...snap.val()};_aiCS={};
     aiRenderMain(_aiSelectedCall);
     const filtered=_aiFilter==='all'?_aiCalls:_aiCalls.filter(c=>{
-      if(_aiFilter==='pending_review')return['pending_review','pending_transcription','transcribing','ai_scoring','transcription_failed','ai_scoring_failed'].includes(c.status);
+      if(_aiFilter==='pending_review')return['pending_review','pending_transcription','transcribing','ai_scoring','transcription_failed','ai_scoring_failed','ready_for_review'].includes(c.status);
       if(_aiFilter==='submitted')return c.status==='submitted';
       return true;
     });
@@ -3069,6 +3112,35 @@ function aiUpdateFooter(){
 function aiRenderMain(call){
   const ai=call.aiSuggestions,done=call.status==='submitted';
   const main=document.getElementById('aiMainPanel');if(!main)return;
+
+  // ★ Manual-only review — no AI involved. Just the call details, audio
+  // player, and a way to mark it reviewed once an auditor has listened
+  // and scored it (separately, in the Scorecard tab).
+  if(call.status==='ready_for_review' || (call.status==='submitted' && !ai)){
+    const initials=(call.agentName||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+    const reviewedBadge = call.status==='submitted'
+      ? `<div style="color:var(--success);font-family:var(--font-head);font-weight:700">&#10003; Marked reviewed ${call.reviewedAt?'on '+new Date(call.reviewedAt).toLocaleDateString('en-IN'):''}</div>`
+      : '';
+    main.innerHTML=`
+      <div class="ai-call-hdr">
+        <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--purple));display:flex;align-items:center;justify-content:center;font-family:var(--font-head);font-weight:800;font-size:13px;color:#fff;flex-shrink:0">${initials}</div>
+        <div style="flex:1">
+          <div style="font-family:var(--font-head);font-weight:700;font-size:14px">${esc(call.agentName||call.agentNumber||'Unknown Agent')}</div>
+          <div style="font-size:11px;color:var(--muted)">${call.dialerSource||'manual'} &middot; ${esc(call.callerNumber||'')} &middot; ${call.createdAt?new Date(call.createdAt).toLocaleString('en-IN',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}):''}</div>
+        </div>
+        ${call.duration?`<div style="font-size:11px;color:var(--muted)">${Math.round(call.duration/60)}m ${call.duration%60}s</div>`:''}
+      </div>
+      <div style="flex:1;padding:24px;overflow-y:auto">
+        ${call.recordingUrl?`<div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-md);padding:16px;margin-bottom:16px"><div style="font-size:10px;font-family:var(--font-head);font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin-bottom:10px">Call Recording</div><audio controls preload="none" style="width:100%" src="${call.recordingUrl}"></audio></div>`:'<div style="color:var(--muted);font-size:12px;padding:20px;text-align:center">No recording available for this call.</div>'}
+        ${call.notes?`<div style="font-size:12.5px;color:var(--text-dim);background:var(--surface2);border-radius:8px;padding:10px 14px;margin-bottom:16px">${esc(call.notes)}</div>`:''}
+        <div style="font-size:12px;color:var(--muted);line-height:1.7;margin-bottom:20px">Listen to the recording above, then open the <strong style="color:var(--text-dim)">Scorecard</strong> tab to manually audit this call against your process's parameters.</div>
+        ${reviewedBadge}
+      </div>
+      ${call.status!=='submitted'?`<div class="ai-footer" style="justify-content:flex-end"><button class="btn btn-success" onclick="aiMarkReviewed('${call.key}')">&#10003; Mark as Reviewed</button></div>`:''}
+    `;
+    return;
+  }
+
   if(!ai&&!done){main.innerHTML=`<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:var(--muted)"><div style="font-size:32px;opacity:.4">&#9203;</div><div style="font-family:var(--font-head);font-size:14px;font-weight:700;color:var(--text-dim)">AI is working&hellip;</div><div style="font-size:12px">Status: <strong style="color:var(--accent)">${call.status}</strong></div></div>`;return;}
   const aiScores=ai?.scores||{},segments=call.transcript?.segments||[],reasons=ai?.reasons||{},tips=ai?.coachingTips||[];
   const initials=(call.agentName||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
@@ -3215,6 +3287,7 @@ async function sfFetchCalls(){
   const fromDate=document.getElementById('sfFromDate').value;
   const toDate=document.getElementById('sfToDate').value;
   const agentName=document.getElementById('sfAgentFilter').value.trim();
+  const callType=document.getElementById('sfCallType').value;
   if(!fromDate||!toDate){ showToast('Pick a date range','e'); return; }
 
   statusEl.textContent='Fetching from Smartflo…'; statusEl.style.color='var(--muted)';
@@ -3223,12 +3296,13 @@ async function sfFetchCalls(){
     const res=await fetch(AI_API_BASE+'/api/smartflo-sync',{
       method:'POST',
       headers:{'Content-Type':'application/json','Authorization':'Bearer '+idToken},
-      body:JSON.stringify({ fromDate, toDate, agentName: agentName||undefined, limit:'100' })
+      body:JSON.stringify({ fromDate, toDate, agentName: agentName||undefined, callType, limit:'100' })
     });
     const data=await res.json();
     if(!data.success){ statusEl.textContent='❌ '+(data.error||'Fetch failed'); statusEl.style.color='var(--critical)'; return; }
     _sfFoundCalls=data.calls||[];
-    statusEl.textContent=_sfFoundCalls.length+' call(s) with recordings found (of '+(data.totalAvailable||0)+' total in range)';
+    const label=callType==='connected'?'connected call(s)':callType==='not_connected'?'not-connected call(s)':'call(s)';
+    statusEl.textContent=_sfFoundCalls.length+' '+label+' found (of '+(data.totalAvailable||0)+' total in range)';
     statusEl.style.color='var(--success)';
     sfRenderCallList();
     document.getElementById('sfResultsWrap').style.display='block';
@@ -3237,16 +3311,22 @@ async function sfFetchCalls(){
   }
 }
 
+function sfQuickFilterOcube(){
+  document.getElementById('sfAgentFilter').value='OC-Extension';
+  sfFetchCalls();
+}
+
 function sfRenderCallList(){
   const el=document.getElementById('sfCallList'); if(!el) return;
-  if(!_sfFoundCalls.length){ el.innerHTML='<div style="text-align:center;padding:24px;color:var(--muted);font-size:12.5px">No calls with recordings in this range.</div>'; return; }
+  if(!_sfFoundCalls.length){ el.innerHTML='<div style="text-align:center;padding:24px;color:var(--muted);font-size:12.5px">No calls found for these filters.</div>'; return; }
   el.innerHTML=_sfFoundCalls.map((c,i)=>`
     <label style="display:flex;align-items:center;gap:10px;padding:9px 8px;border-bottom:1px solid rgba(28,38,64,0.5);cursor:pointer;font-size:12.5px">
-      <input type="checkbox" class="sf-call-cb" data-idx="${i}" checked>
+      <input type="checkbox" class="sf-call-cb" data-idx="${i}" ${c.connected?'checked':''}>
       <div style="flex:1;min-width:0">
         <div style="font-family:var(--font-head);font-weight:700">${esc(c.agentName||'Unknown Agent')} <span style="color:var(--muted);font-weight:400">&middot; ${esc(c.callerNumber||'')}</span></div>
         <div style="font-size:11px;color:var(--muted)">${c.date} ${c.time} &middot; ${Math.round(c.durationSec/60)}m ${c.durationSec%60}s ${c.direction?'&middot; '+c.direction:''}</div>
       </div>
+      <span class="tag ${c.connected?'tp':'tf'}" style="font-size:9px">${c.connected?'Connected':'Not Connected'}</span>
     </label>`).join('');
 }
 
@@ -3258,14 +3338,19 @@ async function sfImportSelected(){
   const checked=[...document.querySelectorAll('.sf-call-cb:checked')].map(el=>_sfFoundCalls[Number(el.dataset.idx)]);
   if(!checked.length){ showToast('Select at least one call','e'); return; }
 
+  // Calls with no recording (not-connected) can't be uploaded — nothing to listen to
+  const importable=checked.filter(c=>c.recordingUrl);
+  const skipped=checked.length-importable.length;
+  if(!importable.length){ showToast('None of the selected calls have a recording to import','e'); return; }
+
   const assignedTo=document.getElementById('sfAssignee').value||null;
   const language=document.getElementById('sfLang').value||'hi-en';
   const btn=document.getElementById('sfImportBtn');
   btn.disabled=true;
 
   let ok=0, fail=0;
-  for(const call of checked){
-    btn.textContent=`Importing… (${ok+fail+1}/${checked.length})`;
+  for(const call of importable){
+    btn.textContent=`Importing… (${ok+fail+1}/${importable.length})`;
     try{
       const res=await fetch(AI_API_BASE+'/api/upload',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
         processId:window._currentProcess,
@@ -3284,7 +3369,7 @@ async function sfImportSelected(){
 
   btn.disabled=false;
   btn.textContent='Import Selected →';
-  showToast(`✅ Imported ${ok} call(s)${fail?', '+fail+' failed':''}`, fail?'e':'s');
+  showToast(`✅ Imported ${ok} call(s)${fail?', '+fail+' failed':''}${skipped?', '+skipped+' skipped (no recording)':''}`, fail?'e':'s');
   sfHideSync();
   setTimeout(()=>aiLoadQueue(),2000);
 }
