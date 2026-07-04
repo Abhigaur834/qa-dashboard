@@ -966,7 +966,7 @@ tbody td{padding:11px 16px;font-size:13px;color:var(--text);}
             </div>
             <div style="display:flex;gap:6px;align-items:center;flex-shrink:0">
               <button id="aiAdminViewBtn" onclick="aiToggleAdminView(this)" style="display:none;background:rgba(139,108,245,.1);border:1px solid rgba(139,108,245,.25);color:var(--purple);padding:4px 8px;border-radius:var(--r-sm);font-family:var(--font-head);font-size:9px;font-weight:700;cursor:pointer;white-space:nowrap">&#128101; My Calls</button>
-              <button class="ai-upload-btn" onclick="aiShowSmartfloSync()" style="background:rgba(240,168,48,.1);border-color:rgba(240,168,48,.25);color:var(--accent2)">&#9737; Sync</button>
+              <button id="smartfloSyncBtn" class="ai-upload-btn" onclick="aiShowSmartfloSync()" style="display:none;background:rgba(240,168,48,.1);border-color:rgba(240,168,48,.25);color:var(--accent2)">&#9737; Sync</button>
               <button class="ai-upload-btn" onclick="aiShowUpload()">+ Upload</button>
             </div>
           </div>
@@ -2758,6 +2758,13 @@ window.selectProcess=function(processId){
     const procRecord=(window._processList||[]).find(p=>p.id===processId);
     applyProcessParams(procRecord);
   }catch(e){console.warn('applyProcessParams',e);}
+  // ★ Sync button only shows for processes actually wired to a Smartflo/Tata Tele account.
+  //   Add more process IDs here as other processes get their own dialer integrations.
+  try{
+    const SMARTFLO_ENABLED_PROCESSES=['HOUS','HOUSNG','HSNG'];
+    const syncBtn=document.getElementById('smartfloSyncBtn');
+    if(syncBtn) syncBtn.style.display = SMARTFLO_ENABLED_PROCESSES.includes(processId) ? 'inline-flex' : 'none';
+  }catch(e){console.warn('smartfloSyncBtn toggle',e);}
   // Load everything — each call isolated so one failure doesn't block others
   const u=window.auth&&window.auth.currentUser; if(!u)return;
   try{updateBadge();}catch(e){console.warn('updateBadge',e);}
