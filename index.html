@@ -3014,20 +3014,23 @@ function aiRenderQueue(calls){
     const ai=c.aiSuggestions,badge=aiStatusBadge(c.status,ai);
     const score=ai?.totalScore??null;
     const sc=score===null?'var(--muted)':score>=85?'var(--success)':score>=70?'var(--warning)':'var(--critical)';
-    const time=c.createdAt?new Date(c.createdAt).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'}):'';
+    const dt=c.createdAt?new Date(c.createdAt):null;
+    const dateStr=dt?dt.toLocaleDateString('en-IN',{day:'2-digit',month:'short'}):'';
+    const timeStr=dt?dt.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'}):'';
     const isActive=_aiSelectedCall?.key===c.key;
     // Show assignee badge only for admins (so they know who it's for)
     const assigneeBadge=isAdmin&&c.assignedTo?`<div style="font-size:9px;color:var(--purple);margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">&#128101; ${c.assignedTo.split('@')[0]}</div>`:'';
     const langBadge=c.language&&c.language!=='hi-en'?`<span style="font-size:9px;background:rgba(139,108,245,.12);color:var(--purple);padding:1px 5px;border-radius:8px;border:1px solid rgba(139,108,245,.2)">${c.language}</span>`:'';
     return`<div class="ai-call-card${isActive?' active':''}" onclick="aiSelectCall('${c.key}')">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
-        <div style="font-family:var(--font-head);font-weight:700;font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:120px">${c.agentName||c.agentNumber||'Unknown Agent'}</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">
+        <div style="font-family:var(--font-head);font-weight:700;font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:120px">${esc(c.agentName||c.agentNumber||'Unknown Agent')}</div>
         <div style="display:flex;align-items:center;gap:4px;flex-shrink:0">
           <div class="ai-status-pill ${badge.cls}">${badge.label}</div>
           ${isAdmin?`<button onclick="event.stopPropagation();aiDeleteCall('${c.key}')" title="Delete call" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:12px;padding:0 2px;line-height:1">&#128465;</button>`:''}
         </div>
       </div>
-      <div style="display:flex;gap:6px;font-size:10px;color:var(--muted);align-items:center;flex-wrap:wrap"><span>${c.dialerSource||'upload'}</span><span>${time}</span>${c.duration?`<span>${Math.round(c.duration/60)}m</span>`:''} ${langBadge}</div>
+      ${c.callerNumber?`<div style="font-size:10.5px;color:var(--text-dim);margin-bottom:2px">&#128222; ${esc(c.callerNumber)}</div>`:''}
+      <div style="display:flex;gap:6px;font-size:10px;color:var(--muted);align-items:center;flex-wrap:wrap"><span>${dateStr}</span><span>${timeStr}</span><span>${c.dialerSource||'upload'}</span>${c.duration?`<span>${Math.round(c.duration/60)}m</span>`:''} ${langBadge}</div>
       ${assigneeBadge}
       ${score!==null?`<div style="font-family:var(--font-head);font-weight:800;font-size:14px;color:${sc};margin-top:4px">${score}%</div>`:''}
     </div>`;
@@ -3302,7 +3305,8 @@ async function sfFetchCalls(){
     if(!data.success){ statusEl.textContent='❌ '+(data.error||'Fetch failed'); statusEl.style.color='var(--critical)'; return; }
     _sfFoundCalls=data.calls||[];
     const label=callType==='connected'?'connected call(s)':callType==='not_connected'?'not-connected call(s)':'call(s)';
-    statusEl.textContent=_sfFoundCalls.length+' '+label+' found (of '+(data.totalAvailable||0)+' total in range)';
+    const coverage = data.pagesFetched ? ' — searched '+(data.pagesFetched*100)+' of '+(data.totalAvailable||0)+' calls' : '';
+    statusEl.textContent=_sfFoundCalls.length+' '+label+' found'+coverage;
     statusEl.style.color='var(--success)';
     sfRenderCallList();
     document.getElementById('sfResultsWrap').style.display='block';
