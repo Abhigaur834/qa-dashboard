@@ -3006,6 +3006,11 @@ async function aiLoadQueue(){
   }catch(e){console.warn('aiLoadQueue:',e);}
 }
 
+function aiBackToList(){
+  _aiSelectedCall=null;
+  aiLoadQueue(); // recomputes the filtered list and re-renders the browse table since no call is selected
+}
+
 function aiRenderBrowseTable(calls){
   const main=document.getElementById('aiMainPanel'); if(!main) return;
   const isAdmin=window.isSuperAdmin()||window.getUserRole()==='admin'||window.getUserRole()==='processAdmin';
@@ -3201,6 +3206,7 @@ function aiRenderMain(call){
       : '';
     main.innerHTML=`
       <div class="ai-call-hdr">
+        <button onclick="aiBackToList()" title="Back to all calls" style="background:var(--surface2);border:1px solid var(--border);color:var(--text-dim);border-radius:6px;padding:6px 10px;font-family:var(--font-head);font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0;margin-right:4px">&#8592; All Calls</button>
         <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--purple));display:flex;align-items:center;justify-content:center;font-family:var(--font-head);font-weight:800;font-size:13px;color:#fff;flex-shrink:0">${initials}</div>
         <div style="flex:1">
           <div style="font-family:var(--font-head);font-weight:700;font-size:14px">${esc(call.agentName||call.agentNumber||'Unknown Agent')}</div>
@@ -3232,6 +3238,7 @@ function aiRenderMain(call){
   if(!done)_aiCS={...aiScores};
   main.innerHTML=`
     <div class="ai-call-hdr">
+      <button onclick="aiBackToList()" title="Back to all calls" style="background:var(--surface2);border:1px solid var(--border);color:var(--text-dim);border-radius:6px;padding:6px 10px;font-family:var(--font-head);font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0;margin-right:4px">&#8592; All Calls</button>
       <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--purple));display:flex;align-items:center;justify-content:center;font-family:var(--font-head);font-weight:800;font-size:13px;color:#fff;flex-shrink:0">${initials}</div>
       <div style="flex:1">
         <div style="font-family:var(--font-head);font-weight:700;font-size:14px">${call.agentName||call.agentNumber||'Unknown Agent'}</div>
