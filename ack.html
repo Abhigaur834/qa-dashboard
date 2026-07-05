@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Audit Acknowledgment — QA.Hub</title>
+<link href="https://fonts.googleapis.com/css2?family=Epilogue:wght@700;800;900&family=Onest:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#060a12;--surface:#0c1220;--surface2:#111826;--border:#1c2640;--accent:#3d7ef5;--success:#22d38a;--critical:#f04060;--text:#e4ecf8;--text-dim:#8a9bb8;--muted:#4a5878;--font-head:'Epilogue',sans-serif;--font-body:'Onest',sans-serif;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:var(--font-body);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;}
+.card{background:linear-gradient(145deg,var(--surface),var(--surface2));border:1px solid var(--border);border-radius:16px;padding:40px 32px;max-width:420px;width:100%;text-align:center;}
+.icon{font-size:44px;margin-bottom:16px;}
+h1{font-family:var(--font-head);font-size:19px;font-weight:800;margin-bottom:10px;}
+p{color:var(--text-dim);font-size:13.5px;line-height:1.6;}
+.brand{font-family:var(--font-head);font-weight:900;font-size:14px;color:var(--muted);margin-top:28px;}
+.brand span{color:var(--accent);}
+</style>
+</head>
+<body>
+<div class="card" id="card">
+  <div class="icon">⏳</div>
+  <h1>Confirming...</h1>
+  <p>One moment while we record your acknowledgment.</p>
+</div>
+
+<script type="module">
+const params = new URLSearchParams(location.search);
+const processId = params.get('process');
+const auditId = params.get('auditId');
+const API_BASE = 'https://qahub-ai-api-glz7.vercel.app';
+
+function render(icon, title, msg, color){
+  document.getElementById('card').innerHTML = `
+    <div class="icon">${icon}</div>
+    <h1 style="color:${color || 'var(--text)'}">${title}</h1>
+    <p>${msg}</p>
+    <div class="brand">QA<span>.</span>Hub</div>
+  `;
+}
+
+(async function(){
+  if(!processId || !auditId){
+    render('⚠️', 'Invalid link', 'This acknowledgment link is missing some information. Please contact your QA team.', 'var(--critical)');
+    return;
+  }
+  try{
+    const res = await fetch(API_BASE + '/api/acknowledge-audit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ processId, auditId }),
+    });
+    const data = await res.json();
+    if(!res.ok || !data.success){
+      render('⚠️', "Couldn't confirm", data.error || 'Something went wrong. Please try again or contact your QA team.', 'var(--critical)');
+      return;
+    }
+    if(data.alreadyAcknowledged){
+      render('✅', 'Already acknowledged', 'You already confirmed you read this audit — no further action needed.', 'var(--success)');
+    }else{
+      render('✅', 'Thank you!', "You've confirmed you've read this audit result. Your Team Leader has been notified.", 'var(--success)');
+    }
+  }catch(e){
+    render('⚠️', 'Connection error', 'Could not reach the server. Please check your connection and try again.', 'var(--critical)');
+  }
+})();
+</script>
+</body>
+</html>
