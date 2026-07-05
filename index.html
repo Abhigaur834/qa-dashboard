@@ -264,6 +264,9 @@ tbody td{padding:11px 16px;font-size:13px;color:var(--text);}
 #userProfile{display:flex;align-items:center;gap:8px;padding:5px 10px 5px 5px;background:var(--surface2);border:1px solid var(--border-bright);border-radius:40px;cursor:default;transition:border-color .2s,box-shadow .2s;}
 @media(max-width:1100px){#userProfile{padding:4px;gap:0;border-radius:50%;}#profileRoleBadge,#currentProcBadge{display:none !important;}}
 #userProfile:hover{border-color:rgba(61,126,245,0.4);box-shadow:0 0 0 3px rgba(61,126,245,0.08);}
+.profile-menu-item{display:flex;align-items:center;gap:9px;width:100%;background:none;border:none;padding:11px 16px;font-family:var(--font-head);font-size:12.5px;font-weight:600;color:var(--text-dim);cursor:pointer;text-align:left;border-bottom:1px solid var(--border);transition:background .15s;}
+.profile-menu-item:last-child{border-bottom:none;}
+.profile-menu-item:hover{background:rgba(61,126,245,0.06);}
 #profileAvatar{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--purple));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#fff;font-family:var(--font-head);flex-shrink:0;letter-spacing:-0.5px;}
 #profileInfo{display:flex;flex-direction:column;gap:1px;}
 #profileName{font-size:11px;font-weight:700;color:var(--text);font-family:var(--font-head);letter-spacing:-0.2px;line-height:1.2;}
@@ -438,30 +441,33 @@ tbody td{padding:11px 16px;font-size:13px;color:var(--text);}
         <small style="font-size:7.5px;letter-spacing:1.5px">BY OPSLYFT</small>
       </div>
       <div class="nav-tabs">
-        <button class="nav-tab active" onclick="switchTab('scorecard',this)"><span class="tab-emoji">📋</span>Scorecard</button>
-        <button class="nav-tab" onclick="switchTab('auditlog',this)"><span class="tab-emoji">📁</span>Audit Log <span class="tab-badge" id="auditBadge">0</span></button>
-        <button class="nav-tab" onclick="switchTab('performance',this)"><span class="tab-emoji">📊</span>Performance</button>
-        <button class="nav-tab" onclick="switchTab('analytics',this)"><span class="tab-emoji">🧠</span>Analytics</button>
-        <button class="nav-tab" onclick="switchTab('coaching',this)"><span class="tab-emoji">🎯</span>Coaching</button>
-        <button class="nav-tab" onclick="switchTab('pareto',this)"><span class="tab-emoji">📉</span>Pareto</button>
-        <button class="nav-tab" id="aiAuditNavTab" onclick="switchTab('aireview',this)" style="color:var(--purple)"><span class="tab-emoji">🤖</span>AI Audit <span class="tab-badge" id="aiAuditBadge" style="background:rgba(139,108,245,0.2);color:var(--purple);border-color:rgba(139,108,245,0.3)">0</span></button>
-        <button class="nav-tab" id="agentsNavTab" onclick="switchTab('agents',this)" style="display:none"><span class="tab-emoji">👥</span>Agents</button>
+        <button class="nav-tab active" onclick="switchTab('scorecard',this)"><span class="tab-emoji"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2h6a1 1 0 0 1 1 1v2H8V3a1 1 0 0 1 1-1z"/><rect x="5" y="4" width="14" height="18" rx="1.5"/><path d="M9 12h6M9 16h6M9 8h3"/></svg></span>Scorecard</button>
+        <button class="nav-tab" onclick="switchTab('auditlog',this)"><span class="tab-emoji"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"/></svg></span>Audit Log <span class="tab-badge" id="auditBadge">0</span></button>
+        <button class="nav-tab" onclick="switchTab('performance',this)"><span class="tab-emoji"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l3-3 3 2 5-6"/></svg></span>Performance</button>
+        <button class="nav-tab" onclick="switchTab('analytics',this)"><span class="tab-emoji"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 3v9l6 3"/></svg></span>Analytics</button>
+        <button class="nav-tab" onclick="switchTab('coaching',this)"><span class="tab-emoji"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.2" fill="currentColor" stroke="none"/></svg></span>Coaching</button>
+        <button class="nav-tab" onclick="switchTab('pareto',this)"><span class="tab-emoji"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20h18"/><path d="M6 20v-6M11 20V9M16 20v-3"/><path d="M6 10l5-4 5 3 4-5" stroke-dasharray="2 2"/></svg></span>Pareto</button>
+        <button class="nav-tab" id="aiAuditNavTab" onclick="switchTab('aireview',this)" style="color:var(--purple)"><span class="tab-emoji"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="7" width="14" height="12" rx="2"/><path d="M9 3v4M15 3v4"/><circle cx="9.5" cy="13" r="1" fill="currentColor" stroke="none"/><circle cx="14.5" cy="13" r="1" fill="currentColor" stroke="none"/><path d="M9 16.5c.8.6 1.9 1 3 1s2.2-.4 3-1"/></svg></span>AI Audit <span class="tab-badge" id="aiAuditBadge" style="background:rgba(139,108,245,0.2);color:var(--purple);border-color:rgba(139,108,245,0.3)">0</span></button>
+        <button class="nav-tab" id="agentsNavTab" onclick="switchTab('agents',this)" style="display:none"><span class="tab-emoji"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><path d="M2 20c0-3.3 3-6 7-6s7 2.7 7 6"/><circle cx="17" cy="8" r="2.5"/><path d="M17 14c2.4.4 4 2 4 4"/></svg></span>Agents</button>
       </div>
-      <div class="top-bar-right">
-        <div id="userProfile">
+      <div class="top-bar-right" style="position:relative">
+        <div id="userProfile" onclick="toggleProfileMenu(event)" style="cursor:pointer">
           <div id="profileAvatar">?</div>
           <div id="profileInfo">
             <div id="profileName">Loading...</div>
             <div id="profileDesignation"></div>
           </div>
           <div id="profileRoleBadge" class="role-agent">Agent</div>
-        <div id="currentProcBadge" class="proc-badge" onclick="switchProcess()" style="display:none;margin-left:6px"><span class="dot"></span><span id="currentProcLabel">—</span></div>
+        <div id="currentProcBadge" class="proc-badge" onclick="event.stopPropagation();switchProcess()" style="display:none;margin-left:6px"><span class="dot"></span><span id="currentProcLabel">—</span></div>
           <div id="profileAccess" style="display:none"></div>
           <div id="profileEmail" style="display:none"></div>
+          <span style="margin-left:2px;color:var(--muted);font-size:9px">&#9662;</span>
         </div>
-        <button class="btn btn-excel btn-sm" onclick="exportAllExcel()" title="Export All Data"><span class="btn-icon-only">⬇</span><span class="btn-text-hide"> Export</span></button>
-        <button id="clearBtn" class="btn btn-danger btn-sm" onclick="clearAllAudits()" style="display:none;" title="Clear Audits"><span class="btn-icon-only">🗑</span><span class="btn-text-hide"> Clear</span></button>
-        <button class="btn btn-outline btn-sm" onclick="logoutUser()" title="Logout"><span class="btn-icon-only">🚪</span><span class="btn-text-hide"> Logout</span></button>
+        <div id="profileMenu" style="display:none;position:absolute;top:52px;right:0;background:var(--surface2);border:1px solid var(--border-bright);border-radius:var(--r-md);box-shadow:var(--shadow-lg);min-width:190px;z-index:200;overflow:hidden">
+          <button class="profile-menu-item" onclick="exportAllExcel()"><span class="btn-icon-only">⬇</span> Export All Data</button>
+          <button id="clearBtn" class="profile-menu-item" onclick="clearAllAudits()" style="display:none;color:var(--critical)"><span class="btn-icon-only">🗑</span> Clear Audits</button>
+          <button class="profile-menu-item" onclick="logoutUser()" style="color:var(--text-dim)"><span class="btn-icon-only">🚪</span> Logout</button>
+        </div>
       </div>
     </div>
   </div>
@@ -626,6 +632,7 @@ tbody td{padding:11px 16px;font-size:13px;color:var(--text);}
 
     <!-- ══ TAB 3: PERFORMANCE ══ -->
     <div id="tab-performance" class="tab-panel">
+      <div id="stakeholderHealthBanner" style="display:none;margin-bottom:16px;padding:11px 18px;border-radius:var(--r-md);font-size:12.5px;font-family:var(--font-head);font-weight:600;align-items:center;gap:10px"></div>
       <div class="g5 mb6">
         <div class="stat-card s-blue"><div class="s-label">Total Evaluations</div><div class="s-val" id="ps-total">0</div><div class="s-sub">All agents</div></div>
         <div class="stat-card s-green"><div class="s-label">Avg Overall Score</div><div class="s-val" id="ps-avg">—</div><div class="s-sub">Across all audits</div></div>
@@ -702,15 +709,11 @@ tbody td{padding:11px 16px;font-size:13px;color:var(--text);}
       <div class="sec-title">👥 All Agents Breakdown</div>
       <div class="card mb6">
         <div class="table-wrap"><table>
-          <thead><tr><th>#</th><th>Agent</th><th>Team</th><th>TL</th><th>Tenure</th><th>Evals</th><th>Avg NC%</th><th>Avg NC Pts</th><th style="width:110px">Avg Overall%</th><th>FATAL</th><th>Stability</th><th style="width:90px">Risk</th><th>Last Eval</th><th>Status</th></tr></thead>
-          <tbody id="agentTableBody"><tr><td colspan="14"><div class="empty-state" style="padding:22px"><p>No data yet</p></div></td></tr></tbody>
+          <thead><tr><th></th><th>#</th><th>Agent</th><th>Team</th><th>Evals</th><th style="width:110px">Avg Overall%</th><th>FATAL</th><th>Status</th></tr></thead>
+          <tbody id="agentTableBody"><tr><td colspan="8"><div class="empty-state" style="padding:22px"><p>No data yet</p></div></td></tr></tbody>
         </table></div>
       </div>
-      <div class="abar">
-        <button class="btn btn-excel btn-sm" onclick="exportPerfExcel()">⬇ Export Performance</button>
-        <button id="publishStakeholderBtn" class="btn btn-sm" onclick="publishStakeholderDashboard()" style="display:none;background:rgba(139,108,245,.12);border:1px solid rgba(139,108,245,.3);color:var(--purple)">&#128225; Publish Stakeholder Dashboard</button>
-        <span id="publishStakeholderStatus" style="font-size:11px;color:var(--muted);align-self:center"></span>
-      </div>
+      <div class="abar"><button class="btn btn-excel btn-sm" onclick="exportPerfExcel()">⬇ Export Performance</button></div>
 
       <div class="card mb6">
         <div class="card-hdr"><div class="card-title">📈 Monthly QA Trend</div></div>
@@ -849,7 +852,7 @@ tbody td{padding:11px 16px;font-size:13px;color:var(--text);}
     <!-- ══ AI AUDIT TAB ══ -->
     <div id="tab-aireview" class="tab-panel">
       <style>
-        .ai-queue{width:280px;flex-shrink:0;border-right:1px solid var(--border);display:flex;flex-direction:column;background:var(--bg);height:calc(100vh - 120px);overflow:hidden;border-radius:var(--r-lg) 0 0 var(--r-lg);}
+        .ai-queue{width:300px;flex-shrink:0;border-right:1px solid var(--border);display:flex;flex-direction:column;background:var(--bg);height:calc(100vh - 120px);overflow:hidden;border-radius:var(--r-lg) 0 0 var(--r-lg);}
         .ai-queue-hdr{padding:12px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
         .ai-queue-list{flex:1;overflow-y:auto;padding:8px;}
         .ai-call-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);padding:11px 13px;margin-bottom:6px;cursor:pointer;transition:all .15s;position:relative;}
@@ -977,12 +980,12 @@ tbody td{padding:11px 16px;font-size:13px;color:var(--text);}
 
       <div style="display:flex;gap:0;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;height:calc(100vh - 140px);">
         <div class="ai-queue">
-          <div class="ai-queue-hdr">
-            <div style="flex:1;min-width:0">
+          <div class="ai-queue-hdr" style="flex-direction:column;align-items:stretch;gap:8px">
+            <div>
               <div style="font-family:var(--font-head);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted)">Call Queue</div>
               <div id="aiQueueCount" style="font-size:11px;color:var(--purple);margin-top:2px">Loading&hellip;</div>
             </div>
-            <div style="display:flex;gap:6px;align-items:center;flex-shrink:0">
+            <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
               <button id="aiAdminViewBtn" onclick="aiToggleAdminView(this)" style="display:none;background:rgba(139,108,245,.1);border:1px solid rgba(139,108,245,.25);color:var(--purple);padding:4px 8px;border-radius:var(--r-sm);font-family:var(--font-head);font-size:9px;font-weight:700;cursor:pointer;white-space:nowrap">&#128101; My Calls</button>
               <button id="smartfloSyncBtn" class="ai-upload-btn" onclick="aiShowSmartfloSync()" style="display:none;background:rgba(240,168,48,.1);border-color:rgba(240,168,48,.25);color:var(--accent2)">&#9737; Sync</button>
               <button class="ai-upload-btn" onclick="aiShowUpload()">+ Upload</button>
@@ -1214,11 +1217,10 @@ window.applyUIForRole = function applyUIForRole(u){
     badge.style.cssText+=";font-size:9px;font-weight:700;font-family:var(--font-head);letter-spacing:0.8px;padding:2px 8px;border-radius:20px;text-transform:uppercase;flex-shrink:0;background:"+(colors[role]||colors.agent)+";color:"+(textColors[role]||textColors.agent)+";border:1px solid "+(borders[role]||borders.agent);
   }
   if(role==="admin"||role==="processAdmin"||isSuperAdmin()){
-    document.getElementById("clearBtn").style.display="inline-flex";
+    document.getElementById("clearBtn").style.display="flex";
     document.getElementById("clearBtn2").style.display="inline-flex";
     const at=document.getElementById('agentsNavTab');if(at)at.style.display='flex';
     const auc=document.getElementById('assignUserCard');if(auc)auc.style.display='block';
-    const psb=document.getElementById('publishStakeholderBtn');if(psb)psb.style.display='inline-flex';
   }
   // Show process badge (always show if process is selected)
   if(window._currentProcess){
@@ -2010,97 +2012,6 @@ function calcRiskScore(aa){const v=aa.filter(a=>a.totalScore!==null);if(!v.lengt
 function getDipAlerts(audits){const map={};audits.forEach(a=>{if(!map[a.agent])map[a.agent]=[];map[a.agent].push(a);});const al=[];Object.entries(map).forEach(([agent,aa])=>{const s=[...aa].filter(a=>a.totalScore!==null).sort((a,b)=>b.timestamp-a.timestamp);if(s.length>=3&&s.slice(0,3).every(a=>a.totalScore<70))al.push({agent,type:'3 Consecutive Scores Below 70%',sev:'critical'});const ago=Date.now()-7*24*60*60*1000,rc=s.filter(a=>a.timestamp>ago&&a.crFatal);if(rc.length>=2)al.push({agent,type:'2+ FATAL Critical Failures in 7 Days',sev:'critical'});});return al;}
 function renderDipAlerts(alerts,id){const el=document.getElementById(id);if(!alerts.length){el.innerHTML=`<div style="background:rgba(34,211,138,.05);border:1px solid rgba(34,211,138,.18);border-radius:var(--r-md);padding:12px 18px;color:var(--success);font-size:13px;font-weight:600;margin-bottom:20px">✅ No dip alerts — all agents within acceptable range.</div>`;return;}el.innerHTML=alerts.map(a=>`<div class="alert-card alert-critical"><div class="alert-icon">🚨</div><div><div class="alert-agent">${a.agent}</div><div class="alert-type">${a.type}</div></div><span style="margin-left:auto;font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;background:rgba(240,64,96,.15);color:var(--critical);font-family:var(--font-head)">${a.sev==='critical'?'CRITICAL':'WARNING'}</span></div>`).join('');}
 
-// ── STAKEHOLDER DASHBOARD PUBLISHING ────────────────────────────────────────
-// Computes a curated, aggregated snapshot (no PII beyond agent name, no
-// recordings, no raw call numbers, no coaching notes) and writes ONLY this
-// snapshot to a separate public-readable Firebase path. The public dashboard
-// page reads exclusively from that path — it never touches raw audits/calls.
-async function publishStakeholderDashboard(){
-  const statusEl=document.getElementById('publishStakeholderStatus');
-  const btn=document.getElementById('publishStakeholderBtn');
-  if(statusEl){statusEl.textContent='Building snapshot…';statusEl.style.color='var(--muted)';}
-  if(btn)btn.disabled=true;
-  try{
-    const audits=await loadAudits(true);
-    const agents=buildAgentMap(audits);
-    const v=audits.filter(a=>a.totalScore!==null);
-
-    // KPIs
-    const avgScore=v.length?Math.round(v.reduce((s,a)=>s+a.totalScore,0)/v.length):null;
-    const passRate=v.length?Math.round(v.filter(a=>a.result==='Pass').length/v.length*100):null;
-    const fatalCount=audits.filter(a=>a.crFatal).length;
-    const fatalRate=audits.length?Math.round(fatalCount/audits.length*100):0;
-
-    // Monthly trend (last 12 months)
-    const mmap={};
-    audits.forEach(a=>{const ds=a.date||a.callDate;if(!ds||a.totalScore===null)return;const k=ds.slice(0,7);if(!mmap[k])mmap[k]=[];mmap[k].push(a.totalScore);});
-    const monthKeys=Object.keys(mmap).sort().slice(-12);
-    const monthlyTrend=monthKeys.map(k=>{const[y,m]=k.split('-');return{label:new Date(+y,+m-1,1).toLocaleDateString('en-GB',{month:'short',year:'2-digit'}),avgScore:Math.round(mmap[k].reduce((s,x)=>s+x,0)/mmap[k].length)};});
-
-    // Weekly trend (last 12 weeks)
-    const wmap={};
-    audits.forEach(a=>{const ds=a.callDate||a.date;if(!ds||a.totalScore===null)return;const d=new Date(ds);if(isNaN(d))return;const{week,year}=getISOWeek(d);const k=`${year}-W${String(week).padStart(2,'0')}`;if(!wmap[k])wmap[k]=[];wmap[k].push(a.totalScore);});
-    const weekKeys=Object.keys(wmap).sort().slice(-12);
-    const weeklyTrend=weekKeys.map(k=>({label:k,avgScore:Math.round(wmap[k].reduce((s,x)=>s+x,0)/wmap[k].length)}));
-
-    // Volume by month (Pass/Review/Fail)
-    const volMap={};
-    audits.forEach(a=>{const ds=a.date||a.callDate;if(!ds)return;const k=ds.slice(0,7);if(!volMap[k])volMap[k]={pass:0,review:0,fail:0};if(a.result==='Pass')volMap[k].pass++;else if(a.result==='Review')volMap[k].review++;else if(a.result)volMap[k].fail++;});
-    const volumeByMonth=Object.keys(volMap).sort().slice(-6).map(k=>{const[y,m]=k.split('-');return{label:new Date(+y,+m-1,1).toLocaleDateString('en-GB',{month:'short',year:'2-digit'}),...volMap[k]};});
-
-    // Parameter Pareto — top failing parameters (uses the process's own live PM)
-    const failMap={},totalRated={};
-    Object.keys(PM).forEach(k=>{failMap[k]=0;totalRated[k]=0;});
-    audits.forEach(a=>{if(!a.scores)return;Object.keys(PM).forEach(k=>{if(!(k in a.scores))return;if(a.scores[k]==='yes'||a.scores[k]==='no')totalRated[k]++;if(a.scores[k]==='no')failMap[k]++;});});
-    const paretoTop=Object.keys(PM).map(k=>({label:PM[k].label,type:PM[k].type,fails:failMap[k],total:totalRated[k],failRate:totalRated[k]?Math.round(failMap[k]/totalRated[k]*100):0})).sort((a,b)=>b.fails-a.fails).slice(0,8);
-    const ncFails=Object.keys(PM).filter(k=>PM[k].type==='NC').reduce((s,k)=>s+failMap[k],0);
-    const crFails=Object.keys(PM).filter(k=>PM[k].type==='CR').reduce((s,k)=>s+failMap[k],0);
-
-    // Leaderboard — agent name + team + score only (no PII beyond name, no notes/recordings)
-    const leaderboard=agents.filter(ag=>ag.avgTot!==null).map(ag=>({
-      name:ag.name, team:ag.team, evals:ag.evals.length, avgScore:ag.avgTot, passRate:ag.passRate, fatalCount:ag.fatalCount
-    })).sort((a,b)=>b.avgScore-a.avgScore).slice(0,50);
-
-    // Team comparison
-    const teamMap={};
-    audits.forEach(a=>{const t=a.team||'Unknown';if(!teamMap[t])teamMap[t]={evals:[],agents:new Set()};teamMap[t].evals.push(a);teamMap[t].agents.add(a.agent);});
-    const teamComparison=Object.entries(teamMap).map(([name,t])=>{const tv=t.evals.filter(e=>e.totalScore!==null);return{name,agents:t.agents.size,evals:t.evals.length,avgScore:tv.length?Math.round(tv.reduce((s,e)=>s+e.totalScore,0)/tv.length):null,passRate:tv.length?Math.round(tv.filter(e=>e.result==='Pass').length/tv.length*100):null};});
-
-    // Coaching — aggregate only, no session notes
-    const coachingSessions=await loadCoachingSessions();
-    let improvementSum=0,improvementCount=0;
-    for(const s of coachingSessions){
-      const d=new Date(s.date||s.timestamp);
-      const before=audits.filter(a=>a.agent===s.agent&&new Date(a.date||a.callDate)<d&&new Date(a.date||a.callDate)>new Date(d.getTime()-30*86400000)&&a.totalScore!==null);
-      const after=audits.filter(a=>a.agent===s.agent&&new Date(a.date||a.callDate)>=d&&new Date(a.date||a.callDate)<new Date(d.getTime()+30*86400000)&&a.totalScore!==null);
-      if(before.length&&after.length){
-        const bAvg=before.reduce((s,a)=>s+a.totalScore,0)/before.length;
-        const aAvg=after.reduce((s,a)=>s+a.totalScore,0)/after.length;
-        improvementSum+=(aAvg-bAvg);improvementCount++;
-      }
-    }
-
-    const snapshot={
-      processId:window._currentProcess,
-      generatedAt:new Date().toISOString(),
-      generatedBy:window.auth.currentUser?.email||null,
-      kpis:{avgScore,passRate,totalAudits:audits.length,fatalCount,fatalRate},
-      monthlyTrend,weeklyTrend,volumeByMonth,
-      paretoTop,ncCrSplit:{nc:ncFails,cr:crFails},
-      leaderboard,teamComparison,
-      coaching:{sessionsLogged:coachingSessions.length,avgImprovement:improvementCount?Math.round((improvementSum/improvementCount)*10)/10:null}
-    };
-
-    await window.set(window.ref(window.db,`publicDashboards/${window._currentProcess}`),snapshot);
-    if(statusEl){statusEl.textContent='✅ Published '+new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});statusEl.style.color='var(--success)';}
-    showToast('✅ Stakeholder dashboard published','s');
-  }catch(e){
-    if(statusEl){statusEl.textContent='❌ '+e.message;statusEl.style.color='var(--critical)';}
-    showToast('Error publishing: '+e.message,'e');
-  }
-  if(btn)btn.disabled=false;
-}
-
 function buildAgentMap(audits){
   const m={};
   audits.forEach(a=>{
@@ -2127,7 +2038,32 @@ function buildAgentMap(audits){
 }
 
 // ── PERFORMANCE TAB ──────────────────────────────────────────────────────────
+async function checkStakeholderHealth(){
+  const banner=document.getElementById('stakeholderHealthBanner');
+  if(!banner||!window._currentProcess) return;
+  try{
+    const snap=await window.get(window.ref(window.db,`publicDashboards/${window._currentProcess}/generatedAt`));
+    if(!snap.exists()){
+      banner.style.display='flex';
+      banner.style.background='rgba(74,88,120,0.1)'; banner.style.border='1px solid var(--border-bright)'; banner.style.color='var(--muted)';
+      banner.innerHTML='ℹ️ No stakeholder dashboard has been published for this process yet.';
+      return;
+    }
+    const generatedAt=new Date(snap.val());
+    const hoursOld=(Date.now()-generatedAt.getTime())/(1000*60*60);
+    banner.style.display='flex';
+    if(hoursOld>36){
+      banner.style.background='rgba(240,64,96,0.08)'; banner.style.border='1px solid rgba(240,64,96,0.3)'; banner.style.color='var(--critical)';
+      banner.innerHTML=`⚠️ Stakeholder dashboard hasn't refreshed in ${Math.round(hoursOld)} hours (last: ${generatedAt.toLocaleString('en-IN',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}). The nightly auto-refresh may have failed — check Vercel's Cron Jobs tab.`;
+    }else{
+      banner.style.background='rgba(34,211,138,0.06)'; banner.style.border='1px solid rgba(34,211,138,0.25)'; banner.style.color='var(--success)';
+      banner.innerHTML=`✅ Stakeholder dashboard is up to date — last refreshed ${generatedAt.toLocaleString('en-IN',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}.`;
+    }
+  }catch(e){ /* silent — this is a non-critical status indicator, never block the tab on it */ }
+}
+
 async function renderPerformance(){
+  checkStakeholderHealth(); // non-blocking — doesn't hold up the rest of the tab
   const audits=await loadAudits();
   const alerts=getDipAlerts(audits);
   const ws=audits.filter(a=>a.totalScore!==null);
@@ -2148,8 +2084,26 @@ async function renderPerformance(){
   document.getElementById('agentTableBody').innerHTML=agents.length?agents.map((ag,i)=>{
     const rc=ag.risk>=60?'var(--critical)':ag.risk>=30?'var(--warning)':'var(--success)';
     const c=ag.avgTot>=85?'var(--success)':ag.avgTot>=70?'var(--warning)':'var(--critical)';
-    return`<tr><td style="color:var(--muted);font-family:var(--font-head);font-weight:700">${i+1}</td><td style="font-family:var(--font-head);font-weight:700">${ag.name}</td><td style="color:var(--text-dim)">${ag.team}</td><td style="color:var(--text-dim);font-size:11px">${ag.tlName||'—'}</td><td><span class="ten-badge">${ag.tenure?ag.tenure+'m':'—'}</span></td><td style="color:var(--text-dim)">${ag.evals.length}</td><td>${ag.avgNc!==null?`<span style="color:var(--accent);font-family:var(--font-head);font-weight:700">${ag.avgNc}%</span>`:'—'}</td><td style="font-size:11px;color:var(--muted)">${ag.avgNcEarned!==null?ag.avgNcEarned+' pts':'—'}</td><td class="sbc"><div class="sbw"><div class="smb"><div class="smf" style="width:${ag.avgTot||0}%;background:${c}"></div></div><span class="sv" style="color:${c}">${ag.avgTot!==null?ag.avgTot+'%':'—'}</span></div></td><td>${ag.fatalCount>0?`<span class="tag tfatal">⚡ ${ag.fatalCount}</span>`:'<span class="tag tp" style="font-size:9px">0</span>'}</td><td><span style="color:${ag.stability.color};font-family:var(--font-head);font-weight:700;font-size:11px">${ag.stability.label}</span></td><td><div class="sbw"><div class="smb"><div class="smf" style="width:${ag.risk}%;background:${rc}"></div></div><span class="sv" style="color:${rc}">${ag.risk}</span></div></td><td style="color:var(--muted);font-size:11px">${ag.lastDate||'—'}</td><td>${stag(ag.avgTot)}</td></tr>`;
-  }).join(''):`<tr><td colspan="14"><div class="empty-state" style="padding:22px"><p>No data yet</p></div></td></tr>`;
+    return`<tr onclick="td('agentDetail-${i}')" style="cursor:pointer">
+      <td><span style="color:var(--muted);font-size:11px">▶</span></td>
+      <td style="color:var(--muted);font-family:var(--font-head);font-weight:700">${i+1}</td>
+      <td style="font-family:var(--font-head);font-weight:700">${ag.name}</td>
+      <td style="color:var(--text-dim)">${ag.team}</td>
+      <td style="color:var(--text-dim)">${ag.evals.length}</td>
+      <td class="sbc"><div class="sbw"><div class="smb"><div class="smf" style="width:${ag.avgTot||0}%;background:${c}"></div></div><span class="sv" style="color:${c}">${ag.avgTot!==null?ag.avgTot+'%':'—'}</span></div></td>
+      <td>${ag.fatalCount>0?`<span class="tag tfatal">⚡ ${ag.fatalCount}</span>`:'<span class="tag tp" style="font-size:9px">0</span>'}</td>
+      <td>${stag(ag.avgTot)}</td>
+    </tr>
+    <tr class="adr" id="agentDetail-${i}"><td colspan="8"><div class="dgrid">
+      <div class="di"><label>TL Name</label><p>${ag.tlName||'—'}</p></div>
+      <div class="di"><label>Tenure</label><p>${ag.tenure?ag.tenure+' months':'—'}</p></div>
+      <div class="di"><label>Avg NC Score</label><p style="color:var(--accent);font-weight:700">${ag.avgNc!==null?ag.avgNc+'%':'—'}</p></div>
+      <div class="di"><label>Avg NC Points</label><p>${ag.avgNcEarned!==null?ag.avgNcEarned+' pts':'—'}</p></div>
+      <div class="di"><label>Stability</label><p style="color:${ag.stability.color};font-weight:700">${ag.stability.label}</p></div>
+      <div class="di"><label>Risk Score</label><p style="color:${rc};font-weight:700">${ag.risk}</p></div>
+      <div class="di"><label>Last Eval</label><p>${ag.lastDate||'—'}</p></div>
+    </div></td></tr>`;
+  }).join(''):`<tr><td colspan="8"><div class="empty-state" style="padding:22px"><p>No data yet</p></div></td></tr>`;
 
   // ★ TL-wise table
   renderTLTable(audits);
@@ -2735,6 +2689,25 @@ function resetForm(soft=false){
 function esc(s){if(!s)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');}
 
 let _toastTimer=null;
+function toggleProfileMenu(e){
+  e.stopPropagation();
+  const menu=document.getElementById('profileMenu');
+  if(!menu) return;
+  const opening = menu.style.display==='none' || !menu.style.display;
+  menu.style.display = opening ? 'block' : 'none';
+  if(opening){
+    setTimeout(()=>{
+      const closeOnOutsideClick=(ev)=>{
+        if(!menu.contains(ev.target) && ev.target.id!=='userProfile'){
+          menu.style.display='none';
+          document.removeEventListener('click', closeOnOutsideClick);
+        }
+      };
+      document.addEventListener('click', closeOnOutsideClick);
+    },0);
+  }
+}
+
 function showToast(msg,type=''){
   const el=document.getElementById('toast');if(!el)return;
   el.textContent=msg;el.className='show'+(type==='s'?' ts':type==='e'?' te':'');
@@ -3127,7 +3100,7 @@ function aiRenderBrowseTable(calls){
       <td style="color:var(--muted)">${c.duration?Math.round(c.duration/60)+'m '+(c.duration%60)+'s':'—'}</td>
       <td style="color:var(--muted)">${c.dialerSource||'upload'}</td>
       <td><span class="ai-status-pill ${badge.cls}">${badge.label}</span></td>
-      <td>${isAdmin?`<button onclick="event.stopPropagation();aiDeleteCall('${c.key}')" title="Delete" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px">&#128465;</button>`:''}</td>
+      <td>${isAdmin?`<button onclick="event.stopPropagation();aiDeleteCall('${c.key}')" title="Delete" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;padding:6px 8px;border-radius:4px;transition:background .15s,color .15s" onmouseover="this.style.background='rgba(240,64,96,0.12)';this.style.color='var(--critical)'" onmouseout="this.style.background='none';this.style.color='var(--muted)'">&#128465;</button>`:''}</td>
     </tr>`;
   }).join('');
   main.innerHTML=`
@@ -3186,7 +3159,7 @@ function aiRenderQueue(calls){
         <div style="font-family:var(--font-head);font-weight:700;font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:120px">${esc(c.agentName||c.agentNumber||'Unknown Agent')}</div>
         <div style="display:flex;align-items:center;gap:4px;flex-shrink:0">
           <div class="ai-status-pill ${badge.cls}">${badge.label}</div>
-          ${isAdmin?`<button onclick="event.stopPropagation();aiDeleteCall('${c.key}')" title="Delete call" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:12px;padding:0 2px;line-height:1">&#128465;</button>`:''}
+          ${isAdmin?`<button onclick="event.stopPropagation();aiDeleteCall('${c.key}')" title="Delete call" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;padding:4px 6px;margin-left:4px;line-height:1;border-radius:4px;transition:background .15s,color .15s" onmouseover="this.style.background='rgba(240,64,96,0.12)';this.style.color='var(--critical)'" onmouseout="this.style.background='none';this.style.color='var(--muted)'">&#128465;</button>`:''}
         </div>
       </div>
       ${c.callerNumber?`<div style="font-size:10.5px;color:var(--text-dim);margin-bottom:2px">&#128222; ${esc(c.callerNumber)}</div>`:''}
