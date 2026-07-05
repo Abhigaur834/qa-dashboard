@@ -1105,12 +1105,15 @@ tbody td{padding:11px 16px;font-size:13px;color:var(--text);}
       </div>
       <div class="card" style="margin-bottom:20px">
         <div class="card-hdr"><div class="card-title">➕ Add New Agent</div></div>
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr 120px auto;gap:12px;align-items:end;padding:4px 0 12px">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;align-items:end;padding:4px 0 12px">
           <div><label style="display:block;font-size:10px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);font-family:var(--font-head);font-weight:700;margin-bottom:6px">Full Name *</label><input type="text" id="newAgentName" placeholder="e.g. John Smith" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-family:var(--font-body);font-size:13px;padding:10px 12px;outline:none;box-sizing:border-box"></div>
           <div><label style="display:block;font-size:10px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);font-family:var(--font-head);font-weight:700;margin-bottom:6px">Emp ID *</label><input type="text" id="newAgentEmpId" placeholder="e.g. EMP042" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-family:var(--font-body);font-size:13px;padding:10px 12px;outline:none;box-sizing:border-box"></div>
           <div><label style="display:block;font-size:10px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);font-family:var(--font-head);font-weight:700;margin-bottom:6px">TL Name</label><input type="text" id="newAgentTL" placeholder="e.g. TL Ravi" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-family:var(--font-body);font-size:13px;padding:10px 12px;outline:none;box-sizing:border-box"></div>
           <div><label style="display:block;font-size:10px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);font-family:var(--font-head);font-weight:700;margin-bottom:6px">Team</label><input type="text" id="newAgentTeam" placeholder="e.g. Sales A" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-family:var(--font-body);font-size:13px;padding:10px 12px;outline:none;box-sizing:border-box"></div>
+        </div>
+        <div style="display:grid;grid-template-columns:120px 1.6fr auto;gap:12px;align-items:end;padding:0 0 12px">
           <div><label style="display:block;font-size:10px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);font-family:var(--font-head);font-weight:700;margin-bottom:6px">Tenure (m)</label><input type="number" id="newAgentTenure" placeholder="6" min="0" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-family:var(--font-body);font-size:13px;padding:10px 12px;outline:none;box-sizing:border-box"></div>
+          <div><label style="display:block;font-size:10px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);font-family:var(--font-head);font-weight:700;margin-bottom:6px">Email <span style="color:var(--purple)">(for audit alerts)</span></label><input type="email" id="newAgentEmail" placeholder="agent@example.com" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-family:var(--font-body);font-size:13px;padding:10px 12px;outline:none;box-sizing:border-box"></div>
           <div><button class="btn btn-success" onclick="saveAgent()" style="white-space:nowrap;height:42px;padding:0 18px">➕ Add Agent</button></div>
         </div>
       </div>
@@ -1121,8 +1124,8 @@ tbody td{padding:11px 16px;font-size:13px;color:var(--text);}
         </div>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Emp ID</th><th>Full Name</th><th>TL Name</th><th>Team</th><th>Tenure</th><th>Action</th></tr></thead>
-            <tbody id="agentListBody"><tr><td colspan="6" style="text-align:center;padding:32px;color:var(--muted)">Loading agents...</td></tr></tbody>
+            <thead><tr><th>Emp ID</th><th>Full Name</th><th>TL Name</th><th>Team</th><th>Tenure</th><th>Email</th><th>Action</th></tr></thead>
+            <tbody id="agentListBody"><tr><td colspan="7" style="text-align:center;padding:32px;color:var(--muted)">Loading agents...</td></tr></tbody>
           </table>
         </div>
       </div>
@@ -1559,11 +1562,12 @@ async function saveAgent(){
   const tl=document.getElementById('newAgentTL').value.trim();
   const team=document.getElementById('newAgentTeam').value.trim();
   const tenure=parseInt(document.getElementById('newAgentTenure').value)||0;
+  const email=document.getElementById('newAgentEmail').value.trim();
   if(!name||!empId){showToast('Name and Emp ID are required','e');return;}
   try{
-    await window.set(window.ref(window.db,`processes/${window._currentProcess}/agents/${empId.trim()}`),{name,empId:empId.trim(),tl,team,tenure});
+    await window.set(window.ref(window.db,`processes/${window._currentProcess}/agents/${empId.trim()}`),{name,empId:empId.trim(),tl,team,tenure,email:email||null});
     showToast('✅ Agent saved: '+name,'s');
-    ['newAgentName','newAgentEmpId','newAgentTL','newAgentTeam','newAgentTenure'].forEach(id=>document.getElementById(id).value='');
+    ['newAgentName','newAgentEmpId','newAgentTL','newAgentTeam','newAgentTenure','newAgentEmail'].forEach(id=>document.getElementById(id).value='');
     await loadAgents();populateAgentDropdown();renderAgentList();
   }catch(e){showToast('Error saving agent: '+e.message,'e');}
 }
@@ -1575,9 +1579,9 @@ async function deleteAgent(empId){
 }
 function renderAgentList(){
   const tbody=document.getElementById('agentListBody');if(!tbody)return;
-  if(!_agentList.length){tbody.innerHTML='<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--muted)">No agents added yet.</td></tr>';return;}
+  if(!_agentList.length){tbody.innerHTML='<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--muted)">No agents added yet.</td></tr>';return;}
   const badge=document.getElementById('agentCountBadge');if(badge)badge.textContent=_agentList.length+' agent'+(+_agentList.length!==1?'s':'');
-  tbody.innerHTML=_agentList.map(ag=>`<tr><td style="font-family:var(--font-head);font-weight:700;color:var(--accent)">${ag.empId||'—'}</td><td style="font-weight:600">${ag.name}</td><td style="color:var(--text-dim)">${ag.tl||'—'}</td><td style="color:var(--text-dim)">${ag.team||'—'}</td><td><span class="ten-badge">${ag.tenure?ag.tenure+'m':'—'}</span></td><td>${getUserRole()==='admin'?`<button class="btn btn-danger btn-sm" onclick="deleteAgent('${ag.empId}')">🗑 Remove</button>`:''}</td></tr>`).join('');
+  tbody.innerHTML=_agentList.map(ag=>`<tr><td style="font-family:var(--font-head);font-weight:700;color:var(--accent)">${ag.empId||'—'}</td><td style="font-weight:600">${ag.name}</td><td style="color:var(--text-dim)">${ag.tl||'—'}</td><td style="color:var(--text-dim)">${ag.team||'—'}</td><td><span class="ten-badge">${ag.tenure?ag.tenure+'m':'—'}</span></td><td style="font-size:11.5px;${ag.email?'color:var(--text-dim)':'color:var(--muted);font-style:italic'}">${ag.email||'not set'}</td><td>${getUserRole()==='admin'?`<button class="btn btn-danger btn-sm" onclick="deleteAgent('${ag.empId}')">🗑 Remove</button>`:''}</td></tr>`).join('');
 }
 async function importAgentsExcel(input){
   // ★ FIX: Added auth check
@@ -1598,8 +1602,9 @@ async function importAgentsExcel(input){
       const tl=(row['TL']||row['TL Name']||row['Team Leader']||'').toString().trim();
       const team=(row['Team']||row['team']||'').toString().trim();
       const tenure=parseInt(row['Tenure']||row['tenure']||0)||0;
+      const email=(row['Email']||row['email']||'').toString().trim();
       if(!name||!empId){skipped++;continue;}
-      await window.set(window.ref(window.db,`processes/${window._currentProcess}/agents/${empId}`),{name,empId,tl,team,tenure});
+      await window.set(window.ref(window.db,`processes/${window._currentProcess}/agents/${empId}`),{name,empId,tl,team,tenure,email:email||null});
       saved++;
     }
     statusEl.textContent=`✅ ${saved} agents imported${skipped?' ('+skipped+' skipped)':''}`;
@@ -1609,8 +1614,8 @@ async function importAgentsExcel(input){
 }
 function downloadAgentTemplate(e){
   e.preventDefault();
-  const ws=XLSX.utils.aoa_to_sheet([['Name','EmpID','TL','Team','Tenure'],['John Smith','EMP001','TL Ravi','Sales A',6],['Jane Doe','EMP002','TL Priya','Sales B',12]]);
-  ws['!cols']=[{wch:20},{wch:10},{wch:15},{wch:12},{wch:8}];
+  const ws=XLSX.utils.aoa_to_sheet([['Name','EmpID','TL','Team','Tenure','Email'],['John Smith','EMP001','TL Ravi','Sales A',6,'john@example.com'],['Jane Doe','EMP002','TL Priya','Sales B',12,'jane@example.com']]);
+  ws['!cols']=[{wch:20},{wch:10},{wch:15},{wch:12},{wch:8},{wch:24}];
   const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Agents');XLSX.writeFile(wb,'agent_upload_template.xlsx');
 }
 async function grantAdmin(){
@@ -1836,7 +1841,33 @@ async function saveAudit(){
     showToast('✅ Audit saved for '+agent,'s');
     _auditsCacheTime=0; // invalidate cache
     updateBadge();resetForm(true);
+    notifyAgentOfAudit(agData, audit); // fire-and-forget — never blocks the save flow above
   }catch(e){showToast('Storage error: '+e.message,'e');}
+}
+
+// Sends the agent their audit result by email. Silently does nothing if the
+// agent has no email on file, or if email isn't configured on the backend
+// yet — never blocks or errors the audit save.
+function notifyAgentOfAudit(agData, audit){
+  if(!agData || !agData.email) return;
+  const failedParams = AK.filter(k => audit.scores && audit.scores[k]==='no').map(k => PM[k] ? PM[k].label : k);
+  fetch(AI_API_BASE+'/api/notify-agent', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({
+      agentName: audit.agent,
+      agentEmail: agData.email,
+      processId: window._currentProcess,
+      totalScore: audit.totalScore,
+      result: audit.result,
+      crFatal: audit.crFatal,
+      failedParams,
+      observations: audit.observations,
+      recommendation: audit.recommendation,
+      callDate: audit.callDate,
+      reviewer: audit.reviewer,
+    }),
+  }).catch(e => console.warn('Agent notification failed silently:', e));
 }
 
 // ── LOAD AUDITS (with caching) ───────────────────────────────────────────────
