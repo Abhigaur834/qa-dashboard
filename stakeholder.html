@@ -20,8 +20,23 @@
   --font-head:'Epilogue',sans-serif;--font-body:'Onest',sans-serif;
   --r-lg:16px;--r-md:12px;--r-sm:8px;
 }
+html[data-theme="light"] {
+  --bg:#f3f5fa;--surface:#ffffff;--surface2:#f8f9fc;--surface3:#eef1f7;
+  --border:#e1e5ee;--border-bright:#cfd6e4;
+  --text:#1a2233;--text-dim:#4b5568;--muted:#7c8494;
+}
+html[data-theme="light"] body::before,html[data-theme="light"] body::after{opacity:0.4;}
+.hdr-btn{background:var(--surface2);border:1px solid var(--border);color:var(--text-dim);border-radius:8px;width:32px;height:32px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:background .15s;}
+.hdr-btn:hover{background:var(--accent-dim);color:var(--accent);}
+@media print {
+  .no-print{display:none !important;}
+  body{background:#fff !important;color:#111 !important;}
+  body::before,body::after{display:none !important;}
+  .card,.kpi{border-color:#ddd !important;background:#fff !important;box-shadow:none !important;}
+  .sec-title::after{background:#ddd !important;}
+}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-body{background:var(--bg);color:var(--text);font-family:var(--font-body);min-height:100vh;line-height:1.5;}
+body{background:var(--bg);color:var(--text);font-family:var(--font-body);min-height:100vh;line-height:1.5;transition:background .2s,color .2s;}
 body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 60% 50% at 15% 10%,rgba(61,126,245,0.08) 0%,transparent 70%),radial-gradient(ellipse 50% 40% at 85% 85%,rgba(139,108,245,0.06) 0%,transparent 60%);pointer-events:none;z-index:0;}
 .wrap{max-width:1280px;margin:0 auto;padding:0 24px 60px;position:relative;z-index:1;}
 .hdr{padding:28px 0 24px;border-bottom:1px solid var(--border);margin-bottom:28px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;}
@@ -66,10 +81,26 @@ tbody tr:hover{background:rgba(61,126,245,0.03);}
 </style>
 </head>
 <body>
-<div class="wrap">
+<div id="passGate" style="position:fixed;inset:0;background:var(--bg);z-index:999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px;text-align:center;padding:20px">
+  <div style="font-family:var(--font-head);font-weight:900;font-size:24px;letter-spacing:-0.5px">QA<span style="color:var(--accent)">.</span>Hub</div>
+  <div style="color:var(--muted);font-size:13px;max-width:320px">Enter the access code shared with you to view this performance dashboard.</div>
+  <input id="passInput" type="password" placeholder="Access code" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:11px 16px;font-size:14px;width:240px;text-align:center;outline:none">
+  <button onclick="tryUnlock()" style="background:var(--accent);color:#fff;border:none;border-radius:8px;padding:11px 28px;font-family:var(--font-head);font-weight:700;font-size:13px;cursor:pointer">View Dashboard →</button>
+  <div id="passError" style="display:none;color:var(--critical);font-size:12px">Incorrect code — please try again.</div>
+</div>
+<div class="wrap" id="mainWrap" style="display:none">
   <div class="hdr">
-    <div class="brand">QA<span class="dot">.</span>Hub<small>Performance Dashboard · By Opslyft</small></div>
-    <div class="updated" id="updatedLabel">Loading…</div>
+    <div style="display:flex;align-items:center;gap:14px">
+      <img id="clientLogo" src="client-logo.png" alt="" style="height:30px;max-width:130px;object-fit:contain;display:none" onload="this.style.display='inline-block'">
+      <div class="brand">QA<span class="dot">.</span>Hub<small>Performance Dashboard · By Opslyft</small></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:16px">
+      <div class="updated" id="updatedLabel">Loading…</div>
+      <div class="no-print" style="display:flex;gap:6px">
+        <button onclick="toggleTheme()" title="Toggle light/dark view" class="hdr-btn">&#127765;</button>
+        <button onclick="window.print()" title="Print or Save as PDF" class="hdr-btn">&#128424;</button>
+      </div>
+    </div>
   </div>
   <div id="content">
     <div class="empty"><h2>Loading dashboard…</h2></div>
@@ -87,6 +118,46 @@ const app=initializeApp(fc), db=getDatabase(app);
 const params=new URLSearchParams(location.search);
 const processId=(params.get('process')||'HOUS').toUpperCase();
 
+// ── Lightweight access gate ──────────────────────────────────────────────
+// This is a deterrent against casual link-sharing, NOT real security — the
+// underlying data is protected by Firebase rules regardless. Change this
+// value to whatever you want to share with stakeholders.
+const ACCESS_CODE = 'opslyft2026';
+const SESSION_KEY = 'qahub_stakeholder_unlocked';
+
+window.tryUnlock = function(){
+  const val = document.getElementById('passInput').value;
+  if(val === ACCESS_CODE){
+    sessionStorage.setItem(SESSION_KEY, '1');
+    unlock();
+  } else {
+    document.getElementById('passError').style.display='block';
+  }
+};
+
+function unlock(){
+  document.getElementById('passGate').style.display='none';
+  document.getElementById('mainWrap').style.display='block';
+  load();
+}
+
+// ── Light/dark theme ──────────────────────────────────────────────────────
+let _lastSnapshot = null; // re-render charts with correct colors after a theme switch
+(function initTheme(){
+  const saved = localStorage.getItem('qahub_stakeholder_theme');
+  if(saved === 'light') document.documentElement.setAttribute('data-theme','light');
+})();
+window.toggleTheme = function(){
+  const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+  if(isLight){ document.documentElement.removeAttribute('data-theme'); localStorage.setItem('qahub_stakeholder_theme','dark'); }
+  else{ document.documentElement.setAttribute('data-theme','light'); localStorage.setItem('qahub_stakeholder_theme','light'); }
+  if(_lastSnapshot) render(_lastSnapshot); // charts bake in colors at creation time, so re-render them
+};
+function chartColors(){
+  const light = document.documentElement.getAttribute('data-theme') === 'light';
+  return { tick: light ? '#5b6478' : chartColors().tick, grid: light ? 'rgba(20,30,50,0.1)' : chartColors().grid };
+}
+
 function esc(s){if(!s)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function stag(p){return p===null||p===undefined?'–':p>=85?'<span class="tag tp">Pass</span>':p>=70?'<span class="tag tr">Review</span>':'<span class="tag tf">Fail</span>';}
 function scoreColor(p){return p===null||p===undefined?'var(--muted)':p>=85?'var(--success)':p>=70?'var(--warning)':'var(--critical)';}
@@ -100,6 +171,7 @@ async function load(){
       return;
     }
     const d=snap.val();
+    _lastSnapshot = d;
     render(d);
   }catch(e){
     document.getElementById('content').innerHTML=`<div class="empty"><h2>Couldn't load dashboard</h2><p>${esc(e.message)}</p></div>`;
@@ -225,30 +297,37 @@ function render(d){
   new Chart(document.getElementById('weeklyChart'), {type:'line',data:{labels:weekly.map(w=>w.label),datasets:[{data:weekly.map(w=>w.avgScore),borderColor:'rgba(139,108,245,0.85)',backgroundColor:'rgba(139,108,245,0.08)',borderWidth:2.5,pointRadius:3,tension:0.4,fill:true}]},options:baseOpts()});
 
   const dist=d.scoreDistribution||[];
-  new Chart(document.getElementById('distChart'), {type:'bar',data:{labels:dist.map(b=>b.label),datasets:[{data:dist.map(b=>b.count),backgroundColor:dist.map((b,i)=>i>=8?'rgba(34,211,138,0.65)':i>=7?'rgba(240,128,64,0.65)':'rgba(240,64,96,0.55)'),borderRadius:5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#4a5878',font:{size:9}},grid:{display:false}},y:{ticks:{color:'#4a5878',font:{size:10}},grid:{color:'rgba(28,38,64,0.6)'}}}}});
+  new Chart(document.getElementById('distChart'), {type:'bar',data:{labels:dist.map(b=>b.label),datasets:[{data:dist.map(b=>b.count),backgroundColor:dist.map((b,i)=>i>=8?'rgba(34,211,138,0.65)':i>=7?'rgba(240,128,64,0.65)':'rgba(240,64,96,0.55)'),borderRadius:5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:chartColors().tick,font:{size:9}},grid:{display:false}},y:{ticks:{color:chartColors().tick,font:{size:10}},grid:{color:chartColors().grid}}}}});
 
   const fatal=d.fatalTrend||[];
-  new Chart(document.getElementById('fatalChart'), {type:'bar',data:{labels:fatal.map(f=>f.label),datasets:[{data:fatal.map(f=>f.count),backgroundColor:'rgba(240,64,96,0.65)',borderRadius:5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#4a5878',font:{size:10}},grid:{display:false}},y:{ticks:{color:'#4a5878',font:{size:10},stepSize:1},grid:{color:'rgba(28,38,64,0.6)'}}}}});
+  new Chart(document.getElementById('fatalChart'), {type:'bar',data:{labels:fatal.map(f=>f.label),datasets:[{data:fatal.map(f=>f.count),backgroundColor:'rgba(240,64,96,0.65)',borderRadius:5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:chartColors().tick,font:{size:10}},grid:{display:false}},y:{ticks:{color:chartColors().tick,font:{size:10},stepSize:1},grid:{color:chartColors().grid}}}}});
 
   const vol=d.volumeByMonth||[];
   new Chart(document.getElementById('volumeChart'), {type:'bar',data:{labels:vol.map(v=>v.label),datasets:[
     {label:'Pass',data:vol.map(v=>v.pass),backgroundColor:'rgba(34,211,138,0.65)',borderRadius:4},
     {label:'Review',data:vol.map(v=>v.review),backgroundColor:'rgba(240,128,64,0.65)',borderRadius:4},
     {label:'Fail',data:vol.map(v=>v.fail),backgroundColor:'rgba(240,64,96,0.65)',borderRadius:4}
-  ]},options:{...baseOpts(),plugins:{legend:{display:true,labels:{color:'#8a9bb8',font:{size:10},boxWidth:10}}},scales:{x:{stacked:true,ticks:{color:'#4a5878',font:{size:10}},grid:{display:false}},y:{stacked:true,ticks:{color:'#4a5878',font:{size:10}},grid:{color:'rgba(28,38,64,0.6)'}}}}});
+  ]},options:{...baseOpts(),plugins:{legend:{display:true,labels:{color:'#8a9bb8',font:{size:10},boxWidth:10}}},scales:{x:{stacked:true,ticks:{color:chartColors().tick,font:{size:10}},grid:{display:false}},y:{stacked:true,ticks:{color:chartColors().tick,font:{size:10}},grid:{color:chartColors().grid}}}}});
 
   const pareto=d.paretoTop||[];
-  new Chart(document.getElementById('paretoChart'), {type:'bar',indexAxis:'y',data:{labels:pareto.map(p=>p.label.length>28?p.label.slice(0,28)+'…':p.label),datasets:[{data:pareto.map(p=>p.failRate),backgroundColor:pareto.map(p=>p.type==='CR'?'rgba(240,64,96,0.7)':'rgba(61,126,245,0.6)'),borderRadius:4}]},options:{...baseOpts(),scales:{x:{max:100,ticks:{color:'#4a5878',font:{size:10},callback:v=>v+'%'},grid:{color:'rgba(28,38,64,0.6)'}},y:{ticks:{color:'#8a9bb8',font:{size:10}},grid:{display:false}}}}});
+  new Chart(document.getElementById('paretoChart'), {type:'bar',indexAxis:'y',data:{labels:pareto.map(p=>p.label.length>28?p.label.slice(0,28)+'…':p.label),datasets:[{data:pareto.map(p=>p.failRate),backgroundColor:pareto.map(p=>p.type==='CR'?'rgba(240,64,96,0.7)':'rgba(61,126,245,0.6)'),borderRadius:4}]},options:{...baseOpts(),scales:{x:{max:100,ticks:{color:chartColors().tick,font:{size:10},callback:v=>v+'%'},grid:{color:chartColors().grid}},y:{ticks:{color:'#8a9bb8',font:{size:10}},grid:{display:false}}}}});
 
   const ncCr=d.ncCrSplit||{nc:0,cr:0};
   new Chart(document.getElementById('ncCrChart'), {type:'doughnut',data:{labels:['Non-Critical Fails','Critical Fails'],datasets:[{data:[ncCr.nc,ncCr.cr],backgroundColor:['rgba(61,126,245,0.65)','rgba(240,64,96,0.7)'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'60%',plugins:{legend:{position:'bottom',labels:{color:'#8a9bb8',font:{size:11},boxWidth:10,padding:14}}}}});
 }
 
 function baseOpts(){
-  return {responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#4a5878',font:{size:10}},grid:{display:false}},y:{min:0,max:100,ticks:{color:'#4a5878',font:{size:10},callback:v=>v+'%'},grid:{color:'rgba(28,38,64,0.6)'}}}};
+  return {responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:chartColors().tick,font:{size:10}},grid:{display:false}},y:{min:0,max:100,ticks:{color:chartColors().tick,font:{size:10},callback:v=>v+'%'},grid:{color:chartColors().grid}}}};
 }
 
-load();
+// Only auto-unlock if this browser tab already verified the code earlier
+// in this session; otherwise the gate (shown by default) stays up.
+if(sessionStorage.getItem(SESSION_KEY) === '1'){
+  unlock();
+} else {
+  document.getElementById('passInput').focus();
+  document.getElementById('passInput').addEventListener('keydown', e => { if(e.key==='Enter') window.tryUnlock(); });
+}
 </script>
 </body>
 </html>
