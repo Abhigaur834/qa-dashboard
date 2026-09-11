@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QA.Hub — Manual Call Audit</title>
+<style>
+:root{--bg:#060a12;--surface:#0c1220;--surface2:#111826;--border:#1c2640;--text:#e4ecf8;--muted:#8a9bb8;--accent:#3d7ef5;--purple:#8b6cf5;--success:#22d38a;}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:14px/1.5 Arial,sans-serif;min-height:100vh}header{height:64px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 28px;background:#080d17;position:sticky;top:0;z-index:3}.brand{font-weight:800;font-size:18px}.brand span{color:var(--accent)}.nav{display:flex;gap:10px}.nav a{color:var(--muted);text-decoration:none;padding:9px 14px;border:1px solid var(--border);border-radius:9px}.nav a.active{color:#fff;border-color:rgba(139,108,245,.5);background:rgba(139,108,245,.1)}main{max-width:1200px;margin:0 auto;padding:28px}.hero{display:flex;justify-content:space-between;gap:24px;align-items:flex-end;margin-bottom:22px}.eyebrow{text-transform:uppercase;letter-spacing:1.8px;font-size:11px;color:var(--purple);font-weight:700}.title{font-size:32px;font-weight:800;margin:5px 0}.sub{color:var(--muted);max-width:720px}.card{background:linear-gradient(145deg,var(--surface),var(--surface2));border:1px solid var(--border);border-radius:16px;padding:22px;margin-bottom:18px}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}.step{display:flex;gap:14px}.num{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:rgba(61,126,245,.14);color:#8eb3ff;font-weight:800;flex:0 0 auto}.step h3{margin:0 0 5px;font-size:15px}.step p{margin:0;color:var(--muted)}.actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:16px}.btn{display:inline-block;padding:12px 18px;border-radius:10px;text-decoration:none;font-weight:700;border:1px solid var(--border)}.primary{background:var(--purple);color:white;border-color:var(--purple)}.secondary{background:var(--surface2);color:var(--text)}.success{color:#08150f;background:var(--success);border-color:var(--success)}.note{padding:13px 15px;border-radius:10px;background:rgba(34,211,138,.07);border:1px solid rgba(34,211,138,.2);color:#bdebd5}.compare th,.compare td{text-align:left;padding:12px;border-bottom:1px solid var(--border)}.compare{width:100%;border-collapse:collapse}.compare th{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:1px}@media(max-width:800px){.grid{grid-template-columns:1fr}.hero{flex-direction:column;align-items:flex-start}main{padding:18px}}
+</style>
+</head>
+<body>
+<header><div class="brand">QA<span>.</span>Hub</div><div class="nav"><a href="/" class="active">Manual Audit</a><a href="/">AI Audit</a><a href="/">Main Dashboard</a></div></header>
+<main>
+<section class="hero"><div><div class="eyebrow">Quality Operations</div><div class="title">Manual Call Audit</div><div class="sub">A dedicated manual-audit workspace that works alongside AI Audits. Use it when a QA needs to listen to a call and score the process themselves.</div></div></section>
+<div class="grid">
+<div class="card"><div class="step"><div class="num">1</div><div><h3>Open the existing QA Scorecard</h3><p>The current QA.Hub scorecard is the manual auditing engine. It supports the process parameters and the same scoring rules used elsewhere in the platform.</p><div class="actions"><a class="btn primary" href="/">Open Scorecard</a></div></div></div></div>
+<div class="card"><div class="step"><div class="num">2</div><div><h3>Pick a call and listen</h3><p>Choose a Smartflo call or uploaded recording, play the audio, and complete the QA parameters manually without waiting for AI processing.</p><div class="actions"><a class="btn secondary" href="/">Open Call Queue</a></div></div></div></div>
+</div>
+<div class="card"><h2 style="margin-top:0">Manual vs AI Audit</h2><table class="compare"><thead><tr><th>Capability</th><th>Manual Audit</th><th>AI Audit</th></tr></thead><tbody><tr><td>Listen to call</td><td>✓</td><td>✓</td></tr><tr><td>Score process parameters</td><td>QA manually</td><td>AI + QA validation</td></tr><tr><td>Transcript</td><td>Optional</td><td>Automatic</td></tr><tr><td>Coaching suggestions</td><td>QA remarks</td><td>AI suggestions + QA remarks</td></tr><tr><td>Best use</td><td>Manual sampling / disputes / validation</td><td>High-volume first-pass audits</td></tr></tbody></table></div>
+<div class="note">Recommended workflow: use AI Audit for first-pass coverage, then send selected/high-risk calls to Manual Audit for human validation. This keeps both methods inside the same QA operating model.</div>
+</main>
+</body>
+</html>
