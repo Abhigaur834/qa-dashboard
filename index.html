@@ -481,6 +481,7 @@ tbody td{padding:11px 16px;font-size:13px;color:var(--text);}
         <button class="nav-tab" onclick="switchTab('pareto',this)"><span class="tab-emoji"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20h18"/><path d="M6 20v-6M11 20V9M16 20v-3"/><path d="M6 10l5-4 5 3 4-5" stroke-dasharray="2 2"/></svg></span>Pareto</button>
         <button class="nav-tab" id="aiAuditNavTab" onclick="switchTab('aireview',this)" style="color:var(--purple)"><span class="tab-emoji"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="7" width="14" height="12" rx="2"/><path d="M9 3v4M15 3v4"/><circle cx="9.5" cy="13" r="1" fill="currentColor" stroke="none"/><circle cx="14.5" cy="13" r="1" fill="currentColor" stroke="none"/><path d="M9 16.5c.8.6 1.9 1 3 1s2.2-.4 3-1"/></svg></span>AI Audit <span class="tab-badge" id="aiAuditBadge" style="background:rgba(139,108,245,0.2);color:var(--purple);border-color:rgba(139,108,245,0.3)">0</span></button>
         <button class="nav-tab" id="agentsNavTab" onclick="switchTab('agents',this)" style="display:none"><span class="tab-emoji"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><path d="M2 20c0-3.3 3-6 7-6s7 2.7 7 6"/><circle cx="17" cy="8" r="2.5"/><path d="M17 14c2.4.4 4 2 4 4"/></svg></span>Agents</button>
+        <button class="nav-tab" id="aiAccuracyNavTab" onclick="switchTab('aiaccuracy',this)" style="display:none"><span class="tab-emoji"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.4 7.2H22l-6 4.6 2.3 7.2-6.3-4.6-6.3 4.6 2.3-7.2-6-4.6h7.6z"/></svg></span>AI Accuracy</button>
       </div>
       <div class="top-bar-right" style="position:relative">
         <button id="themeToggleBtn" onclick="toggleTheme()" title="Switch theme">
@@ -834,6 +835,36 @@ tbody td{padding:11px 16px;font-size:13px;color:var(--text);}
           <span style="display:flex;align-items:center;gap:5px"><span style="width:12px;height:12px;background:rgba(240,64,96,.85);border-radius:3px;display:inline-block"></span>71%+</span>
         </div>
         <div id="heatmapContainer" class="heatmap-wrap"><div class="empty-state" style="padding:30px"><p>No data yet</p></div></div>
+      </div>
+    </div>
+
+    <!-- ══ AI ACCURACY (trust/observability dashboard) ══ -->
+    <div id="tab-aiaccuracy" class="tab-panel">
+      <div class="g4 mb6">
+        <div class="card"><div class="card-hdr"><div class="card-title">AI-Reviewed Audits</div></div>
+          <div style="font-family:var(--font-head);font-size:28px;font-weight:800;padding:8px 4px" id="aaTotalAudits">—</div></div>
+        <div class="card"><div class="card-hdr"><div class="card-title">Agreement Rate</div></div>
+          <div style="font-family:var(--font-head);font-size:28px;font-weight:800;padding:8px 4px" id="aaAgreementRate">—</div>
+          <div style="font-size:11px;color:var(--muted);padding:0 4px 4px">Human made zero changes</div></div>
+        <div class="card"><div class="card-hdr"><div class="card-title">Avg. Score Delta</div></div>
+          <div style="font-family:var(--font-head);font-size:28px;font-weight:800;padding:8px 4px" id="aaAvgDelta">—</div>
+          <div style="font-size:11px;color:var(--muted);padding:0 4px 4px">|human score − AI score|</div></div>
+        <div class="card"><div class="card-hdr"><div class="card-title">Avg. AI Confidence</div></div>
+          <div style="font-family:var(--font-head);font-size:28px;font-weight:800;padding:8px 4px" id="aaAvgConfidence">—</div></div>
+      </div>
+      <div class="g2 mb6">
+        <div class="card">
+          <div class="card-hdr"><div class="card-title">📈 Agreement Rate Over Time</div></div>
+          <div class="chart-wrap" style="height:260px"><canvas id="aaTrendChart"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-hdr"><div class="card-title">⚠️ Parameters Most Often Corrected</div></div>
+          <div id="aaParamTable" style="padding:6px 4px;font-size:12px;max-height:280px;overflow-y:auto"></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-hdr"><div class="card-title">Recent AI-Reviewed Audits</div></div>
+        <div id="aaRecentList" style="padding:4px"></div>
       </div>
     </div>
 
@@ -1277,6 +1308,7 @@ window.applyUIForRole = function applyUIForRole(u){
     document.getElementById("clearBtn").style.display="flex";
     document.getElementById("clearBtn2").style.display="inline-flex";
     const at=document.getElementById('agentsNavTab');if(at)at.style.display='flex';
+    const aat=document.getElementById('aiAccuracyNavTab');if(aat)aat.style.display='flex';
     const auc=document.getElementById('assignUserCard');if(auc)auc.style.display='block';
   }
   // Show process badge (always show if process is selected)
@@ -1724,7 +1756,7 @@ function checkCRStatus(){
   return{fatal:failed.length>0,failedKeys:failed,failedCount:failed.length,passedCount:passed.length,ratedCount:rated.length};
 }
 
-let gaugeCI=null,pCI=null,sCI=null,trendCI=null,weekCI=null,tenureCI=null,convCI=null,volCI=null,distCI=null,radarCI=null,dowCI=null,dailyCI=null;
+let gaugeCI=null,pCI=null,sCI=null,trendCI=null,weekCI=null,tenureCI=null,convCI=null,volCI=null,distCI=null,radarCI=null,dowCI=null,dailyCI=null,aaTrendCI=null;
 let _allAudits=[];
 // ★ FIX: Audit caching
 let _auditsCacheTime=0;
@@ -1758,6 +1790,7 @@ function switchTab(n,btn){
   if(n==='analytics')renderAnalytics();
   if(n==='coaching')renderCoaching();
   if(n==='pareto')renderPareto();
+  if(n==='aiaccuracy')renderAiAccuracy();
 }
 
 function rate(btn,val,key){
@@ -2480,6 +2513,94 @@ async function renderAnalytics(){
   renderTeamTable(audits);
   renderHeatmap(audits,agents);
   if(document.getElementById('radarAgentSelect').value) onRadarAgentChange();
+}
+
+// ── AI ACCURACY DASHBOARD ────────────────────────────────────────────────
+// Compares each AI-reviewed audit's original AI score/parameters against
+// what the human reviewer actually finalized. Only audits submitted after
+// the aiOriginalScore fix carry this comparison data — older ones are
+// skipped rather than shown as false "disagreements".
+async function renderAiAccuracy(){
+  const audits=await loadAudits();
+  const withData=audits.filter(a=>a.aiGenerated&&a.aiOriginalScore!=null);
+
+  const totalEl=document.getElementById('aaTotalAudits');
+  const agreeEl=document.getElementById('aaAgreementRate');
+  const deltaEl=document.getElementById('aaAvgDelta');
+  const confEl=document.getElementById('aaAvgConfidence');
+
+  if(!withData.length){
+    totalEl.textContent='0';agreeEl.textContent='—';deltaEl.textContent='—';confEl.textContent='—';
+    document.getElementById('aaParamTable').innerHTML='<div style="color:var(--muted);padding:12px">No AI-reviewed audits with comparison data yet. This dashboard fills in as new AI audits are submitted.</div>';
+    document.getElementById('aaRecentList').innerHTML='';
+    if(aaTrendCI){aaTrendCI.destroy();aaTrendCI=null;}
+    return;
+  }
+
+  const agreedCount=withData.filter(a=>(a.aiAdjustments||0)===0).length;
+  const agreementPct=Math.round(agreedCount/withData.length*100);
+  const avgDelta=withData.reduce((s,a)=>s+Math.abs((a.totalScore??0)-(a.aiOriginalScore??0)),0)/withData.length;
+  const withConf=withData.filter(a=>a.aiConfidence!=null);
+  const avgConf=withConf.length?Math.round(withConf.reduce((s,a)=>s+a.aiConfidence,0)/withConf.length*100):null;
+
+  totalEl.textContent=withData.length;
+  agreeEl.textContent=agreementPct+'%';
+  agreeEl.style.color=agreementPct>=85?'var(--success)':agreementPct>=65?'var(--warning)':'var(--critical)';
+  deltaEl.textContent=avgDelta.toFixed(1)+' pts';
+  confEl.textContent=avgConf==null?'—':avgConf+'%';
+
+  // Trend: agreement rate by day, oldest to newest
+  const byDay={};
+  withData.forEach(a=>{
+    const d=a.date||(a.timestamp?new Date(a.timestamp).toISOString().slice(0,10):'unknown');
+    if(!byDay[d])byDay[d]={agreed:0,total:0};
+    byDay[d].total++;
+    if((a.aiAdjustments||0)===0)byDay[d].agreed++;
+  });
+  const days=Object.keys(byDay).sort();
+  const trendLabels=days.map(d=>new Date(d).toLocaleDateString('en-IN',{day:'2-digit',month:'short'}));
+  const trendData=days.map(d=>Math.round(byDay[d].agreed/byDay[d].total*100));
+  const c=document.getElementById('aaTrendChart');
+  if(c){
+    if(aaTrendCI){aaTrendCI.destroy();aaTrendCI=null;}
+    aaTrendCI=new Chart(c.getContext('2d'),{type:'line',data:{labels:trendLabels,datasets:[{label:'Agreement %',data:trendData,borderColor:'rgba(61,126,245,0.9)',backgroundColor:'rgba(61,126,245,0.12)',fill:true,tension:0.3,pointRadius:3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{min:0,max:100,ticks:{color:'#4a5878',font:{size:10},callback:v=>v+'%'},grid:{color:'rgba(28,38,64,0.6)'}},x:{ticks:{color:'#4a5878',font:{size:10}},grid:{display:false}}}}});
+  }
+
+  // Per-parameter correction frequency
+  const paramMiss={};
+  withData.forEach(a=>{
+    const orig=a.aiOriginalScores||{};
+    const fin=a.scores||{};
+    Object.keys(orig).forEach(k=>{
+      if(!paramMiss[k])paramMiss[k]={corrected:0,total:0};
+      paramMiss[k].total++;
+      if(orig[k]!==fin[k])paramMiss[k].corrected++;
+    });
+  });
+  const paramRows=Object.entries(paramMiss)
+    .map(([k,v])=>({k,pct:Math.round(v.corrected/v.total*100),corrected:v.corrected,total:v.total}))
+    .filter(r=>r.total>=1)
+    .sort((a,b)=>b.pct-a.pct)
+    .slice(0,10);
+  document.getElementById('aaParamTable').innerHTML=paramRows.length?paramRows.map(r=>{
+    const label=(window.PM&&PM[r.k]&&PM[r.k].short)||r.k;
+    const color=r.pct>=40?'var(--critical)':r.pct>=15?'var(--warning)':'var(--success)';
+    return `<div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--border)"><div style="flex:1;font-size:12px">${label}</div><div style="width:120px;background:var(--surface2);border-radius:4px;height:6px;overflow:hidden"><div style="width:${r.pct}%;height:100%;background:${color}"></div></div><div style="width:70px;text-align:right;font-size:11px;color:${color};font-weight:700">${r.pct}% (${r.corrected}/${r.total})</div></div>`;
+  }).join(''):'<div style="color:var(--muted);padding:8px">No parameter data yet.</div>';
+
+  // Recent list
+  const recent=withData.slice(0,10);
+  document.getElementById('aaRecentList').innerHTML=recent.map(a=>{
+    const agreed=(a.aiAdjustments||0)===0;
+    const delta=Math.abs((a.totalScore??0)-(a.aiOriginalScore??0));
+    return `<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 6px;border-bottom:1px solid var(--border);font-size:12px">
+      <div>${esc?esc(a.agent||'Unknown'):(a.agent||'Unknown')} · ${a.date||''}</div>
+      <div style="display:flex;align-items:center;gap:12px">
+        <span style="color:var(--muted)">AI: ${a.aiOriginalScore}% → Final: ${a.totalScore}%</span>
+        <span style="font-weight:700;color:${agreed?'var(--success)':delta>10?'var(--critical)':'var(--warning)'}">${agreed?'✓ Agreed':'Δ '+delta.toFixed(0)+' pts'}</span>
+      </div>
+    </div>`;
+  }).join('')||'<div style="color:var(--muted);padding:8px">No recent AI audits.</div>';
 }
 
 function renderDistChart(audits){
@@ -3453,7 +3574,15 @@ async function aiSubmitAudit(){
     crScore:fatal?0:100,crFatal:fatal,crFailCount:AI_CRK.filter(k=>_aiCS[k]==='no').length,
     totalScore:tot,result,coachingRequired:fatal||(tot!==null&&tot<85),
     aiGenerated:true,aiConfidence:ai.confidence||null,sourceCallKey:_aiSelectedCall.key,
-    aiAdjustments:Object.keys(_aiCS).filter(k=>_aiCS[k]!==(ai.scores||{})[k]).length
+    aiAdjustments:Object.keys(_aiCS).filter(k=>_aiCS[k]!==(ai.scores||{})[k]).length,
+    // Preserved permanently on the audit record (not just the source call,
+    // which may get pruned later) so accuracy can be tracked over time even
+    // after the original recording/call data is gone. This is the AI's
+    // ORIGINAL score/result before any human adjustment, for comparison
+    // against the final totalScore/result above.
+    aiOriginalScore:ai.totalScore??null,aiOriginalResult:ai.result||null,
+    aiOriginalScores:{...(ai.scores||{})},
+    aiScoredAt:_aiSelectedCall.aiScoredAt||null
   };
   try{
     const auditRef=await window.push(window.ref(window.db,`processes/${window._currentProcess}/audits`),audit);
@@ -3551,9 +3680,14 @@ async function sfFetchCalls(){
     if(!data.success){ statusEl.textContent='❌ '+(data.error||'Fetch failed'); statusEl.style.color='var(--critical)'; return; }
     _sfFoundCalls=data.calls||[];
     const label=callType==='connected'?'connected call(s)':callType==='not_connected'?'not-connected call(s)':'call(s)';
-    const coverage = data.pagesFetched ? ' — searched '+(data.pagesFetched*100)+' of '+(data.totalAvailable||0)+' calls' : '';
+    const coverage = (data.recordsScanned!=null) ? ' — searched '+data.recordsScanned+' of '+(data.totalAvailable||0)+' calls in range' : '';
     statusEl.textContent=_sfFoundCalls.length+' '+label+' found'+coverage;
-    statusEl.style.color='var(--success)';
+    if (data.truncated) {
+      statusEl.textContent += ' ⚠️ Not all calls in this date range were scanned — narrow the dates or agent filter for complete results.';
+      statusEl.style.color='var(--warning)';
+    } else {
+      statusEl.style.color='var(--success)';
+    }
     sfRenderCallList();
     document.getElementById('sfResultsWrap').style.display='block';
   }catch(e){
