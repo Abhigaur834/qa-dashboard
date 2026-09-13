@@ -3494,6 +3494,9 @@ function aiRenderMain(call){
   // and scored it (separately, in the Scorecard tab).
   if(call.status==='ready_for_review' || (call.status==='submitted' && !ai)){
     const initials=(call.agentName||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+    const mrAgentName=call.agentName||call.agentNumber||'Unknown Agent';
+    const mrAgData=_agentList.find(a=>(a.name||'').trim().toLowerCase()===mrAgentName.trim().toLowerCase())||{};
+    const mrAgentMeta=[mrAgData.empId?`EMP ${mrAgData.empId}`:null,mrAgData.tl?`TL: ${mrAgData.tl}`:null,mrAgData.team?mrAgData.team:null].filter(Boolean).join(' &middot; ');
     const reviewedBadge = call.status==='submitted'
       ? `<div style="color:var(--success);font-family:var(--font-head);font-weight:700">&#10003; Marked reviewed ${call.reviewedAt?'on '+new Date(call.reviewedAt).toLocaleDateString('en-IN'):''}</div>`
       : '';
@@ -3502,8 +3505,9 @@ function aiRenderMain(call){
         <button onclick="aiBackToList()" title="Back to all calls" style="background:var(--surface2);border:1px solid var(--border);color:var(--text-dim);border-radius:6px;padding:6px 10px;font-family:var(--font-head);font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0;margin-right:4px">&#8592; All Calls</button>
         <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--purple));display:flex;align-items:center;justify-content:center;font-family:var(--font-head);font-weight:800;font-size:13px;color:#fff;flex-shrink:0">${initials}</div>
         <div style="flex:1">
-          <div style="font-family:var(--font-head);font-weight:700;font-size:14px">${esc(call.agentName||call.agentNumber||'Unknown Agent')}</div>
+          <div style="font-family:var(--font-head);font-weight:700;font-size:14px">${esc(mrAgentName)}</div>
           <div style="font-size:11px;color:var(--muted)">${call.dialerSource||'manual'} &middot; ${esc(call.callerNumber||'')} &middot; ${call.createdAt?new Date(call.createdAt).toLocaleString('en-IN',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}):''}</div>
+          ${mrAgentMeta?`<div style="font-size:10.5px;color:var(--accent);margin-top:2px">${mrAgentMeta}</div>`:''}
         </div>
         ${call.duration?`<div style="font-size:11px;color:var(--muted)">${Math.round(call.duration/60)}m ${call.duration%60}s</div>`:''}
       </div>
@@ -3528,14 +3532,21 @@ function aiRenderMain(call){
   const aiScores=ai?.scores||{},segments=call.transcript?.segments||[],reasons=ai?.reasons||{},tips=ai?.coachingTips||[];
   const initials=(call.agentName||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
   const sc=aiScoreColor(ai?.totalScore??0,ai?.result||'');
+  // Looked up by name against the Agents directory, same match used when
+  // the audit is actually submitted, so EMP ID/TL/Team shown here match
+  // exactly what gets saved and what the agent-notification email sends.
+  const hdrAgentName=call.agentName||call.agentNumber||'Unknown Agent';
+  const hdrAgData=_agentList.find(a=>(a.name||'').trim().toLowerCase()===hdrAgentName.trim().toLowerCase())||{};
+  const hdrAgentMeta=[hdrAgData.empId?`EMP ${hdrAgData.empId}`:null,hdrAgData.tl?`TL: ${hdrAgData.tl}`:null,hdrAgData.team?hdrAgData.team:null].filter(Boolean).join(' &middot; ');
   if(!done)_aiCS={...aiScores};
   main.innerHTML=`
     <div class="ai-call-hdr">
       <button onclick="aiBackToList()" title="Back to all calls" style="background:var(--surface2);border:1px solid var(--border);color:var(--text-dim);border-radius:6px;padding:6px 10px;font-family:var(--font-head);font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0;margin-right:4px">&#8592; All Calls</button>
       <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--purple));display:flex;align-items:center;justify-content:center;font-family:var(--font-head);font-weight:800;font-size:13px;color:#fff;flex-shrink:0">${initials}</div>
       <div style="flex:1">
-        <div style="font-family:var(--font-head);font-weight:700;font-size:14px">${call.agentName||call.agentNumber||'Unknown Agent'}</div>
+        <div style="font-family:var(--font-head);font-weight:700;font-size:14px">${hdrAgentName}</div>
         <div style="font-size:11px;color:var(--muted)">${call.dialerSource||'manual'} &middot; ${call.callerNumber||''} &middot; ${call.createdAt?new Date(call.createdAt).toLocaleString('en-IN',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}):''}</div>
+        ${hdrAgentMeta?`<div style="font-size:10.5px;color:var(--accent);margin-top:2px">${hdrAgentMeta}</div>`:'<div style="font-size:10px;color:var(--warning);margin-top:2px">No matching agent record \u2014 EMP ID/TL/Team unavailable</div>'}
       </div>
       <div style="text-align:right">
         <div style="font-family:var(--font-head);font-weight:800;font-size:22px;color:${sc}">${ai?.totalScore??'--'}%</div>
@@ -3576,13 +3587,22 @@ async function aiSubmitAudit(){
   const nc=aiCalcNCData(_aiCS),fatal=aiCheckCR(_aiCS),tot=fatal?0:(nc?nc.pct:null);
   const result=tot===null?null:fatal?'Fail':tot>=85?'Pass':tot>=70?'Review':'Fail';
   const ai=_aiSelectedCall.aiSuggestions||{};
+  const agentName=_aiSelectedCall.agentName||_aiSelectedCall.agentNumber||'Unknown';
+  // AI-audited calls only ever carry a free-text agent name/number from
+  // Smartflo or a manual upload — unlike the manual scorecard flow, there's
+  // no agent-ID dropdown tying this call to a specific roster entry. Look
+  // the agent up by name so EMP ID/TL/Team/email populate the same way a
+  // manual audit's agent-select would, and so the audit-complete email can
+  // actually be sent below.
+  if(!_agentList.length) await loadAgents();
+  const agData=_agentList.find(a=>(a.name||'').trim().toLowerCase()===agentName.trim().toLowerCase())||{};
   const audit={
     timestamp:Date.now(),createdBy:window.auth.currentUser.email,
     callDate:_aiSelectedCall.createdAt?.slice(0,10)||'',date:new Date().toISOString().slice(0,10),
-    agent:_aiSelectedCall.agentName||_aiSelectedCall.agentNumber||'Unknown',
-    reviewer:window.auth.currentUser.email,empId:'',tlName:'',
+    agent:agentName,
+    reviewer:window.auth.currentUser.email,empId:agData.empId||'',tlName:agData.tl||'',
     callId:_aiSelectedCall.callId||_aiSelectedCall.key,channel:'Inbound Call',
-    team:'',tenure:0,auditType:'AI',leadStatus:'',country:'',language:'',converted:'na',
+    team:agData.team||'',tenure:agData.tenure||0,auditType:'AI',leadStatus:'',country:'',language:'',converted:'na',
     summary:ai.callSummary||'',observations:(ai.coachingTips||[]).join(' | '),recommendation:ai.agentStrengths||'',
     scores:{..._aiCS},ncScore:nc?nc.pct:null,ncEarned:nc?nc.earned:null,ncTotal:nc?nc.total:null,
     crScore:fatal?0:100,crFatal:fatal,crFailCount:AI_CRK.filter(k=>_aiCS[k]==='no').length,
@@ -3605,6 +3625,7 @@ async function aiSubmitAudit(){
     await window.set(window.ref(window.db,`processes/${window._currentProcess}/calls/${_aiSelectedCall.key}/reviewedAt`),new Date().toISOString());
     showToast('&#10003; AI Audit submitted for '+audit.agent,'s');
     _auditsCacheTime=0;
+    notifyAgentOfAudit(agData, audit, auditRef.key); // fire-and-forget, same as the manual audit flow
     await aiSelectCall(_aiSelectedCall.key);
     aiLoadQueue();
   }catch(e){showToast('Error: '+e.message,'e');if(btn){btn.disabled=false;btn.textContent='&#128190; Submit Final Audit';}}
