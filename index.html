@@ -969,17 +969,17 @@ tbody td{padding:11px 16px;font-size:13px;color:var(--text);}
         <div style="background:var(--surface);border:1px solid rgba(139,108,245,.25);border-radius:var(--r-lg);padding:32px;width:460px;max-width:90vw;position:relative">
           <div style="position:absolute;top:0;left:0;right:0;height:2px;border-radius:16px 16px 0 0;background:linear-gradient(90deg,var(--accent),var(--purple))"></div>
           <div style="font-family:var(--font-head);font-size:17px;font-weight:800;margin-bottom:6px">Upload Call Recording</div>
-          <div style="font-size:12px;color:var(--muted);margin-bottom:20px">Paste a publicly accessible recording URL — AI will transcribe and score it.</div>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:20px">Paste a publicly accessible recording URL, or upload an audio file directly — AI will transcribe and score it either way.</div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
             <div><label style="display:block;font-size:9.5px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);font-family:var(--font-head);font-weight:700;margin-bottom:6px">Agent Name</label><input id="aiUpAgent" placeholder="e.g. Rahul Kumar" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-family:var(--font-body);font-size:13px;padding:9px 12px;outline:none;box-sizing:border-box"></div>
             <div><label style="display:block;font-size:9.5px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);font-family:var(--font-head);font-weight:700;margin-bottom:6px">Caller Number</label><input id="aiUpCaller" placeholder="+91 9XXXXXXXXX" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-family:var(--font-body);font-size:13px;padding:9px 12px;outline:none;box-sizing:border-box"></div>
           </div>
           <div style="margin-bottom:6px"><label style="display:block;font-size:9.5px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);font-family:var(--font-head);font-weight:700;margin-bottom:6px">Recording URL *</label><input id="aiUpUrl" placeholder="https://…/recording.mp3" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-family:var(--font-body);font-size:13px;padding:9px 12px;outline:none;box-sizing:border-box"></div>
           <div style="font-size:10.5px;color:var(--muted);margin-bottom:14px;line-height:1.5">Must be reachable from the internet — links to an internal server (e.g. an office IP like 172.x.x.x) won't work here, since the AI runs in the cloud, not on your local network.</div>
-          <!-- ★ Direct file upload is disabled for now — it needs cloud storage (Firebase Storage or similar)
-               which isn't set up yet. Re-enable by un-hiding this block and removing the "disabled" flag
-               in aiSubmitUpload() below once storage is configured. -->
-          <div id="aiUpFileSection" style="display:none">
+          <!-- File upload — goes to Firebase Storage, then the resulting download URL feeds
+               into the same AI pipeline as a pasted recording URL. Good for clients who won't
+               grant dialer/API access but can export and hand over call recordings directly. -->
+          <div id="aiUpFileSection" style="display:block">
             <div style="text-align:center;font-size:10px;color:var(--muted);margin:6px 0;text-transform:uppercase;letter-spacing:1px">— or —</div>
             <div style="margin-bottom:12px">
               <label style="display:block;font-size:9.5px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);font-family:var(--font-head);font-weight:700;margin-bottom:6px">Upload Audio File</label>
@@ -3781,21 +3781,21 @@ function aiHideUpload(){
 }
 async function aiSubmitUpload(){
   const urlField=document.getElementById('aiUpUrl')?.value.trim();
-  const fileInput=document.getElementById('aiUpFile'); // hidden for now — see aiUpFileSection above
+  const fileInput=document.getElementById('aiUpFile');
   const progEl=document.getElementById('aiUpProgress');
   let recordingUrl=urlField;
 
-  if(!recordingUrl){ showToast('Paste a publicly accessible recording URL','e'); return; }
-
-  // Warn (don't block) if the URL looks like a private/internal address — the AI backend
-  // runs in the cloud and can't reach office-network IPs like 172.x, 192.168.x, or 10.x
-  if(/^https?:\/\/(172\.(1[6-9]|2\d|3[0-1])\.|192\.168\.|10\.|localhost|127\.)/i.test(recordingUrl)){
+  // Only warn about private/internal-looking URLs when a URL was actually
+  // pasted — a file upload has no URL at this point and shouldn't trigger
+  // this check.
+  if(recordingUrl&&/^https?:\/\/(172\.(1[6-9]|2\d|3[0-1])\.|192\.168\.|10\.|localhost|127\.)/i.test(recordingUrl)){
     if(!confirm('This URL looks like an internal/private address (e.g. an office server). The AI runs in the cloud and likely can\'t reach it, so scoring may fail. Continue anyway?')) return;
   }
 
-  // Direct file upload is disabled until cloud storage (Firebase Storage or similar) is set up.
-  // This branch is unreachable today since aiUpFile lives inside a hidden section — kept here
-  // so it can be re-enabled later by un-hiding #aiUpFileSection with no other code changes needed.
+  // If a file was chosen (and no URL was pasted instead), upload it to
+  // Firebase Storage and use the resulting download URL as the recording
+  // URL for the rest of this function — from here on, a file-based upload
+  // and a URL-based upload go through the exact same AI pipeline.
   if(!recordingUrl && fileInput?.files?.[0]){
     const file=fileInput.files[0];
     const path=`calls/${window._currentProcess}/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9_.-]/g,'_')}`;
