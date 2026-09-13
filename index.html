@@ -1611,6 +1611,23 @@ function downloadParamTemplate(e){
 
 // ── Agent list ───────────────────────────────────────────────────────────────
 let _agentList=[];
+// Matches a call's free-text agent name (from Smartflo/upload, e.g.
+// "Md Mehtab OC-Extension") against the Agents directory roster (e.g.
+// "Md Mehtab"). An exact match rarely happens in practice because Smartflo
+// appends extension/source labels like "OC-Extension" that aren't part of
+// the agent's actual registered name — so this strips known suffix
+// patterns first, then falls back to a starts-with check for anything it
+// didn't anticipate, before giving up.
+function matchAgentByName(callAgentName){
+  if(!callAgentName) return {};
+  const norm=s=>(s||'').trim().toLowerCase().replace(/\s*-?\s*oc[- ]?extension\s*$/i,'').replace(/\s+/g,' ').trim();
+  const target=norm(callAgentName);
+  if(!target) return {};
+  let found=_agentList.find(a=>norm(a.name)===target);
+  if(found) return found;
+  found=_agentList.find(a=>{const an=norm(a.name);return an&&(target.startsWith(an)||an.startsWith(target));});
+  return found||{};
+}
 async function loadAgents(){
   try{
     _agentList=[];
@@ -3495,7 +3512,7 @@ function aiRenderMain(call){
   if(call.status==='ready_for_review' || (call.status==='submitted' && !ai)){
     const initials=(call.agentName||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
     const mrAgentName=call.agentName||call.agentNumber||'Unknown Agent';
-    const mrAgData=_agentList.find(a=>(a.name||'').trim().toLowerCase()===mrAgentName.trim().toLowerCase())||{};
+    const mrAgData=matchAgentByName(mrAgentName);
     const mrAgentMeta=[mrAgData.empId?`EMP ${mrAgData.empId}`:null,mrAgData.tl?`TL: ${mrAgData.tl}`:null,mrAgData.team?mrAgData.team:null].filter(Boolean).join(' &middot; ');
     const reviewedBadge = call.status==='submitted'
       ? `<div style="color:var(--success);font-family:var(--font-head);font-weight:700">&#10003; Marked reviewed ${call.reviewedAt?'on '+new Date(call.reviewedAt).toLocaleDateString('en-IN'):''}</div>`
@@ -3536,7 +3553,7 @@ function aiRenderMain(call){
   // the audit is actually submitted, so EMP ID/TL/Team shown here match
   // exactly what gets saved and what the agent-notification email sends.
   const hdrAgentName=call.agentName||call.agentNumber||'Unknown Agent';
-  const hdrAgData=_agentList.find(a=>(a.name||'').trim().toLowerCase()===hdrAgentName.trim().toLowerCase())||{};
+  const hdrAgData=matchAgentByName(hdrAgentName);
   const hdrAgentMeta=[hdrAgData.empId?`EMP ${hdrAgData.empId}`:null,hdrAgData.tl?`TL: ${hdrAgData.tl}`:null,hdrAgData.team?hdrAgData.team:null].filter(Boolean).join(' &middot; ');
   if(!done)_aiCS={...aiScores};
   main.innerHTML=`
@@ -3595,7 +3612,7 @@ async function aiSubmitAudit(){
   // manual audit's agent-select would, and so the audit-complete email can
   // actually be sent below.
   if(!_agentList.length) await loadAgents();
-  const agData=_agentList.find(a=>(a.name||'').trim().toLowerCase()===agentName.trim().toLowerCase())||{};
+  const agData=matchAgentByName(agentName);
   const audit={
     timestamp:Date.now(),createdBy:window.auth.currentUser.email,
     callDate:_aiSelectedCall.createdAt?.slice(0,10)||'',date:new Date().toISOString().slice(0,10),
