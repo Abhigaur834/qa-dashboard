@@ -646,6 +646,11 @@ tbody td{padding:11px 16px;font-size:13px;color:var(--text);}
 
     <!-- ══ TAB 2: AUDIT LOG ══ -->
     <div id="tab-auditlog" class="tab-panel">
+      <div id="reviewRequestBanner" style="display:none;margin-bottom:14px"></div>
+      <div id="backfillAgentDataBanner" style="display:none;margin-bottom:14px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-md);padding:12px 16px;align-items:center;justify-content:space-between;gap:12px">
+        <div style="font-size:12px;color:var(--text-dim)">Some older audits are missing EMP ID / TL / Team \u2014 these were saved before agent-matching was fixed. You can try to fill them in from the current Agents directory.</div>
+        <button class="btn btn-sm" onclick="backfillAgentData()" id="backfillBtn" style="white-space:nowrap">Backfill Agent Data</button>
+      </div>
       <div class="filter-bar">
         <input type="text" id="filterAgent" placeholder="Search agent..." oninput="renderAuditLog()">
         <select id="filterResult" onchange="renderAuditLog()"><option value="">All Results</option><option>Pass</option><option>Review</option><option>Fail</option></select>
@@ -1658,6 +1663,14 @@ function onAgentSelect(){
   document.getElementById('tenure').value=ag.tenure||'';
   document.getElementById('team').value=ag.team||'';
 }
+// Agent add/delete used to write directly to Firebase, guarded only by a
+// client-side role check (getUserRole()!=='admin') — which a non-admin
+// could bypass entirely via the browser console, since database rules only
+// verify the user is ASSIGNED to the process, not their role within it.
+// These now route through /api/agent-portal's admin_save_agent /
+// admin_delete_agent actions instead, which verify admin status server-side
+// via Firebase Admin SDK — that check can't be bypassed by a direct client
+// write, because the write only ever happens inside that backend code path.
 async function saveAgent(){
   if(getUserRole()!=='admin'){showToast('Admin only','e');return;}
   const name=document.getElementById('newAgentName').value.trim();
@@ -1669,7 +1682,14 @@ async function saveAgent(){
   const tlEmail=document.getElementById('newAgentTLEmail').value.trim();
   if(!name||!empId){showToast('Name and Emp ID are required','e');return;}
   try{
-    await window.set(window.ref(window.db,`processes/${window._currentProcess}/agents/${empId.trim()}`),{name,empId:empId.trim(),tl,team,tenure,email:email||null,tlEmail:tlEmail||null});
+    const idToken=await window.auth.currentUser.getIdToken();
+    const res=await fetch(AI_API_BASE+'/api/agent-portal',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+idToken},
+      body:JSON.stringify({action:'admin_save_agent',processId:window._currentProcess,empId,name,tl,team,tenure,email:email||null,tlEmail:tlEmail||null})
+    });
+    const data=await res.json();
+    if(!res.ok||!data.success) throw new Error(data.error||'Save failed');
     showToast('✅ Agent saved: '+name,'s');
     ['newAgentName','newAgentEmpId','newAgentTL','newAgentTeam','newAgentTenure','newAgentEmail','newAgentTLEmail'].forEach(id=>document.getElementById(id).value='');
     await loadAgents();populateAgentDropdown();renderAgentList();
@@ -1678,8 +1698,17 @@ async function saveAgent(){
 async function deleteAgent(empId){
   if(getUserRole()!=='admin'){showToast('Admin only','e');return;}
   if(!confirm('Delete this agent?'))return;
-  try{await window.remove(window.ref(window.db,`processes/${window._currentProcess}/agents/${empId}`));showToast('Agent removed','s');await loadAgents();populateAgentDropdown();renderAgentList();}
-  catch(e){showToast('Error: '+e.message,'e');}
+  try{
+    const idToken=await window.auth.currentUser.getIdToken();
+    const res=await fetch(AI_API_BASE+'/api/agent-portal',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+idToken},
+      body:JSON.stringify({action:'admin_delete_agent',processId:window._currentProcess,empId})
+    });
+    const data=await res.json();
+    if(!res.ok||!data.success) throw new Error(data.error||'Delete failed');
+    showToast('Agent removed','s');await loadAgents();populateAgentDropdown();renderAgentList();
+  }catch(e){showToast('Error: '+e.message,'e');}
 }
 function renderAgentList(){
   const tbody=document.getElementById('agentListBody');if(!tbody)return;
@@ -1993,6 +2022,36 @@ function notifyAgentOfAudit(agData, audit, auditKey){
 }
 
 // ── LOAD AUDITS (with caching) ───────────────────────────────────────────────
+// Re-matches every AI-generated audit that's missing EMP ID/TL/Team against
+// the CURRENT Agents directory, using the same suffix-tolerant matching AI
+// audits now use going forward (matchAgentByName). This only ever fills in
+// blanks — it never overwrites a field that already has a value, so it's
+// safe to run repeatedly and safe against agents who were intentionally
+// left without a TL/team.
+async function backfillAgentData(){
+  const btn=document.getElementById('backfillBtn');
+  if(btn){btn.disabled=true;btn.textContent='Working\u2026';}
+  try{
+    if(!_agentList.length) await loadAgents();
+    const audits=await loadAudits(true);
+    const targets=audits.filter(a=>a.aiGenerated&&!a.empId&&a.agent);
+    let fixed=0,noMatch=0;
+    for(const a of targets){
+      const agData=matchAgentByName(a.agent);
+      if(!agData.empId){noMatch++;continue;}
+      await window.set(window.ref(window.db,`processes/${window._currentProcess}/audits/${a.id}/empId`),agData.empId);
+      await window.set(window.ref(window.db,`processes/${window._currentProcess}/audits/${a.id}/tlName`),agData.tl||'');
+      await window.set(window.ref(window.db,`processes/${window._currentProcess}/audits/${a.id}/team`),agData.team||'');
+      await window.set(window.ref(window.db,`processes/${window._currentProcess}/audits/${a.id}/tenure`),agData.tenure||0);
+      fixed++;
+    }
+    _auditsCacheTime=0;
+    showToast(`Backfilled ${fixed} audit${fixed===1?'':'s'}${noMatch?`, ${noMatch} had no matching agent record`:''}`,'s');
+    await renderAuditLog();
+  }catch(e){showToast('Backfill error: '+e.message,'e');}
+  finally{if(btn){btn.disabled=false;btn.textContent='Backfill Agent Data';}}
+}
+
 async function loadAudits(forceRefresh=false){
   if(!auth.currentUser)return[];
   if(!forceRefresh&&Date.now()-_auditsCacheTime<30000&&_allAudits.length>0) return _allAudits;
@@ -2099,6 +2158,32 @@ async function renderAuditLog(){
   const tbody=document.getElementById('auditTableBody');
   const audits=await loadAudits();
   document.getElementById('auditBadge').textContent=audits.length;
+
+  // Surface any audits an agent has actively disputed via the agent portal
+  // ("Disagree / Request Review") \u2014 without this, that button wrote to a
+  // field nothing on the admin side ever displayed.
+  const reviewRequests=audits.filter(a=>a.agentAcknowledgement?.status==='review_requested');
+  const rrBanner=document.getElementById('reviewRequestBanner');
+  if(rrBanner){
+    rrBanner.style.display=reviewRequests.length?'block':'none';
+    if(reviewRequests.length){
+      rrBanner.innerHTML=`<div style="background:rgba(240,168,48,.08);border:1px solid rgba(240,168,48,.3);border-radius:var(--r-md);padding:12px 16px">
+        <div style="font-family:var(--font-head);font-weight:700;font-size:12.5px;color:var(--accent2);margin-bottom:8px">&#9888; ${reviewRequests.length} audit${reviewRequests.length===1?'':'s'} disputed by agent${reviewRequests.length===1?'':'s'}</div>
+        ${reviewRequests.slice(0,5).map(a=>`<div style="font-size:11.5px;color:var(--text-dim);padding:4px 0;display:flex;justify-content:space-between;gap:10px">
+          <span>${esc(a.agent||'Unknown')} &middot; ${esc(a.date||'')} &middot; ${a.totalScore??'--'}%</span>
+          <span style="color:var(--muted)">"${esc((a.agentAcknowledgement.reason||'').slice(0,80))}"</span>
+        </div>`).join('')}
+        ${reviewRequests.length>5?`<div style="font-size:10.5px;color:var(--muted);margin-top:4px">+${reviewRequests.length-5} more</div>`:''}
+      </div>`;
+    }
+  }
+
+  // Offer the backfill tool only when there's actually something to fix \u2014
+  // AI audits missing empId/tlName/team because they were saved before
+  // matchAgentByName() existed.
+  const needsBackfill=audits.filter(a=>a.aiGenerated&&!a.empId&&(a.agent||''));
+  const backfillBanner=document.getElementById('backfillAgentDataBanner');
+  if(backfillBanner) backfillBanner.style.display=needsBackfill.length?'flex':'none';
   const fa=document.getElementById('filterAgent').value.toLowerCase(),fr=document.getElementById('filterResult').value,fc=document.getElementById('filterChannel').value,fco=document.getElementById('filterCoaching').value,fcv=document.getElementById('filterConverted').value;
   const f=audits.filter(a=>{
     if(fa&&!a.agent.toLowerCase().includes(fa))return false;
