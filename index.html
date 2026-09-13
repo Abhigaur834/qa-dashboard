@@ -1781,6 +1781,20 @@ function updateGauge(score){
 }
 
 function switchTab(n,btn){
+  // Defense in depth: the nav BUTTON for admin-only tabs is already hidden
+  // for non-admins (display:none), but that alone only stops someone from
+  // clicking their way here - it doesn't stop this function itself being
+  // reached another way (direct call, stale cached state, browser history).
+  // This check makes the block real regardless of how switchTab() got called.
+  const ADMIN_ONLY_TABS=['agents','aiaccuracy'];
+  if(ADMIN_ONLY_TABS.includes(n)){
+    const role=window.getUserRole?window.getUserRole():null;
+    const allowed=role==='admin'||role==='processAdmin'||(window.isSuperAdmin&&window.isSuperAdmin());
+    if(!allowed){
+      if(typeof showToast==='function')showToast('Admin access required','e');
+      return;
+    }
+  }
   document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-tab').forEach(b=>b.classList.remove('active'));
   document.getElementById('tab-'+n).classList.add('active');
