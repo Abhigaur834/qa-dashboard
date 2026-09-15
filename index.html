@@ -1029,6 +1029,18 @@ tbody td{padding:11px 16px;font-size:13px;color:var(--text);}
               </select>
             </div>
           </div>
+          <div style="margin-bottom:14px">
+            <label style="display:block;font-size:9.5px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);font-family:var(--font-head);font-weight:700;margin-bottom:6px">Call Duration Filter (optional)</label>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+              <input type="number" id="sfMinDuration" min="0" placeholder="Min sec" title="Skip calls shorter than this" style="width:110px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-family:var(--font-body);font-size:13px;padding:9px 10px;outline:none;box-sizing:border-box">
+              <span style="color:var(--muted);font-size:12px">to</span>
+              <input type="number" id="sfMaxDuration" min="0" placeholder="Max sec" title="Skip calls longer than this (leave blank for no limit)" style="width:110px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-family:var(--font-body);font-size:13px;padding:9px 10px;outline:none;box-sizing:border-box">
+              <button type="button" onclick="document.getElementById('sfMinDuration').value='30';document.getElementById('sfMaxDuration').value='';" style="background:rgba(139,108,245,.1);border:1px solid rgba(139,108,245,.25);color:var(--purple);border-radius:var(--r-sm);padding:7px 11px;font-family:var(--font-head);font-size:10.5px;font-weight:700;cursor:pointer;white-space:nowrap">30s+</button>
+              <button type="button" onclick="document.getElementById('sfMinDuration').value='60';document.getElementById('sfMaxDuration').value='';" style="background:rgba(139,108,245,.1);border:1px solid rgba(139,108,245,.25);color:var(--purple);border-radius:var(--r-sm);padding:7px 11px;font-family:var(--font-head);font-size:10.5px;font-weight:700;cursor:pointer;white-space:nowrap">60s+</button>
+              <button type="button" onclick="document.getElementById('sfMinDuration').value='';document.getElementById('sfMaxDuration').value='';" style="background:none;border:1px solid var(--border);color:var(--text-dim);border-radius:var(--r-sm);padding:7px 11px;font-family:var(--font-head);font-size:10.5px;font-weight:700;cursor:pointer;white-space:nowrap">Clear</button>
+            </div>
+            <div style="font-size:10.5px;color:var(--muted);margin-top:5px">Very short calls are usually dial-tone or no-answer artifacts with no speech \u2014 skipping them here avoids paying to transcribe silence.</div>
+          </div>
           <div style="display:flex;gap:10px;margin-bottom:16px">
             <button onclick="sfFetchCalls()" style="background:var(--accent2-dim);border:1px solid rgba(240,168,48,.3);color:var(--accent2);border-radius:var(--r-sm);padding:9px 18px;font-family:var(--font-head);font-size:12px;font-weight:700;cursor:pointer">Fetch Calls</button>
             <div id="sfFetchStatus" style="font-size:11.5px;color:var(--muted);align-self:center"></div>
@@ -3803,7 +3815,10 @@ async function sfFetchCalls(){
   const toDate=document.getElementById('sfToDate').value;
   const agentName=document.getElementById('sfAgentFilter').value.trim();
   const callType=document.getElementById('sfCallType').value;
+  const minDuration=parseInt(document.getElementById('sfMinDuration')?.value)||0;
+  const maxDuration=parseInt(document.getElementById('sfMaxDuration')?.value)||0;
   if(!fromDate||!toDate){ showToast('Pick a date range','e'); return; }
+  if(minDuration&&maxDuration&&minDuration>maxDuration){ showToast('Min duration cannot be greater than max','e'); return; }
 
   statusEl.textContent='Fetching from Smartflo…'; statusEl.style.color='var(--muted)';
   try{
@@ -3811,14 +3826,16 @@ async function sfFetchCalls(){
     const res=await fetch(AI_API_BASE+'/api/smartflo-sync',{
       method:'POST',
       headers:{'Content-Type':'application/json','Authorization':'Bearer '+idToken},
-      body:JSON.stringify({ fromDate, toDate, agentName: agentName||undefined, callType, limit:'100' })
+      body:JSON.stringify({ fromDate, toDate, agentName: agentName||undefined, callType, limit:'100',
+        minDuration: minDuration||undefined, maxDuration: maxDuration||undefined })
     });
     const data=await res.json();
     if(!data.success){ statusEl.textContent='❌ '+(data.error||'Fetch failed'); statusEl.style.color='var(--critical)'; return; }
     _sfFoundCalls=data.calls||[];
     const label=callType==='connected'?'connected call(s)':callType==='not_connected'?'not-connected call(s)':'call(s)';
     const coverage = (data.recordsScanned!=null) ? ' — searched '+data.recordsScanned+' of '+(data.totalAvailable||0)+' calls in range' : '';
-    statusEl.textContent=_sfFoundCalls.length+' '+label+' found'+coverage;
+    const durNote = (minDuration||maxDuration) ? ` (duration ${minDuration||0}s${maxDuration?'–'+maxDuration+'s':'+'})` : '';
+    statusEl.textContent=_sfFoundCalls.length+' '+label+' found'+durNote+coverage;
     if (data.truncated) {
       statusEl.textContent += ' ⚠️ Not all calls in this date range were scanned — narrow the dates or agent filter for complete results.';
       statusEl.style.color='var(--warning)';
